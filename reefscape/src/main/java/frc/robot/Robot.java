@@ -18,7 +18,7 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-    if (driveController.getXButtonPressed()) {
+    if (driveController.getXButton()) {
       driveSubsystem.setX();
       return;
     }
