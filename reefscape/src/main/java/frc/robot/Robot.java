@@ -11,6 +11,7 @@ import frc.robot.subsystems.DriveSubsystem;
  */
 public class Robot extends TimedRobot {
   private XboxController driveController = new XboxController(0);
+  private XboxController elevatorController = new XboxController(1);
 
   private DriveSubsystem driveSubsystem = new DriveSubsystem();
 
@@ -18,21 +19,27 @@ public class Robot extends TimedRobot {
 
   @Override
   public void teleopPeriodic() {
-    if (driveController.getXButton()) {
+    if (elevatorController.getXButton()) {
       driveSubsystem.setX();
-      return;
+    } else {
+      var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
+      var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
+
+      SmartDashboard.putNumber("X speed", xSpeed);
+      SmartDashboard.putNumber("Y speed", ySpeed);
+
+      var rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
+
+      SmartDashboard.putNumber("Rotation", rot);
+
+      driveSubsystem.drive(xSpeed, ySpeed, rot, true);
     }
+  }
 
-    var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
-    var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
-
-    SmartDashboard.putNumber("X speed", xSpeed);
-    SmartDashboard.putNumber("Y speed", ySpeed);
-
-    var rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
-
-    SmartDashboard.putNumber("Rotation", rot);
-
-    driveSubsystem.drive(xSpeed, ySpeed, rot, true);
+  @Override
+  public void testPeriodic() {
+    if (elevatorController.getYButton()) {
+      driveSubsystem.resetEncoders();
+    }
   }
 }
