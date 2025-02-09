@@ -60,7 +60,7 @@ public class Robot extends TimedRobot {
 
             SmartDashboard.putNumber(ROTATION_KEY, rot);
 
-            driveSubsystem.drive(xSpeed, ySpeed, rot, true);
+            driveSubsystem.drive(xSpeed, ySpeed, rot, !driveController.getYButton());
         }
 
         SmartDashboard.putNumber(TX_KEY, LimelightHelpers.getTX(LIMELIGHT_NAME));
