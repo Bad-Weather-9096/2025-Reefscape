@@ -45,13 +45,4 @@ public class Robot extends TimedRobot {
       driveSubsystem.drive(xSpeed, ySpeed, rot, true);
     }
   }
-
-  @Override
-  public void testPeriodic() {
-    if (elevatorController.getYButtonPressed()) {
-      System.out.println("Resetting encoders");
-
-      driveSubsystem.resetEncoders();
-    }
-  }
 }
