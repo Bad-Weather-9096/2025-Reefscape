@@ -17,20 +17,30 @@ public class Robot extends TimedRobot {
 
   private static final double DRIVE_DEADBAND = 0.05;
 
+  private static final String X_SPEED_KEY = "X speed";
+  private static final String Y_SPEED_KEY = "Y speed";
+
+  private static final String ROTATION_KEY = "Rotation";
+
   @Override
   public void teleopPeriodic() {
     if (elevatorController.getXButton()) {
+      SmartDashboard.putNumber(X_SPEED_KEY, 0.0);
+      SmartDashboard.putNumber(Y_SPEED_KEY, 0.0);
+
+      SmartDashboard.putNumber(ROTATION_KEY, 0.0);
+
       driveSubsystem.setX();
     } else {
       var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
       var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
 
-      SmartDashboard.putNumber("X speed", xSpeed);
-      SmartDashboard.putNumber("Y speed", ySpeed);
+      SmartDashboard.putNumber(X_SPEED_KEY, xSpeed);
+      SmartDashboard.putNumber(Y_SPEED_KEY, ySpeed);
 
       var rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
 
-      SmartDashboard.putNumber("Rotation", rot);
+      SmartDashboard.putNumber(ROTATION_KEY, rot);
 
       driveSubsystem.drive(xSpeed, ySpeed, rot, true);
     }
@@ -38,7 +48,9 @@ public class Robot extends TimedRobot {
 
   @Override
   public void testPeriodic() {
-    if (elevatorController.getYButton()) {
+    if (elevatorController.getYButtonPressed()) {
+      System.out.println("Resetting encoders");
+
       driveSubsystem.resetEncoders();
     }
   }
