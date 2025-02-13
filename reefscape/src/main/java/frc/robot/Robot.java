@@ -1,6 +1,9 @@
 package frc.robot;
 
 import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.cscore.HttpCamera;
+import edu.wpi.first.cscore.HttpCamera.HttpCameraKind;
+import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
@@ -31,13 +34,13 @@ public class Robot extends TimedRobot {
     private static final String TV_KEY = "TV";
 
     private static final String ID_KEY = "ID";
-    private static final String CAMERA_DISTANCE_KEY = "Distance to Camera";
-    private static final String ROBOT_DISTANCE_KEY = "Distance to Robot";
 
     @Override
     @SuppressWarnings("resource")
     public void robotInit() {
-        CameraServer.startAutomaticCapture();
+        var limelightFeed = new HttpCamera("limelight", "http://10.90.96.11:5800", HttpCameraKind.kMJPGStreamer);
+        
+        CameraServer.startAutomaticCapture(limelightFeed);
     }
 
     @Override
@@ -63,24 +66,12 @@ public class Robot extends TimedRobot {
             driveSubsystem.drive(xSpeed, ySpeed, rot, !driveController.getYButton());
         }
 
+        SmartDashboard.putNumber(ID_KEY, LimelightHelpers.getFiducialID(LIMELIGHT_NAME));
+
         SmartDashboard.putNumber(TX_KEY, LimelightHelpers.getTX(LIMELIGHT_NAME));
         SmartDashboard.putNumber(TY_KEY, LimelightHelpers.getTY(LIMELIGHT_NAME));
         SmartDashboard.putNumber(TA_KEY, LimelightHelpers.getTA(LIMELIGHT_NAME));
 
         SmartDashboard.putBoolean(TV_KEY, LimelightHelpers.getTV(LIMELIGHT_NAME));
-
-        var rawFiducials = LimelightHelpers.getRawFiducials(LIMELIGHT_NAME);
-
-        if (rawFiducials.length == 1) {
-            var rawFiducial = rawFiducials[0];
-
-            SmartDashboard.putNumber(ID_KEY, rawFiducial.id);
-            SmartDashboard.putNumber(CAMERA_DISTANCE_KEY, rawFiducial.distToCamera);
-            SmartDashboard.putNumber(ROBOT_DISTANCE_KEY, rawFiducial.distToRobot);
-        } else {
-            SmartDashboard.putNumber(ID_KEY, 0);
-            SmartDashboard.putNumber(CAMERA_DISTANCE_KEY, 0.0);
-            SmartDashboard.putNumber(ROBOT_DISTANCE_KEY, 0.0);
-        }
     }
 }
