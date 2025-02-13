@@ -44,6 +44,11 @@ public class Robot extends TimedRobot {
     }
 
     @Override
+    public void autonomousPeriodic() {
+        driveSubsystem.periodic();
+    }
+
+    @Override
     public void teleopPeriodic() {
         if (elevatorController.getXButton()) {
             SmartDashboard.putNumber(X_SPEED_KEY, 0.0);
@@ -73,5 +78,7 @@ public class Robot extends TimedRobot {
         SmartDashboard.putNumber(TA_KEY, LimelightHelpers.getTA(LIMELIGHT_NAME));
 
         SmartDashboard.putBoolean(TV_KEY, LimelightHelpers.getTV(LIMELIGHT_NAME));
+
+        driveSubsystem.periodic();
     }
 }
