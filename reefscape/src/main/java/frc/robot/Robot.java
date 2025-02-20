@@ -84,7 +84,7 @@ public class Robot extends TimedRobot {
             var fieldRelative = true;
 
             if (tv && driveController.getAButton()) {
-                xSpeed = -ta * KP_RANGE;
+                xSpeed = -ty * KP_RANGE;
 
                 rot = -tx * KP_AIM;
 
