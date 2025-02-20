@@ -18,6 +18,7 @@ import java.util.List;
  */
 public class Robot extends TimedRobot {
     private XboxController driveController = new XboxController(0);
+    private XboxController auxilliaryController = new XboxController(1);
 
     private DriveSubsystem driveSubsystem = new DriveSubsystem();
 
@@ -28,7 +29,6 @@ public class Robot extends TimedRobot {
     private static final String TV_KEY = "tv";
     private static final String TX_KEY = "tx";
     private static final String TY_KEY = "ty";
-    private static final String TA_KEY = "ta";
 
     private static final String FIDUCIAL_ID_KEY = "fiducial-id";
 
@@ -85,18 +85,35 @@ public class Robot extends TimedRobot {
 
         var tx = LimelightHelpers.getTX(LIMELIGHT_NAME);
         var ty = LimelightHelpers.getTY(LIMELIGHT_NAME);
-        var ta = LimelightHelpers.getTA(LIMELIGHT_NAME);
 
         var fiducialID = LimelightHelpers.getFiducialID(LIMELIGHT_NAME);
 
+        SmartDashboard.putBoolean(TV_KEY, tv);
+
         SmartDashboard.putNumber(TX_KEY, tx);
         SmartDashboard.putNumber(TY_KEY, ty);
-        SmartDashboard.putNumber(TA_KEY, ta);
-
-        SmartDashboard.putBoolean(TV_KEY, tv);
 
         SmartDashboard.putNumber(FIDUCIAL_ID_KEY, fiducialID);
 
+        if (auxilliaryController.getXButton()) {
+            block();
+        } else {
+            drive(tv, tx, ty, fiducialID);
+        }
+
+        driveSubsystem.periodic();
+    }
+
+    private void block() {
+        SmartDashboard.putNumber(X_SPEED_KEY, 0.0);
+        SmartDashboard.putNumber(Y_SPEED_KEY, 0.0);
+
+        SmartDashboard.putNumber(ROT_KEY, 0.0);
+
+        driveSubsystem.setX();
+    }
+
+    private void drive(boolean tv, double tx, double ty, double fiducialID) {
         var fieldElementIndex = (int)fiducialID - 1;
 
         double xSpeed;
@@ -154,8 +171,6 @@ public class Robot extends TimedRobot {
         SmartDashboard.putNumber(ROT_KEY, rot);
 
         driveSubsystem.drive(xSpeed, ySpeed, rot, fieldRelative);
-
-        driveSubsystem.periodic();
     }
 
     private double getTime(double dx, double dy, double a) {
