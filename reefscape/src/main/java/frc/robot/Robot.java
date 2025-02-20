@@ -9,6 +9,8 @@ import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.DriveSubsystem;
 
+import java.util.List;
+
 /**
  * Robot class.
  */
@@ -19,19 +21,44 @@ public class Robot extends TimedRobot {
 
     private static final String LIMELIGHT_NAME = "";
 
-    private static final String TV_KEY = "TV";
-    private static final String TX_KEY = "TX";
-    private static final String TY_KEY = "TY";
-    private static final String TA_KEY = "TA";
+    private static final String TV_KEY = "tv";
+    private static final String TX_KEY = "tx";
+    private static final String TY_KEY = "ty";
+    private static final String TA_KEY = "ta";
 
-    private static final String FIDUCIAL_ID_KEY = "Fiducial ID";
+    private static final String FIDUCIAL_ID_KEY = "fiducial-id";
 
-    private static final String X_SPEED_KEY = "X speed";
-    private static final String Y_SPEED_KEY = "Y speed";
+    private static final String X_SPEED_KEY = "x-speed";
+    private static final String Y_SPEED_KEY = "y-Speed";
 
-    private static final String ROTATION_KEY = "Rotation";
+    private static final String ROT_KEY = "rot";
 
     private static final double DRIVE_DEADBAND = 0.05;
+
+    private static final List<FieldElement> fieldElements = List.of(
+        FieldElement.CORAL_STATION,
+        FieldElement.CORAL_STATION,
+        FieldElement.PROCESSOR,
+        FieldElement.BARGE,
+        FieldElement.BARGE,
+        FieldElement.REEF,
+        FieldElement.REEF,
+        FieldElement.REEF,
+        FieldElement.REEF,
+        FieldElement.REEF,
+        FieldElement.REEF,
+        FieldElement.CORAL_STATION,
+        FieldElement.CORAL_STATION,
+        FieldElement.BARGE,
+        FieldElement.BARGE,
+        FieldElement.PROCESSOR,
+        FieldElement.REEF,
+        FieldElement.REEF,
+        FieldElement.REEF,
+        FieldElement.REEF,
+        FieldElement.REEF,
+        FieldElement.REEF
+    );
 
     @Override
     public void robotInit() {
@@ -89,7 +116,7 @@ public class Robot extends TimedRobot {
         SmartDashboard.putNumber(X_SPEED_KEY, xSpeed);
         SmartDashboard.putNumber(Y_SPEED_KEY, ySpeed);
 
-        SmartDashboard.putNumber(ROTATION_KEY, rot);
+        SmartDashboard.putNumber(ROT_KEY, rot);
 
         driveSubsystem.drive(xSpeed, ySpeed, rot, fieldRelative);
     }
