@@ -3,7 +3,6 @@ package frc.robot;
 import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.HttpCamera;
 import edu.wpi.first.cscore.HttpCamera.HttpCameraKind;
-import edu.wpi.first.cscore.UsbCamera;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
@@ -15,31 +14,34 @@ import frc.robot.subsystems.DriveSubsystem;
  */
 public class Robot extends TimedRobot {
     private XboxController driveController = new XboxController(0);
-    private XboxController elevatorController = new XboxController(1);
+    private XboxController auxilliaryController = new XboxController(1);
 
     private DriveSubsystem driveSubsystem = new DriveSubsystem();
 
     private static final String LIMELIGHT_NAME = "";
 
-    private static final double DRIVE_DEADBAND = 0.05;
+    private static final String TX_KEY = "TX";
+    private static final String TY_KEY = "TY";
+    private static final String TA_KEY = "TA";
+
+    private static final String TV_KEY = "TV";
+
+    private static final String FIDUCIAL_ID_KEY = "Fiducial ID";
 
     private static final String X_SPEED_KEY = "X speed";
     private static final String Y_SPEED_KEY = "Y speed";
 
     private static final String ROTATION_KEY = "Rotation";
 
-    private static final String TX_KEY = "TX";
-    private static final String TY_KEY = "TY";
-    private static final String TA_KEY = "TA";
-    private static final String TV_KEY = "TV";
+    private static final double DRIVE_DEADBAND = 0.02;
 
-    private static final String ID_KEY = "ID";
+    private static final double KP_RANGE = 0.1;
+    private static final double KP_AIM = 0.035;
 
     @Override
-    @SuppressWarnings("resource")
     public void robotInit() {
         var limelightFeed = new HttpCamera("limelight", "http://10.90.96.11:5800", HttpCameraKind.kMJPGStreamer);
-        
+
         CameraServer.startAutomaticCapture(limelightFeed);
     }
 
@@ -50,7 +52,23 @@ public class Robot extends TimedRobot {
 
     @Override
     public void teleopPeriodic() {
-        if (elevatorController.getXButton()) {
+        var tx = LimelightHelpers.getTX(LIMELIGHT_NAME);
+        var ty = LimelightHelpers.getTY(LIMELIGHT_NAME);
+        var ta = LimelightHelpers.getTA(LIMELIGHT_NAME);
+
+        var tv = LimelightHelpers.getTV(LIMELIGHT_NAME);
+
+        var fiducialID = LimelightHelpers.getFiducialID(LIMELIGHT_NAME);
+
+        SmartDashboard.putNumber(TX_KEY, tx);
+        SmartDashboard.putNumber(TY_KEY, ty);
+        SmartDashboard.putNumber(TA_KEY, ta);
+
+        SmartDashboard.putBoolean(TV_KEY, tv);
+
+        SmartDashboard.putNumber(FIDUCIAL_ID_KEY, fiducialID);
+
+        if (auxilliaryController.getXButton()) {
             SmartDashboard.putNumber(X_SPEED_KEY, 0.0);
             SmartDashboard.putNumber(Y_SPEED_KEY, 0.0);
 
@@ -61,24 +79,24 @@ public class Robot extends TimedRobot {
             var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
             var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
 
+            var rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
+
+            var fieldRelative = true;
+
+            if (tv && driveController.getAButton()) {
+                xSpeed = -ta * KP_RANGE;
+
+                rot = -tx * KP_AIM;
+
+                fieldRelative = false;
+            }
+
             SmartDashboard.putNumber(X_SPEED_KEY, xSpeed);
             SmartDashboard.putNumber(Y_SPEED_KEY, ySpeed);
 
-            var rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
-
             SmartDashboard.putNumber(ROTATION_KEY, rot);
 
-            driveSubsystem.drive(xSpeed, ySpeed, rot, !driveController.getYButton());
+            driveSubsystem.drive(xSpeed, ySpeed, rot, fieldRelative);
         }
-
-        SmartDashboard.putNumber(ID_KEY, LimelightHelpers.getFiducialID(LIMELIGHT_NAME));
-
-        SmartDashboard.putNumber(TX_KEY, LimelightHelpers.getTX(LIMELIGHT_NAME));
-        SmartDashboard.putNumber(TY_KEY, LimelightHelpers.getTY(LIMELIGHT_NAME));
-        SmartDashboard.putNumber(TA_KEY, LimelightHelpers.getTA(LIMELIGHT_NAME));
-
-        SmartDashboard.putBoolean(TV_KEY, LimelightHelpers.getTV(LIMELIGHT_NAME));
-
-        driveSubsystem.periodic();
     }
 }
