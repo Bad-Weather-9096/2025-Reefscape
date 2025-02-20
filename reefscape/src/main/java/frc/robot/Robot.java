@@ -4,6 +4,8 @@ import edu.wpi.first.cameraserver.CameraServer;
 import edu.wpi.first.cscore.HttpCamera;
 import edu.wpi.first.cscore.HttpCamera.HttpCameraKind;
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -12,12 +14,14 @@ import frc.robot.subsystems.DriveSubsystem;
 import java.util.List;
 
 /**
- * Robot class.
+ * Implements robot functionality.
  */
 public class Robot extends TimedRobot {
     private XboxController driveController = new XboxController(0);
 
     private DriveSubsystem driveSubsystem = new DriveSubsystem();
+
+    private AutoPilotParameters autoPilotParameters = null;
 
     private static final String LIMELIGHT_NAME = "";
 
@@ -34,6 +38,9 @@ public class Robot extends TimedRobot {
     private static final String ROT_KEY = "rot";
 
     private static final double DRIVE_DEADBAND = 0.05;
+
+    // TODO Measure camera height
+    private static final Distance cameraHeight = Distance.ofBaseUnits(6.0, Units.Inches);
 
     private static final List<FieldElement> fieldElements = List.of(
         FieldElement.CORAL_STATION,
@@ -90,21 +97,49 @@ public class Robot extends TimedRobot {
 
         SmartDashboard.putNumber(FIDUCIAL_ID_KEY, fiducialID);
 
+        var fieldElementIndex = (int)fiducialID - 1;
+
         double xSpeed;
         double ySpeed;
         double rot;
         boolean fieldRelative;
-        if (driveController.getAButton() && tv) {
-            // TODO If timer has not been started, calculate rates and start
-            // TODO Otherwise, if timer has not expired, apply rates
-            // TODO Otherwise, stop timer and do nothing
-            xSpeed = 0.0;
-            ySpeed = 0.0;
+        if (driveController.getAButton() && tv && fieldElementIndex < fieldElements.size()) {
+            if (autoPilotParameters == null) {
+                var fieldElement = fieldElements.get(fieldElementIndex);
 
-            rot = 0.0;
+                var ht = fieldElement.getHeight().in(Units.Meters);
+                var hc = cameraHeight.in(Units.Meters);
+
+                var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
+                var dy = dx * Math.tan(Math.toRadians(tx));
+
+                var a = Math.toRadians(tx);
+
+                var t = getTime(dx, dy, a);
+
+                var start = System.currentTimeMillis();
+
+                autoPilotParameters = new AutoPilotParameters(start + (long)(t * 1000.0), dx / t, dy / t, a / t);
+            }
+
+            var now = System.currentTimeMillis();
+
+            if (now < autoPilotParameters.end()) {
+                xSpeed = autoPilotParameters.xSpeed();
+                ySpeed = autoPilotParameters.ySpeed();
+
+                rot = autoPilotParameters.rot();
+            } else {
+                xSpeed = 0.0;
+                ySpeed = 0.0;
+
+                rot = 0.0;
+            }
 
             fieldRelative = false;
         } else {
+            autoPilotParameters = null;
+
             xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
             ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
 
@@ -119,5 +154,16 @@ public class Robot extends TimedRobot {
         SmartDashboard.putNumber(ROT_KEY, rot);
 
         driveSubsystem.drive(xSpeed, ySpeed, rot, fieldRelative);
+
+        driveSubsystem.periodic();
+    }
+
+    private double getTime(double dx, double dy, double a) {
+        var tx = dx / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
+        var ty = dy / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
+
+        var ta = a / Constants.DriveConstants.kMaxAngularSpeed;
+
+        return Math.max(Math.max(tx, ty), ta);
     }
 }
