@@ -114,17 +114,13 @@ public class Robot extends TimedRobot {
     }
 
     private void drive(boolean tv, double tx, double ty, double fiducialID) {
-        var fieldElementIndex = (int)fiducialID - 1;
-
         double xSpeed;
         double ySpeed;
         double rot;
         boolean fieldRelative;
-        if (driveController.getAButton() && tv && fieldElementIndex < fieldElements.size()) {
+        if (driveController.getAButton() && tv) {
             if (autoPilotParameters == null) {
-                var fieldElement = fieldElements.get(fieldElementIndex);
-
-                var ht = fieldElement.getHeight().in(Units.Meters);
+                var ht = fieldElements.get((int)fiducialID - 1).getHeight().in(Units.Meters);
                 var hc = cameraHeight.in(Units.Meters);
 
                 var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
@@ -136,7 +132,7 @@ public class Robot extends TimedRobot {
 
                 var start = System.currentTimeMillis();
 
-                autoPilotParameters = new AutoPilotParameters(start + (long)(t * 1000.0), dx / t, dy / t, a / t);
+                autoPilotParameters = new AutoPilotParameters(start + (long)(t * 1000), dx / t, dy / t, a / t);
             }
 
             var now = System.currentTimeMillis();
