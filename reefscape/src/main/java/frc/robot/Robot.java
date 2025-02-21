@@ -146,7 +146,7 @@ public class Robot extends TimedRobot {
                         return;
                     }
                 }
-                case DONE -> {
+                case DONE, default -> {
                     return;
                 }
             }
