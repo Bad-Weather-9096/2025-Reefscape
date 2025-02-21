@@ -4,27 +4,37 @@ import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 
-/**
- * Represents a field element.
- */
-public record FieldElement(int id, Type type, Angle angle) {
-    /**
-     * Represents a field element type.
-     */
+public final class FieldElement {
     public enum Type {
-        CORAL_STATION(Distance.ofBaseUnits(55.25, Units.Inches)),
-        PROCESSOR(Distance.ofBaseUnits(47.88, Units.Inches)),
-        BARGE(Distance.ofBaseUnits(70.73, Units.Inches)),
-        REEF(Distance.ofBaseUnits(8.75, Units.Inches));
+        CORAL_STATION(55.25),
+        PROCESSOR(47.88),
+        BARGE(70.73),
+        REEF(8.75);
 
         private final Distance height;
 
-        Type(Distance height) {
-            this.height = height;
+        Type(double height) {
+            this.height = Distance.ofBaseUnits(height, Units.Inches);
         }
 
         public Distance getHeight() {
             return height;
         }
+    }
+
+    private Type type;
+    private Angle angle;
+
+    public FieldElement(Type type, double angle) {
+        this.type = type;
+        this.angle = Angle.ofBaseUnits(angle, Units.Degrees);
+    }
+
+    public Type getType() {
+        return type;
+    }
+
+    public Angle getAngle() {
+        return angle;
     }
 }
