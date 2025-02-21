@@ -272,6 +272,6 @@ public class Robot extends TimedRobot {
 
         var ta = Math.abs(a) / Constants.DriveConstants.kMaxAngularSpeed;
 
-        return Math.max(Math.max(tx, ty), ta);
+        return Math.max(Math.max(tx, ty), ta) * 2.0;
     }
 }
