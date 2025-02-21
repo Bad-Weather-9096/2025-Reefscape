@@ -92,67 +92,71 @@ public class Robot extends TimedRobot {
         readLimelight();
 
         if (autonomousMode == null) {
+            var dr = Distance.ofBaseUnits(REVERSE_DISTANCE, Units.Inches).in(Units.Meters);
+
+            var xSpeed = -(dr / REVERSE_TIME) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
+
             var start = System.currentTimeMillis();
 
-            var xSpeed = -(REVERSE_DISTANCE / REVERSE_TIME) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
-
             autoPilotParameters = new AutoPilotParameters(start + (long)(REVERSE_TIME * 1000), xSpeed, 0.0, 0.0);
-
             autonomousMode = AutonomousMode.REVERSE;
-        } else {
-            double xSpeed;
-            double ySpeed;
-            double rot;
-            switch (autonomousMode) {
-                case REVERSE -> {
-                    var now = System.currentTimeMillis();
 
-                    if (now < autoPilotParameters.end()) {
-                        xSpeed = autoPilotParameters.xSpeed();
-                        ySpeed = autoPilotParameters.ySpeed();
+            return;
+        }
 
-                        rot = autoPilotParameters.rot();
-                    } else {
-                        autonomousMode = AutonomousMode.LOCATE_TAG;
+        double xSpeed;
+        double ySpeed;
+        double rot;
+        switch (autonomousMode) {
+            case REVERSE -> {
+                var now = System.currentTimeMillis();
 
-                        return;
-                    }
-                }
-                case LOCATE_TAG -> {
-                    if (tv) {
-                        autoPilotParameters = createAutoPilotParameters();
-
-                        autonomousMode = AutonomousMode.DOCK;
-
-                        return;
-                    } else {
-                        xSpeed = 0.0;
-                        ySpeed = 0.0;
-
-                        rot = (Math.PI / 4) / Constants.DriveConstants.kMaxAngularSpeed;
-                    }
-                }
-                case DOCK -> {
-                    var now = System.currentTimeMillis();
-
-                    if (now < autoPilotParameters.end()) {
-                        xSpeed = autoPilotParameters.xSpeed();
-                        ySpeed = autoPilotParameters.ySpeed();
-
-                        rot = autoPilotParameters.rot();
-                    } else {
-                        autonomousMode = AutonomousMode.DONE;
-
-                        return;
-                    }
-                }
-                case DONE, default -> {
+                if (now >= autoPilotParameters.end()) {
+                    autoPilotParameters = null;
+                    autonomousMode = AutonomousMode.LOCATE_TAG;
                     return;
                 }
-            }
 
-            driveSubsystem.drive(xSpeed, ySpeed, rot, true);
+                xSpeed = autoPilotParameters.xSpeed();
+                ySpeed = autoPilotParameters.ySpeed();
+
+                rot = autoPilotParameters.rot();
+            }
+            case LOCATE_TAG -> {
+                if (tv && fieldElements.get((int)fiducialID - 1).getType() == FieldElement.Type.REEF) {
+                    autoPilotParameters = createAutoPilotParameters();
+                    autonomousMode = AutonomousMode.DOCK;
+                    return;
+                }
+
+                xSpeed = 0.0;
+                ySpeed = 0.0;
+
+                rot = (Math.PI / 4) / Constants.DriveConstants.kMaxAngularSpeed;
+            }
+            case DOCK -> {
+                var now = System.currentTimeMillis();
+
+                if (now >= autoPilotParameters.end()) {
+                    autoPilotParameters = null;
+                    autonomousMode = AutonomousMode.DONE;
+                    return;
+                }
+
+                xSpeed = autoPilotParameters.xSpeed();
+                ySpeed = autoPilotParameters.ySpeed();
+
+                rot = autoPilotParameters.rot();
+            }
+            case DONE, default -> {
+                xSpeed = 0.0;
+                ySpeed = 0.0;
+
+                rot = 0.0;
+            }
         }
+
+        driveSubsystem.drive(xSpeed, ySpeed, rot, true);
 
         driveSubsystem.periodic();
     }
@@ -168,57 +172,59 @@ public class Robot extends TimedRobot {
             SmartDashboard.putNumber(ROT_KEY, 0.0);
 
             driveSubsystem.setX();
-        } else {
-            double xSpeed;
-            double ySpeed;
-            double rot;
-            boolean fieldRelative;
-            if (driveController.getAButton() && tv) {
-                if (autoPilotParameters == null) {
-                    autoPilotParameters = createAutoPilotParameters();
-                }
 
-                var now = System.currentTimeMillis();
+            return;
+        }
 
-                if (now < autoPilotParameters.end()) {
-                    xSpeed = autoPilotParameters.xSpeed();
-                    ySpeed = autoPilotParameters.ySpeed();
-
-                    rot = autoPilotParameters.rot();
-                } else {
-                    xSpeed = 0.0;
-                    ySpeed = 0.0;
-
-                    rot = 0.0;
-                }
-
-                fieldRelative = false;
-            } else {
-                autoPilotParameters = null;
-
-                xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
-                ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
-
-                rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
-
-                fieldRelative = true;
-
-                if (driveController.getYButton()) {
-                    xSpeed = -ty * KP_RANGE;
-
-                    rot = -tx * KP_AIM;
-
-                    fieldRelative = false;
-                }
+        double xSpeed;
+        double ySpeed;
+        double rot;
+        boolean fieldRelative;
+        if (driveController.getAButton() && tv) {
+            if (autoPilotParameters == null) {
+                autoPilotParameters = createAutoPilotParameters();
             }
 
-            SmartDashboard.putNumber(X_SPEED_KEY, xSpeed);
-            SmartDashboard.putNumber(Y_SPEED_KEY, ySpeed);
+            var now = System.currentTimeMillis();
 
-            SmartDashboard.putNumber(ROT_KEY, rot);
+            if (now < autoPilotParameters.end()) {
+                xSpeed = autoPilotParameters.xSpeed();
+                ySpeed = autoPilotParameters.ySpeed();
 
-            driveSubsystem.drive(xSpeed, ySpeed, rot, fieldRelative);
+                rot = autoPilotParameters.rot();
+            } else {
+                xSpeed = 0.0;
+                ySpeed = 0.0;
+
+                rot = 0.0;
+            }
+
+            fieldRelative = false;
+        } else {
+            autoPilotParameters = null;
+
+            xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
+            ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
+
+            rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
+
+            fieldRelative = true;
+
+            if (driveController.getYButton()) {
+                xSpeed = -ty * KP_RANGE;
+
+                rot = -tx * KP_AIM;
+
+                fieldRelative = false;
+            }
         }
+
+        SmartDashboard.putNumber(X_SPEED_KEY, xSpeed);
+        SmartDashboard.putNumber(Y_SPEED_KEY, ySpeed);
+
+        SmartDashboard.putNumber(ROT_KEY, rot);
+
+        driveSubsystem.drive(xSpeed, ySpeed, rot, fieldRelative);
 
         driveSubsystem.periodic();
     }
