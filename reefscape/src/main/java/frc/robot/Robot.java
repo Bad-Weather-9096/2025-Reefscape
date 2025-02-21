@@ -39,8 +39,7 @@ public class Robot extends TimedRobot {
 
     private static final double DRIVE_DEADBAND = 0.05;
 
-    // TODO Measure camera height
-    private static final Distance cameraHeight = Distance.ofBaseUnits(6.0, Units.Inches);
+    private static final Distance cameraHeight = Distance.ofBaseUnits(9.25, Units.Inches);
 
     private static final List<FieldElement> fieldElements = List.of(
         FieldElement.CORAL_STATION,
