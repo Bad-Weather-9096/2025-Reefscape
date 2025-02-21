@@ -43,28 +43,28 @@ public class Robot extends TimedRobot {
     private static final Distance cameraHeight = Distance.ofBaseUnits(9.25, Units.Inches);
 
     private static final List<FieldElement> fieldElements = List.of(
-        new FieldElement(1, FieldElement.Type.CORAL_STATION, Angle.ofBaseUnits(234.0, Units.Degrees)),
+        new FieldElement(1, FieldElement.Type.CORAL_STATION, Angle.ofBaseUnits(-126.0, Units.Degrees)),
         new FieldElement(2, FieldElement.Type.CORAL_STATION, Angle.ofBaseUnits(126.0, Units.Degrees)),
         new FieldElement(3, FieldElement.Type.PROCESSOR, Angle.ofBaseUnits(90.0, Units.Degrees)),
         new FieldElement(4, FieldElement.Type.BARGE, Angle.ofBaseUnits(0.0, Units.Degrees)),
         new FieldElement(5, FieldElement.Type.BARGE, Angle.ofBaseUnits(0.0, Units.Degrees)),
         new FieldElement(6, FieldElement.Type.REEF, Angle.ofBaseUnits(60.0, Units.Degrees)),
         new FieldElement(7, FieldElement.Type.REEF, Angle.ofBaseUnits(0.0, Units.Degrees)),
-        new FieldElement(8, FieldElement.Type.REEF, Angle.ofBaseUnits(300.0, Units.Degrees)),
-        new FieldElement(9, FieldElement.Type.REEF, Angle.ofBaseUnits(240.0, Units.Degrees)),
+        new FieldElement(8, FieldElement.Type.REEF, Angle.ofBaseUnits(-60.0, Units.Degrees)),
+        new FieldElement(9, FieldElement.Type.REEF, Angle.ofBaseUnits(-120.0, Units.Degrees)),
         new FieldElement(10, FieldElement.Type.REEF, Angle.ofBaseUnits(180.0, Units.Degrees)),
         new FieldElement(11, FieldElement.Type.REEF, Angle.ofBaseUnits(120.0, Units.Degrees)),
         new FieldElement(12, FieldElement.Type.CORAL_STATION, Angle.ofBaseUnits(126.0, Units.Degrees)),
-        new FieldElement(13, FieldElement.Type.CORAL_STATION, Angle.ofBaseUnits(234.0, Units.Degrees)),
+        new FieldElement(13, FieldElement.Type.CORAL_STATION, Angle.ofBaseUnits(-126.0, Units.Degrees)),
         new FieldElement(14, FieldElement.Type.BARGE, Angle.ofBaseUnits(0.0, Units.Degrees)),
         new FieldElement(15, FieldElement.Type.BARGE, Angle.ofBaseUnits(0.0, Units.Degrees)),
         new FieldElement(16, FieldElement.Type.PROCESSOR, Angle.ofBaseUnits(90.0, Units.Degrees)),
-        new FieldElement(17, FieldElement.Type.REEF, Angle.ofBaseUnits(300.0, Units.Degrees)),
+        new FieldElement(17, FieldElement.Type.REEF, Angle.ofBaseUnits(-60.0, Units.Degrees)),
         new FieldElement(18, FieldElement.Type.REEF, Angle.ofBaseUnits(0.0, Units.Degrees)),
         new FieldElement(19, FieldElement.Type.REEF, Angle.ofBaseUnits(60.0, Units.Degrees)),
         new FieldElement(20, FieldElement.Type.REEF, Angle.ofBaseUnits(120.0, Units.Degrees)),
         new FieldElement(21, FieldElement.Type.REEF, Angle.ofBaseUnits(180.0, Units.Degrees)),
-        new FieldElement(22, FieldElement.Type.REEF, Angle.ofBaseUnits(240.0, Units.Degrees))
+        new FieldElement(22, FieldElement.Type.REEF, Angle.ofBaseUnits(-120.0, Units.Degrees))
     );
 
     @Override
@@ -120,13 +120,18 @@ public class Robot extends TimedRobot {
         boolean fieldRelative;
         if (driveController.getAButton() && tv) {
             if (autoPilotParameters == null) {
-                var ht = fieldElements.get((int)fiducialID - 1).type().getHeight().in(Units.Meters);
+                var fieldElement = fieldElements.get((int)fiducialID - 1);
+
+                var ht = fieldElement.type().getHeight().in(Units.Meters);
                 var hc = cameraHeight.in(Units.Meters);
 
                 var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
                 var dy = dx * Math.tan(Math.toRadians(tx));
 
-                var a = Math.toRadians(tx);
+                var angle = fieldElement.angle().in(Units.Radians);
+                var heading = Math.toRadians(driveSubsystem.getHeading());
+
+                var a = angle - heading;
 
                 var t = getTime(dx, dy, a);
 
@@ -159,6 +164,14 @@ public class Robot extends TimedRobot {
             rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
 
             fieldRelative = true;
+
+            if (driveController.getYButton()) {
+                // TODO PID correction
+                xSpeed = 0.0;
+                rot = 0.0;
+
+                fieldRelative = false;
+            }
         }
 
         SmartDashboard.putNumber(X_SPEED_KEY, xSpeed);
@@ -173,7 +186,7 @@ public class Robot extends TimedRobot {
         var tx = dx / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
         var ty = dy / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
 
-        var ta = a / Constants.DriveConstants.kMaxAngularSpeed;
+        var ta = Math.abs(a) / Constants.DriveConstants.kMaxAngularSpeed;
 
         return Math.max(Math.max(tx, ty), ta);
     }
