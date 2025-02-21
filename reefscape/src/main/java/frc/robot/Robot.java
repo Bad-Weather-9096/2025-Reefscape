@@ -21,6 +21,15 @@ public class Robot extends TimedRobot {
 
     private DriveSubsystem driveSubsystem = new DriveSubsystem();
 
+    private boolean tv = false;
+
+    private double tx = 0.0;
+    private double ty = 0.0;
+
+    private double fiducialID = -1.0;
+
+    private AutonomousMode autonomousMode = null;
+
     private AutoPilotParameters autoPilotParameters = null;
 
     private static final String LIMELIGHT_NAME = "";
@@ -35,6 +44,9 @@ public class Robot extends TimedRobot {
     private static final String Y_SPEED_KEY = "y-Speed";
 
     private static final String ROT_KEY = "rot";
+
+    private static final double REVERSE_DISTANCE = 72.0; // inches
+    private static final double REVERSE_TIME = 4.0; // seconds
 
     private static final double DRIVE_DEADBAND = 0.05;
 
@@ -77,24 +89,77 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousPeriodic() {
+        readLimelight();
+
+        if (autonomousMode == null) {
+            var start = System.currentTimeMillis();
+
+            var xSpeed = (REVERSE_DISTANCE / REVERSE_TIME) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
+
+            autoPilotParameters = new AutoPilotParameters(start + (long)(REVERSE_TIME * 1000), xSpeed, 0.0, 0.0);
+
+            autonomousMode = AutonomousMode.REVERSE;
+        } else {
+            double xSpeed;
+            double ySpeed;
+            double rot;
+            switch (autonomousMode) {
+                case REVERSE -> {
+                    var now = System.currentTimeMillis();
+
+                    if (now < autoPilotParameters.end()) {
+                        xSpeed = autoPilotParameters.xSpeed();
+                        ySpeed = autoPilotParameters.ySpeed();
+
+                        rot = autoPilotParameters.rot();
+                    } else {
+                        autonomousMode = AutonomousMode.LOCATE_TAG;
+
+                        return;
+                    }
+                }
+                case LOCATE_TAG -> {
+                    if (tv) {
+                        autoPilotParameters = createAutoPilotParameters();
+
+                        autonomousMode = AutonomousMode.DOCK;
+
+                        return;
+                    } else {
+                        xSpeed = 0.0;
+                        ySpeed = 0.0;
+
+                        rot = (Math.PI / 4) / Constants.DriveConstants.kMaxAngularSpeed;
+                    }
+                }
+                case DOCK -> {
+                    var now = System.currentTimeMillis();
+
+                    if (now < autoPilotParameters.end()) {
+                        xSpeed = autoPilotParameters.xSpeed();
+                        ySpeed = autoPilotParameters.ySpeed();
+
+                        rot = autoPilotParameters.rot();
+                    } else {
+                        autonomousMode = AutonomousMode.DONE;
+
+                        return;
+                    }
+                }
+                case DONE -> {
+                    return;
+                }
+            }
+
+            driveSubsystem.drive(xSpeed, ySpeed, rot, true);
+        }
+
         driveSubsystem.periodic();
     }
 
     @Override
     public void teleopPeriodic() {
-        var tv = LimelightHelpers.getTV(LIMELIGHT_NAME);
-
-        var tx = LimelightHelpers.getTX(LIMELIGHT_NAME);
-        var ty = LimelightHelpers.getTY(LIMELIGHT_NAME);
-
-        var fiducialID = LimelightHelpers.getFiducialID(LIMELIGHT_NAME);
-
-        SmartDashboard.putBoolean(TV_KEY, tv);
-
-        SmartDashboard.putNumber(TX_KEY, tx);
-        SmartDashboard.putNumber(TY_KEY, ty);
-
-        SmartDashboard.putNumber(FIDUCIAL_ID_KEY, fiducialID);
+        readLimelight();
 
         if (driveController.getXButton()) {
             SmartDashboard.putNumber(X_SPEED_KEY, 0.0);
@@ -110,24 +175,7 @@ public class Robot extends TimedRobot {
             boolean fieldRelative;
             if (driveController.getAButton() && tv) {
                 if (autoPilotParameters == null) {
-                    var fieldElement = fieldElements.get((int)fiducialID - 1);
-
-                    var ht = fieldElement.getType().getHeight().in(Units.Meters);
-                    var hc = cameraHeight.in(Units.Meters);
-
-                    var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
-                    var dy = dx * Math.tan(Math.toRadians(tx));
-
-                    var angle = fieldElement.getAngle().in(Units.Radians);
-                    var heading = Math.toRadians(driveSubsystem.getHeading());
-
-                    var a = angle - heading;
-
-                    var t = getTime(dx, dy, a);
-
-                    var start = System.currentTimeMillis();
-
-                    autoPilotParameters = new AutoPilotParameters(start + (long)(t * 1000), dx / t, dy / t, a / t);
+                    autoPilotParameters = createAutoPilotParameters();
                 }
 
                 var now = System.currentTimeMillis();
@@ -173,6 +221,43 @@ public class Robot extends TimedRobot {
         }
 
         driveSubsystem.periodic();
+    }
+
+    private void readLimelight() {
+        tv = LimelightHelpers.getTV(LIMELIGHT_NAME);
+
+        tx = LimelightHelpers.getTX(LIMELIGHT_NAME);
+        ty = LimelightHelpers.getTY(LIMELIGHT_NAME);
+
+        fiducialID = LimelightHelpers.getFiducialID(LIMELIGHT_NAME);
+
+        SmartDashboard.putBoolean(TV_KEY, tv);
+
+        SmartDashboard.putNumber(TX_KEY, tx);
+        SmartDashboard.putNumber(TY_KEY, ty);
+
+        SmartDashboard.putNumber(FIDUCIAL_ID_KEY, fiducialID);
+    }
+
+    private AutoPilotParameters createAutoPilotParameters() {
+        var fieldElement = fieldElements.get((int)fiducialID - 1);
+
+        var ht = fieldElement.getType().getHeight().in(Units.Meters);
+        var hc = cameraHeight.in(Units.Meters);
+
+        var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
+        var dy = dx * Math.tan(Math.toRadians(tx));
+
+        var angle = fieldElement.getAngle().in(Units.Radians);
+        var heading = Math.toRadians(driveSubsystem.getHeading());
+
+        var a = angle - heading;
+
+        var t = getTime(dx, dy, a);
+
+        var start = System.currentTimeMillis();
+
+        return new AutoPilotParameters(start + (long)(t * 1000), dx / t, dy / t, a / t);
     }
 
     private double getTime(double dx, double dy, double a) {
