@@ -5,6 +5,7 @@ import edu.wpi.first.cscore.HttpCamera;
 import edu.wpi.first.cscore.HttpCamera.HttpCameraKind;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.Units;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
@@ -42,28 +43,28 @@ public class Robot extends TimedRobot {
     private static final Distance cameraHeight = Distance.ofBaseUnits(9.25, Units.Inches);
 
     private static final List<FieldElement> fieldElements = List.of(
-        FieldElement.CORAL_STATION,
-        FieldElement.CORAL_STATION,
-        FieldElement.PROCESSOR,
-        FieldElement.BARGE,
-        FieldElement.BARGE,
-        FieldElement.REEF,
-        FieldElement.REEF,
-        FieldElement.REEF,
-        FieldElement.REEF,
-        FieldElement.REEF,
-        FieldElement.REEF,
-        FieldElement.CORAL_STATION,
-        FieldElement.CORAL_STATION,
-        FieldElement.BARGE,
-        FieldElement.BARGE,
-        FieldElement.PROCESSOR,
-        FieldElement.REEF,
-        FieldElement.REEF,
-        FieldElement.REEF,
-        FieldElement.REEF,
-        FieldElement.REEF,
-        FieldElement.REEF
+        new FieldElement(1, FieldElement.Type.CORAL_STATION, Angle.ofBaseUnits(234.0, Units.Degrees)),
+        new FieldElement(2, FieldElement.Type.CORAL_STATION, Angle.ofBaseUnits(126.0, Units.Degrees)),
+        new FieldElement(3, FieldElement.Type.PROCESSOR, Angle.ofBaseUnits(90.0, Units.Degrees)),
+        new FieldElement(4, FieldElement.Type.BARGE, Angle.ofBaseUnits(0.0, Units.Degrees)),
+        new FieldElement(5, FieldElement.Type.BARGE, Angle.ofBaseUnits(0.0, Units.Degrees)),
+        new FieldElement(6, FieldElement.Type.REEF, Angle.ofBaseUnits(60.0, Units.Degrees)),
+        new FieldElement(7, FieldElement.Type.REEF, Angle.ofBaseUnits(0.0, Units.Degrees)),
+        new FieldElement(8, FieldElement.Type.REEF, Angle.ofBaseUnits(300.0, Units.Degrees)),
+        new FieldElement(9, FieldElement.Type.REEF, Angle.ofBaseUnits(240.0, Units.Degrees)),
+        new FieldElement(10, FieldElement.Type.REEF, Angle.ofBaseUnits(180.0, Units.Degrees)),
+        new FieldElement(11, FieldElement.Type.REEF, Angle.ofBaseUnits(120.0, Units.Degrees)),
+        new FieldElement(12, FieldElement.Type.CORAL_STATION, Angle.ofBaseUnits(126.0, Units.Degrees)),
+        new FieldElement(13, FieldElement.Type.CORAL_STATION, Angle.ofBaseUnits(234.0, Units.Degrees)),
+        new FieldElement(14, FieldElement.Type.BARGE, Angle.ofBaseUnits(0.0, Units.Degrees)),
+        new FieldElement(15, FieldElement.Type.BARGE, Angle.ofBaseUnits(0.0, Units.Degrees)),
+        new FieldElement(16, FieldElement.Type.PROCESSOR, Angle.ofBaseUnits(90.0, Units.Degrees)),
+        new FieldElement(17, FieldElement.Type.REEF, Angle.ofBaseUnits(300.0, Units.Degrees)),
+        new FieldElement(18, FieldElement.Type.REEF, Angle.ofBaseUnits(0.0, Units.Degrees)),
+        new FieldElement(19, FieldElement.Type.REEF, Angle.ofBaseUnits(60.0, Units.Degrees)),
+        new FieldElement(20, FieldElement.Type.REEF, Angle.ofBaseUnits(120.0, Units.Degrees)),
+        new FieldElement(21, FieldElement.Type.REEF, Angle.ofBaseUnits(180.0, Units.Degrees)),
+        new FieldElement(22, FieldElement.Type.REEF, Angle.ofBaseUnits(240.0, Units.Degrees))
     );
 
     @Override
@@ -119,7 +120,7 @@ public class Robot extends TimedRobot {
         boolean fieldRelative;
         if (driveController.getAButton() && tv) {
             if (autoPilotParameters == null) {
-                var ht = fieldElements.get((int)fiducialID - 1).getHeight().in(Units.Meters);
+                var ht = fieldElements.get((int)fiducialID - 1).type().getHeight().in(Units.Meters);
                 var hc = cameraHeight.in(Units.Meters);
 
                 var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
