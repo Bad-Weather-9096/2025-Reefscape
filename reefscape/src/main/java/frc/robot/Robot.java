@@ -19,7 +19,6 @@ import java.util.List;
  */
 public class Robot extends TimedRobot {
     private XboxController driveController = new XboxController(0);
-    private XboxController auxilliaryController = new XboxController(1);
 
     private DriveSubsystem driveSubsystem = new DriveSubsystem();
 
@@ -46,28 +45,72 @@ public class Robot extends TimedRobot {
     private static final Distance cameraHeight = Distance.ofBaseUnits(9.25, Units.Inches);
 
     private static final List<FieldElement> fieldElements = List.of(
-        new FieldElement(1, FieldElement.Type.CORAL_STATION, Angle.ofBaseUnits(-126.0, Units.Degrees)),
-        new FieldElement(2, FieldElement.Type.CORAL_STATION, Angle.ofBaseUnits(126.0, Units.Degrees)),
-        new FieldElement(3, FieldElement.Type.PROCESSOR, Angle.ofBaseUnits(90.0, Units.Degrees)),
-        new FieldElement(4, FieldElement.Type.BARGE, Angle.ofBaseUnits(0.0, Units.Degrees)),
-        new FieldElement(5, FieldElement.Type.BARGE, Angle.ofBaseUnits(0.0, Units.Degrees)),
-        new FieldElement(6, FieldElement.Type.REEF, Angle.ofBaseUnits(60.0, Units.Degrees)),
-        new FieldElement(7, FieldElement.Type.REEF, Angle.ofBaseUnits(0.0, Units.Degrees)),
-        new FieldElement(8, FieldElement.Type.REEF, Angle.ofBaseUnits(-60.0, Units.Degrees)),
-        new FieldElement(9, FieldElement.Type.REEF, Angle.ofBaseUnits(-120.0, Units.Degrees)),
-        new FieldElement(10, FieldElement.Type.REEF, Angle.ofBaseUnits(180.0, Units.Degrees)),
-        new FieldElement(11, FieldElement.Type.REEF, Angle.ofBaseUnits(120.0, Units.Degrees)),
-        new FieldElement(12, FieldElement.Type.CORAL_STATION, Angle.ofBaseUnits(126.0, Units.Degrees)),
-        new FieldElement(13, FieldElement.Type.CORAL_STATION, Angle.ofBaseUnits(-126.0, Units.Degrees)),
-        new FieldElement(14, FieldElement.Type.BARGE, Angle.ofBaseUnits(0.0, Units.Degrees)),
-        new FieldElement(15, FieldElement.Type.BARGE, Angle.ofBaseUnits(0.0, Units.Degrees)),
-        new FieldElement(16, FieldElement.Type.PROCESSOR, Angle.ofBaseUnits(90.0, Units.Degrees)),
-        new FieldElement(17, FieldElement.Type.REEF, Angle.ofBaseUnits(-60.0, Units.Degrees)),
-        new FieldElement(18, FieldElement.Type.REEF, Angle.ofBaseUnits(0.0, Units.Degrees)),
-        new FieldElement(19, FieldElement.Type.REEF, Angle.ofBaseUnits(60.0, Units.Degrees)),
-        new FieldElement(20, FieldElement.Type.REEF, Angle.ofBaseUnits(120.0, Units.Degrees)),
-        new FieldElement(21, FieldElement.Type.REEF, Angle.ofBaseUnits(180.0, Units.Degrees)),
-        new FieldElement(22, FieldElement.Type.REEF, Angle.ofBaseUnits(-120.0, Units.Degrees))
+        new FieldElement(1,
+            FieldElement.Type.CORAL_STATION, Angle.ofBaseUnits(-126.0, Units.Degrees)
+        ),
+        new FieldElement(2,
+            FieldElement.Type.CORAL_STATION, Angle.ofBaseUnits(126.0, Units.Degrees)
+        ),
+        new FieldElement(3,
+            FieldElement.Type.PROCESSOR, Angle.ofBaseUnits(90.0, Units.Degrees)
+        ),
+        new FieldElement(4,
+            FieldElement.Type.BARGE, Angle.ofBaseUnits(0.0, Units.Degrees)
+        ),
+        new FieldElement(5,
+            FieldElement.Type.BARGE, Angle.ofBaseUnits(0.0, Units.Degrees)
+        ),
+        new FieldElement(6,
+            FieldElement.Type.REEF, Angle.ofBaseUnits(60.0, Units.Degrees)
+        ),
+        new FieldElement(7,
+            FieldElement.Type.REEF, Angle.ofBaseUnits(0.0, Units.Degrees)
+        ),
+        new FieldElement(8,
+            FieldElement.Type.REEF, Angle.ofBaseUnits(-60.0, Units.Degrees)
+        ),
+        new FieldElement(9,
+            FieldElement.Type.REEF, Angle.ofBaseUnits(-120.0, Units.Degrees)
+        ),
+        new FieldElement(10,
+            FieldElement.Type.REEF, Angle.ofBaseUnits(180.0, Units.Degrees)
+        ),
+        new FieldElement(11,
+            FieldElement.Type.REEF, Angle.ofBaseUnits(120.0, Units.Degrees)
+        ),
+        new FieldElement(12,
+            FieldElement.Type.CORAL_STATION, Angle.ofBaseUnits(126.0, Units.Degrees)
+        ),
+        new FieldElement(13,
+            FieldElement.Type.CORAL_STATION, Angle.ofBaseUnits(-126.0, Units.Degrees)
+        ),
+        new FieldElement(14,
+            FieldElement.Type.BARGE, Angle.ofBaseUnits(0.0, Units.Degrees)
+        ),
+        new FieldElement(15,
+            FieldElement.Type.BARGE, Angle.ofBaseUnits(0.0, Units.Degrees)
+        ),
+        new FieldElement(16,
+            FieldElement.Type.PROCESSOR, Angle.ofBaseUnits(90.0, Units.Degrees)
+        ),
+        new FieldElement(17,
+            FieldElement.Type.REEF, Angle.ofBaseUnits(-60.0, Units.Degrees)
+        ),
+        new FieldElement(18,
+            FieldElement.Type.REEF, Angle.ofBaseUnits(0.0, Units.Degrees)
+        ),
+        new FieldElement(19,
+            FieldElement.Type.REEF, Angle.ofBaseUnits(60.0, Units.Degrees)
+        ),
+        new FieldElement(20,
+            FieldElement.Type.REEF, Angle.ofBaseUnits(120.0, Units.Degrees)
+        ),
+        new FieldElement(21,
+            FieldElement.Type.REEF, Angle.ofBaseUnits(180.0, Units.Degrees)
+        ),
+        new FieldElement(22,
+            FieldElement.Type.REEF, Angle.ofBaseUnits(-120.0, Units.Degrees)
+        )
     );
 
     @Override
@@ -98,91 +141,83 @@ public class Robot extends TimedRobot {
 
         SmartDashboard.putNumber(FIDUCIAL_ID_KEY, fiducialID);
 
-        if (auxilliaryController.getXButton()) {
-            block();
+        if (driveController.getXButton()) {
+            SmartDashboard.putNumber(X_SPEED_KEY, 0.0);
+            SmartDashboard.putNumber(Y_SPEED_KEY, 0.0);
+
+            SmartDashboard.putNumber(ROT_KEY, 0.0);
+
+            driveSubsystem.setX();
         } else {
-            drive(tv, tx, ty, fiducialID);
+            double xSpeed;
+            double ySpeed;
+            double rot;
+            boolean fieldRelative;
+            if (driveController.getAButton() && tv) {
+                if (autoPilotParameters == null) {
+                    var fieldElement = fieldElements.get((int)fiducialID - 1);
+
+                    var ht = fieldElement.type().getHeight().in(Units.Meters);
+                    var hc = cameraHeight.in(Units.Meters);
+
+                    var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
+                    var dy = dx * Math.tan(Math.toRadians(tx));
+
+                    var angle = fieldElement.angle().in(Units.Radians);
+                    var heading = Math.toRadians(driveSubsystem.getHeading());
+
+                    var a = angle - heading;
+
+                    var t = getTime(dx, dy, a);
+
+                    var start = System.currentTimeMillis();
+
+                    autoPilotParameters = new AutoPilotParameters(start + (long)(t * 1000), dx / t, dy / t, a / t);
+                }
+
+                var now = System.currentTimeMillis();
+
+                if (now < autoPilotParameters.end()) {
+                    xSpeed = autoPilotParameters.xSpeed();
+                    ySpeed = autoPilotParameters.ySpeed();
+
+                    rot = autoPilotParameters.rot();
+                } else {
+                    xSpeed = 0.0;
+                    ySpeed = 0.0;
+
+                    rot = 0.0;
+                }
+
+                fieldRelative = false;
+            } else {
+                autoPilotParameters = null;
+
+                xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
+                ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
+
+                rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
+
+                fieldRelative = true;
+
+                if (driveController.getYButton()) {
+                    xSpeed = -ty * KP_RANGE;
+
+                    rot = -tx * KP_AIM;
+
+                    fieldRelative = false;
+                }
+            }
+
+            SmartDashboard.putNumber(X_SPEED_KEY, xSpeed);
+            SmartDashboard.putNumber(Y_SPEED_KEY, ySpeed);
+
+            SmartDashboard.putNumber(ROT_KEY, rot);
+
+            driveSubsystem.drive(xSpeed, ySpeed, rot, fieldRelative);
         }
 
         driveSubsystem.periodic();
-    }
-
-    private void block() {
-        SmartDashboard.putNumber(X_SPEED_KEY, 0.0);
-        SmartDashboard.putNumber(Y_SPEED_KEY, 0.0);
-
-        SmartDashboard.putNumber(ROT_KEY, 0.0);
-
-        driveSubsystem.setX();
-    }
-
-    private void drive(boolean tv, double tx, double ty, double fiducialID) {
-        double xSpeed;
-        double ySpeed;
-        double rot;
-        boolean fieldRelative;
-        if (driveController.getAButton() && tv) {
-            if (autoPilotParameters == null) {
-                var fieldElement = fieldElements.get((int)fiducialID - 1);
-
-                var ht = fieldElement.type().getHeight().in(Units.Meters);
-                var hc = cameraHeight.in(Units.Meters);
-
-                var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
-                var dy = dx * Math.tan(Math.toRadians(tx));
-
-                var angle = fieldElement.angle().in(Units.Radians);
-                var heading = Math.toRadians(driveSubsystem.getHeading());
-
-                var a = angle - heading;
-
-                var t = getTime(dx, dy, a);
-
-                var start = System.currentTimeMillis();
-
-                autoPilotParameters = new AutoPilotParameters(start + (long)(t * 1000), dx / t, dy / t, a / t);
-            }
-
-            var now = System.currentTimeMillis();
-
-            if (now < autoPilotParameters.end()) {
-                xSpeed = autoPilotParameters.xSpeed();
-                ySpeed = autoPilotParameters.ySpeed();
-
-                rot = autoPilotParameters.rot();
-            } else {
-                xSpeed = 0.0;
-                ySpeed = 0.0;
-
-                rot = 0.0;
-            }
-
-            fieldRelative = false;
-        } else {
-            autoPilotParameters = null;
-
-            xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
-            ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
-
-            rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
-
-            fieldRelative = true;
-
-            if (driveController.getYButton()) {
-                xSpeed = -ty * KP_RANGE;
-
-                rot = -tx * KP_AIM;
-
-                fieldRelative = false;
-            }
-        }
-
-        SmartDashboard.putNumber(X_SPEED_KEY, xSpeed);
-        SmartDashboard.putNumber(Y_SPEED_KEY, ySpeed);
-
-        SmartDashboard.putNumber(ROT_KEY, rot);
-
-        driveSubsystem.drive(xSpeed, ySpeed, rot, fieldRelative);
     }
 
     private double getTime(double dx, double dy, double a) {
