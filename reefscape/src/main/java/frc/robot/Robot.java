@@ -40,6 +40,9 @@ public class Robot extends TimedRobot {
 
     private static final double DRIVE_DEADBAND = 0.05;
 
+    private static final double KP_RANGE = 0.1;
+    private static final double KP_AIM = 0.035;
+
     private static final Distance cameraHeight = Distance.ofBaseUnits(9.25, Units.Inches);
 
     private static final List<FieldElement> fieldElements = List.of(
@@ -166,9 +169,9 @@ public class Robot extends TimedRobot {
             fieldRelative = true;
 
             if (driveController.getYButton()) {
-                // TODO PID correction
-                xSpeed = 0.0;
-                rot = 0.0;
+                xSpeed = -ty * KP_RANGE;
+
+                rot = -tx * KP_AIM;
 
                 fieldRelative = false;
             }
