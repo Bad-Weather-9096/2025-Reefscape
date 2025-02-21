@@ -94,7 +94,7 @@ public class Robot extends TimedRobot {
         if (autonomousMode == null) {
             var start = System.currentTimeMillis();
 
-            var xSpeed = (REVERSE_DISTANCE / REVERSE_TIME) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
+            var xSpeed = -(REVERSE_DISTANCE / REVERSE_TIME) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
 
             autoPilotParameters = new AutoPilotParameters(start + (long)(REVERSE_TIME * 1000), xSpeed, 0.0, 0.0);
 
