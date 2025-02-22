@@ -45,15 +45,18 @@ public class Robot extends TimedRobot {
 
     private static final String ROT_KEY = "rot";
 
-    private static final double REVERSE_DISTANCE = 72.0; // inches
+    private static final double REVERSE_DISTANCE = 84.0; // inches
     private static final double REVERSE_TIME = 4.0; // seconds
+
+    private static final double LOCATE_TAG_SPEED = Math.PI / 4; // radians/second
+    private static final double LOCATE_TAG_TIME = 4.0; // seconds
 
     private static final double DRIVE_DEADBAND = 0.05;
 
     private static final double KP_RANGE = 0.1;
     private static final double KP_AIM = 0.035;
 
-    private static final Distance cameraHeight = Distance.ofBaseUnits(9.25, Units.Inches);
+    private static final double CAMERA_HEIGHT = 9.25; // inches
 
     private static final List<FieldElement> fieldElements = List.of(
         new FieldElement(FieldElement.Type.CORAL_STATION, -126.0),
@@ -91,72 +94,63 @@ public class Robot extends TimedRobot {
     public void autonomousPeriodic() {
         readLimelight();
 
+        var now = System.currentTimeMillis();
+
         if (autonomousMode == null) {
+            autonomousMode = AutonomousMode.REVERSE;
+
             var dr = Distance.ofBaseUnits(REVERSE_DISTANCE, Units.Inches).in(Units.Meters);
 
             var xSpeed = -(dr / REVERSE_TIME) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
 
-            var start = System.currentTimeMillis();
-
-            autoPilotParameters = new AutoPilotParameters(start + (long)(REVERSE_TIME * 1000), xSpeed, 0.0, 0.0);
-            autonomousMode = AutonomousMode.REVERSE;
+            autoPilotParameters = new AutoPilotParameters(now + (long)(REVERSE_TIME * 1000), xSpeed, 0.0, 0.0);
 
             return;
         }
 
-        double xSpeed;
-        double ySpeed;
-        double rot;
         switch (autonomousMode) {
             case REVERSE -> {
-                var now = System.currentTimeMillis();
-
                 if (now >= autoPilotParameters.end()) {
-                    autoPilotParameters = null;
                     autonomousMode = AutonomousMode.LOCATE_TAG;
+
+                    var rot = LOCATE_TAG_SPEED / Constants.DriveConstants.kMaxAngularSpeed;
+
+                    autoPilotParameters = new AutoPilotParameters(now + (long)(LOCATE_TAG_TIME * 1000), 0.0, 0.0, rot);
+
                     return;
                 }
-
-                xSpeed = autoPilotParameters.xSpeed();
-                ySpeed = autoPilotParameters.ySpeed();
-
-                rot = autoPilotParameters.rot();
             }
             case LOCATE_TAG -> {
-                if (tv && fieldElements.get((int)fiducialID - 1).getType() == FieldElement.Type.REEF) {
-                    autoPilotParameters = createAutoPilotParameters();
-                    autonomousMode = AutonomousMode.DOCK;
+                if (now >= autoPilotParameters.end()) {
+                    autonomousMode = AutonomousMode.DONE;
+
+                    autoPilotParameters = new AutoPilotParameters(0, 0.0, 0.0, 0.0);
+
                     return;
                 }
 
-                xSpeed = 0.0;
-                ySpeed = 0.0;
+                if (tv && fieldElements.get((int)fiducialID - 1).getType() == FieldElement.Type.REEF) {
+                    autonomousMode = AutonomousMode.DOCK;
 
-                rot = (Math.PI / 4) / Constants.DriveConstants.kMaxAngularSpeed;
+                    autoPilotParameters = getDockingParameters();
+
+                    return;
+                }
             }
             case DOCK -> {
-                var now = System.currentTimeMillis();
-
                 if (now >= autoPilotParameters.end()) {
-                    autoPilotParameters = null;
                     autonomousMode = AutonomousMode.DONE;
+
+                    autoPilotParameters = new AutoPilotParameters(0, 0.0, 0.0, 0.0);
+
                     return;
                 }
-
-                xSpeed = autoPilotParameters.xSpeed();
-                ySpeed = autoPilotParameters.ySpeed();
-
-                rot = autoPilotParameters.rot();
             }
             case DONE, default -> {
-                xSpeed = 0.0;
-                ySpeed = 0.0;
-
-                rot = 0.0;
             }
         }
 
-        driveSubsystem.drive(xSpeed, ySpeed, rot, true);
+        driveSubsystem.drive(autoPilotParameters.xSpeed(), autoPilotParameters.ySpeed(), autoPilotParameters.rot(), true);
 
         driveSubsystem.periodic();
     }
@@ -182,7 +176,7 @@ public class Robot extends TimedRobot {
         boolean fieldRelative;
         if (driveController.getAButton() && tv) {
             if (autoPilotParameters == null) {
-                autoPilotParameters = createAutoPilotParameters();
+                autoPilotParameters = getDockingParameters();
             }
 
             var now = System.currentTimeMillis();
@@ -245,11 +239,11 @@ public class Robot extends TimedRobot {
         SmartDashboard.putNumber(FIDUCIAL_ID_KEY, fiducialID);
     }
 
-    private AutoPilotParameters createAutoPilotParameters() {
+    private AutoPilotParameters getDockingParameters() {
         var fieldElement = fieldElements.get((int)fiducialID - 1);
 
         var ht = fieldElement.getType().getHeight().in(Units.Meters);
-        var hc = cameraHeight.in(Units.Meters);
+        var hc = Distance.ofBaseUnits(CAMERA_HEIGHT, Units.Inches).in(Units.Meters);
 
         var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
         var dy = dx * Math.tan(Math.toRadians(tx));
