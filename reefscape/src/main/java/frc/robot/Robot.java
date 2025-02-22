@@ -194,6 +194,11 @@ public class Robot extends TimedRobot {
 
             rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
 
+            if (auxilliaryController.getBButton() && tv
+                && (int)Math.signum(rot) != (int)Math.signum(Math.round(tx))) {
+                rot = 0.0;
+            }
+
             fieldRelative = true;
         }
 
