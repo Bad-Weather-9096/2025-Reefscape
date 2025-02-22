@@ -18,6 +18,7 @@ import java.util.List;
  */
 public class Robot extends TimedRobot {
     private XboxController driveController = new XboxController(0);
+    private XboxController auxilliaryController = new XboxController(1);
 
     private DriveSubsystem driveSubsystem = new DriveSubsystem();
 
@@ -43,10 +44,9 @@ public class Robot extends TimedRobot {
     private static final String FIDUCIAL_ID_KEY = "fiducial-id";
 
     private static final double REVERSE_DISTANCE = 72.0; // inches
-    private static final double REVERSE_TIME = 4.0; // seconds
+    private static final double REVERSE_TIME = 2.0; // seconds
 
-    private static final double LOCATE_TAG_SPEED = Math.PI / 4; // radians/second
-    private static final double LOCATE_TAG_TIME = 4.0; // seconds
+    private static final double LOCATE_TAG_SPEED = Math.PI / 2; // radians/second
 
     private static final double DRIVE_DEADBAND = 0.05;
 
@@ -107,20 +107,18 @@ public class Robot extends TimedRobot {
 
                         var rot = LOCATE_TAG_SPEED / Constants.DriveConstants.kMaxAngularSpeed;
 
-                        autoPilotParameters = new AutoPilotParameters(now + (long)(LOCATE_TAG_TIME * 1000), 0.0, 0.0, rot);
+                        autoPilotParameters = new AutoPilotParameters(0, 0.0, 0.0, rot);
                     }
                 }
                 case LOCATE_TAG -> {
-                    if (now >= autoPilotParameters.end()) {
-                        autonomousMode = AutonomousMode.DONE;
+                    if (tv) {
+                        var fieldElement = fieldElements.get((int)fiducialID - 1);
 
-                        autoPilotParameters = new AutoPilotParameters(0, 0.0, 0.0, 0.0);
-                    }
+                        if (fieldElement.getType() == FieldElement.Type.REEF) {
+                            autonomousMode = AutonomousMode.DOCK;
 
-                    if (tv && fieldElements.get((int)fiducialID - 1).getType() == FieldElement.Type.REEF) {
-                        autonomousMode = AutonomousMode.DOCK;
-
-                        autoPilotParameters = getDockingParameters();
+                            autoPilotParameters = getDockingParameters();
+                        }
                     }
                 }
                 case DOCK -> {
@@ -143,6 +141,8 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousExit() {
+        autoPilotParameters = null;
+
         driveSubsystem.drive(0.0, 0.0, 0.0, false);
     }
 
@@ -150,7 +150,7 @@ public class Robot extends TimedRobot {
     public void teleopPeriodic() {
         readLimelight();
 
-        if (driveController.getXButton()) {
+        if (auxilliaryController.getXButton()) {
             driveSubsystem.setX();
             return;
         }
@@ -159,7 +159,7 @@ public class Robot extends TimedRobot {
         double ySpeed;
         double rot;
         boolean fieldRelative;
-        if (driveController.getAButton() && tv) {
+        if (auxilliaryController.getAButton() && tv) {
             if (autoPilotParameters == null) {
                 autoPilotParameters = getDockingParameters();
             }
@@ -189,7 +189,7 @@ public class Robot extends TimedRobot {
 
             fieldRelative = true;
 
-            if (driveController.getYButton()) {
+            if (auxilliaryController.getBButton()) {
                 xSpeed = -ty * KP_RANGE;
 
                 rot = -tx * KP_AIM;
@@ -205,6 +205,8 @@ public class Robot extends TimedRobot {
 
     @Override
     public void teleopExit() {
+        autoPilotParameters = null;
+
         driveSubsystem.drive(0.0, 0.0, 0.0, false);
     }
 
