@@ -50,9 +50,6 @@ public class Robot extends TimedRobot {
 
     private static final double DRIVE_DEADBAND = 0.05;
 
-    private static final double KP_RANGE = 0.1;
-    private static final double KP_AIM = 0.035;
-
     private static final double CAMERA_HEIGHT = 9.25; // inches
 
     private static final List<FieldElement> fieldElements = List.of(
@@ -83,6 +80,13 @@ public class Robot extends TimedRobot {
     @Override
     public void robotInit() {
         CameraServer.startAutomaticCapture(new HttpCamera("limelight", LIMELIGHT_URL, HttpCameraKind.kMJPGStreamer));
+    }
+
+    @Override
+    public void autonomousInit() {
+        autonomousMode = null;
+
+        autoPilotParameters = null;
     }
 
     @Override
@@ -141,9 +145,12 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousExit() {
-        autoPilotParameters = null;
-
         driveSubsystem.drive(0.0, 0.0, 0.0, false);
+    }
+
+    @Override
+    public void teleopInit() {
+        autoPilotParameters = null;
     }
 
     @Override
@@ -188,14 +195,6 @@ public class Robot extends TimedRobot {
             rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
 
             fieldRelative = true;
-
-            if (auxilliaryController.getBButton()) {
-                xSpeed = -ty * KP_RANGE;
-
-                rot = -tx * KP_AIM;
-
-                fieldRelative = false;
-            }
         }
 
         driveSubsystem.drive(xSpeed, ySpeed, rot, fieldRelative);
@@ -205,8 +204,6 @@ public class Robot extends TimedRobot {
 
     @Override
     public void teleopExit() {
-        autoPilotParameters = null;
-
         driveSubsystem.drive(0.0, 0.0, 0.0, false);
     }
 
@@ -242,9 +239,9 @@ public class Robot extends TimedRobot {
 
         var t = getTime(dx, dy, a);
 
-        var start = System.currentTimeMillis();
+        var now = System.currentTimeMillis();
 
-        return new AutoPilotParameters(start + (long)(t * 1000), dx / t, dy / t, a / t);
+        return new AutoPilotParameters(now + (long)(t * 1000), dx / t, dy / t, a / t);
     }
 
     private double getTime(double dx, double dy, double a) {
