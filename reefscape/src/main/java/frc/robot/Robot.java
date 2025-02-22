@@ -43,6 +43,11 @@ public class Robot extends TimedRobot {
 
     private static final String FIDUCIAL_ID_KEY = "fiducial-id";
 
+    private static final String X_SPEED_KEY = "x-speed";
+    private static final String Y_SPEED_KEY = "y-speed";
+
+    private static final String ROT_KEY = "rot";
+
     private static final double REVERSE_DISTANCE = 72.0; // inches
     private static final double REVERSE_TIME = 2.0; // seconds
 
@@ -87,6 +92,11 @@ public class Robot extends TimedRobot {
         autonomousMode = null;
 
         autoPilotParameters = null;
+
+        SmartDashboard.putNumber(X_SPEED_KEY, 0.0);
+        SmartDashboard.putNumber(Y_SPEED_KEY, 0.0);
+
+        SmartDashboard.putNumber(ROT_KEY, 0.0);
     }
 
     @Override
@@ -158,7 +168,13 @@ public class Robot extends TimedRobot {
         readLimelight();
 
         if (auxilliaryController.getXButton()) {
+            SmartDashboard.putNumber(X_SPEED_KEY, 0.0);
+            SmartDashboard.putNumber(Y_SPEED_KEY, 0.0);
+
+            SmartDashboard.putNumber(ROT_KEY, 0.0);
+
             driveSubsystem.setX();
+
             return;
         }
 
@@ -201,6 +217,11 @@ public class Robot extends TimedRobot {
 
             fieldRelative = true;
         }
+
+        SmartDashboard.putNumber(X_SPEED_KEY, xSpeed);
+        SmartDashboard.putNumber(Y_SPEED_KEY, ySpeed);
+
+        SmartDashboard.putNumber(ROT_KEY, rot);
 
         driveSubsystem.drive(xSpeed, ySpeed, rot, fieldRelative);
 
