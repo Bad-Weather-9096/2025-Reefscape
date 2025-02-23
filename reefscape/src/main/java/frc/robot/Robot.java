@@ -157,7 +157,7 @@ public class Robot extends TimedRobot {
                     }
                 }
                 case DONE -> {
-                    // TODO Adjust height and retrieve algae (level based on tag)
+                    // TODO Adjust height for algae retrieval (level based on tag)
                 }
             }
         }
