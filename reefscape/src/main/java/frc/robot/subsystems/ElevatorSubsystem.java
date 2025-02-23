@@ -115,19 +115,6 @@ public class ElevatorSubsystem extends SubsystemBase {
         endEffectorController.set(0.0);
     }
 
-    public void moveLeft() {
-        // TODO Ignore if already moving left or right
-    }
-
-    public void moveRight() {
-        // TODO Ignore if already moving left or right
-    }
-
-    public void selectBranchLevel(int level) {
-        // TODO Ignore if branch level is currently being set
-        // TODO Left/right = coral, center = algae
-    }
-
     public void receiveCoral() {
         coralIntakeServo.set(CORAL_INTAKE_POSITION);
     }
@@ -146,5 +133,12 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     public void stopAlgae() {
         algaeIntakeController.set(0.0);
+    }
+
+    public double adjustHeight(ElevatorLevel elevatorLevel) {
+        // TODO Ignore if already adjusting height
+
+        // TODO Return time to reach height based on elevator speed
+        return 0.0;
     }
 }

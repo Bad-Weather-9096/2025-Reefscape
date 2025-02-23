@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.subsystems.ElevatorLevel;
 import frc.robot.subsystems.ElevatorSubsystem;
 
 import java.util.List;
@@ -269,7 +270,43 @@ public class Robot extends TimedRobot {
             elevatorSubsystem.stopAlgae();
         }
 
-        // TODO D-pad
+        var pov = auxilliaryController.getPOV();
+
+        if (pov != -1) {
+            var direction = Direction.fromAngle(pov);
+
+            var fieldElement = fieldElements.get((int)fiducialID - 1);
+
+            switch (fieldElement.getType()) {
+                case CORAL_STATION -> {
+                    switch (direction) {
+                        case UP -> elevatorSubsystem.adjustHeight(ElevatorLevel.CORAL_INTAKE);
+                        case LEFT -> {
+                            // TODO Move to left slot
+                        }
+                        case RIGHT -> {
+                            // TODO Move to right slot
+                        }
+                    }
+                }
+                case REEF -> {
+                    switch (direction) {
+                        case UP -> {
+                            // TODO If center, adjust height for upper algae intake; otherwise, for upper coral release
+                        }
+                        case DOWN -> {
+                            // TODO If center, adjust height for lower algae intake; otherwise, for lower coral release
+                        }
+                        case LEFT -> {
+                            // TODO Move to left branch
+                        }
+                        case RIGHT -> {
+                            // TODO Move to right branch
+                        }
+                    }
+                }
+            }
+        }
 
         elevatorSubsystem.periodic();
     }
