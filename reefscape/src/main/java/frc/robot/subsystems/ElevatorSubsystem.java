@@ -21,15 +21,25 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private static final int ALGAE_INTAKE_CAN_ID = 11;
 
-    // TODO
-    private static final int TICKS_PER_INCH = 24;
-
-    // TODO
-    private static final double MAXIMUM_EXTENSION = 24.0; // inches
     private static final double CAMERA_OFFSET = 4.25; // inches
 
-    // TODO
-    private static final double ELEVATOR_SPEED = 0.1; // percent
+    // TODO Elevator constants
+    private static final int TICKS_PER_INCH = 24;
+
+    private static final double ELEVATOR_SPEED = 0.2; // percent
+    private static final double MAXIMUM_EXTENSION = 24.0; // inches
+
+    // TODO End effector constants
+    private static final int TICKS_PER_DEGREE = 24;
+
+    private static final double END_EFFECTOR_SPEED = 0.1; // percent
+    private static final double MAXIMUM_ROTATION = 270.0; // degrees
+
+    // TODO Algae intake constants
+    private static final double ALGAE_INTAKE_SPEED = 0.1; // percent
+
+    // TODO Coral intake constants
+    private static final double CORAL_INTAKE_POSITION = 0.5;
 
     public ElevatorSubsystem() {
         elevatorController = new SparkMax(ELEVATOR_CAN_ID, SparkLowLevel.MotorType.kBrushless);
@@ -69,12 +79,12 @@ public class ElevatorSubsystem extends SubsystemBase {
         coralIntakeServo = new Servo(0);
     }
 
-    private double getExtension() {
-        return elevatorController.getEncoder().getPosition() / TICKS_PER_INCH;
-    }
-
     public double getCameraHeight() {
         return getExtension() + CAMERA_OFFSET;
+    }
+
+    private double getExtension() {
+        return elevatorController.getEncoder().getPosition() / TICKS_PER_INCH;
     }
 
     public void raiseElevator() {
@@ -89,16 +99,20 @@ public class ElevatorSubsystem extends SubsystemBase {
         elevatorController.set(0.0);
     }
 
+    private double getRotation() {
+        return endEffectorController.getEncoder().getPosition() / TICKS_PER_DEGREE;
+    }
+
     public void raiseEndEffector() {
-        // TODO
+        endEffectorController.set(getRotation() > 0 ? -END_EFFECTOR_SPEED : 0.0);
     }
 
     public void lowerEndEffector() {
-        // TODO
+        endEffectorController.set(getRotation() < MAXIMUM_ROTATION ? END_EFFECTOR_SPEED : 0.0);
     }
 
     public void stopEndEffector() {
-        // TODO
+        endEffectorController.set(0.0);
     }
 
     public void moveLeft() {
@@ -115,18 +129,22 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public void receiveCoral() {
-        // TODO Set servo position
+        coralIntakeServo.set(CORAL_INTAKE_POSITION);
     }
 
     public void releaseCoral() {
-        // TODO Set servo position
+        coralIntakeServo.set(-CORAL_INTAKE_POSITION);
     }
 
     public void receiveAlgae() {
-        // TODO Reverse low speed
+        algaeIntakeController.set(ALGAE_INTAKE_SPEED);
     }
 
     public void releaseAlgae() {
-        // TODO Forward low speed
+        algaeIntakeController.set(-ALGAE_INTAKE_SPEED);
+    }
+
+    public void stopAlgae() {
+        algaeIntakeController.set(0.0);
     }
 }

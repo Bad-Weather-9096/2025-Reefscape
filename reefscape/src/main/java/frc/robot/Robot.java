@@ -55,6 +55,8 @@ public class Robot extends TimedRobot {
     private static final double ELEVATOR_DEADBAND = 0.02;
     private static final double END_EFFECTOR_DEADBAND = 0.02;
 
+    private static final double ALGAE_DEADBAND = 0.05;
+
     private static final double BASE_HEIGHT = 5.0; // inches
 
     private static final List<FieldElement> fieldElements = List.of(
@@ -251,13 +253,23 @@ public class Robot extends TimedRobot {
             elevatorSubsystem.stopEndEffector();
         }
 
-        if (auxilliaryController.getLeftBumperButton()) {
+        if (auxilliaryController.getLeftBumperButtonPressed()) {
             elevatorSubsystem.receiveCoral();
         }
 
-        if (auxilliaryController.getRightBumperButton()) {
+        if (auxilliaryController.getRightBumperButtonPressed()) {
             elevatorSubsystem.releaseCoral();
         }
+
+        if (MathUtil.applyDeadband(auxilliaryController.getLeftTriggerAxis(), ALGAE_DEADBAND) > 0.0) {
+            elevatorSubsystem.receiveAlgae();
+        } else if (MathUtil.applyDeadband(auxilliaryController.getRightTriggerAxis(), ALGAE_DEADBAND) > 0.0) {
+            elevatorSubsystem.releaseAlgae();
+        } else {
+            elevatorSubsystem.stopAlgae();
+        }
+
+        // TODO D-pad
 
         elevatorSubsystem.periodic();
     }
