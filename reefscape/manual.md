@@ -14,8 +14,8 @@
 * Right stick
   * up/down - raise/lower end effector
 * D-pad (tag-dependent)
-  * up/down - select branch level
-  * left/right - select position
+  * up/down - select branch level (reef)
+  * left/right - select position (reef and coral station)
 * A button - engage auto-pilot
 * B button - limit rotation
 * X button - eject game piece
