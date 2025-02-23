@@ -14,10 +14,9 @@
 * Right stick
   * up/down - raise/lower end effector
 * D-pad
-  * up/down - select branch level (reef); prepare for intake (coral station)
+  * up/down - select level (reef)
   * left/right - select position (reef and coral station)
 * A button - engage auto-pilot
-* B button - limit rotation
 * Left/right bumper - pick up/drop coral 
 * Left/right trigger - pick up/drop algae
 

@@ -135,10 +135,8 @@ public class ElevatorSubsystem extends SubsystemBase {
         algaeIntakeController.set(0.0);
     }
 
-    public double adjustHeight(ElevatorLevel elevatorLevel) {
+    public void adjustHeight(ElevatorLevel elevatorLevel) {
         // TODO Ignore if already adjusting height
-
-        // TODO Return time to reach height based on elevator speed
-        return 0.0;
+        // TODO Ignore if not adjusting height, but height is within tolerance
     }
 }

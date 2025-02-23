@@ -10,7 +10,6 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.DriveSubsystem;
-import frc.robot.subsystems.ElevatorLevel;
 import frc.robot.subsystems.ElevatorSubsystem;
 
 import java.util.List;
@@ -220,11 +219,6 @@ public class Robot extends TimedRobot {
 
             rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
 
-            if (auxilliaryController.getBButton() && tv
-                && (int)Math.signum(rot) != (int)Math.signum(Math.round(tx))) {
-                rot = 0.0;
-            }
-
             fieldRelative = true;
         }
 
@@ -280,7 +274,6 @@ public class Robot extends TimedRobot {
             switch (fieldElement.getType()) {
                 case CORAL_STATION -> {
                     switch (direction) {
-                        case UP -> elevatorSubsystem.adjustHeight(ElevatorLevel.CORAL_INTAKE);
                         case LEFT -> {
                             // TODO Move to left slot
                         }
@@ -292,16 +285,16 @@ public class Robot extends TimedRobot {
                 case REEF -> {
                     switch (direction) {
                         case UP -> {
-                            // TODO If center, adjust height for upper algae intake; otherwise, for upper coral release
+                            // TODO If carrying coral, adjust height for upper coral release; otherwise, for upper algae intake
                         }
                         case DOWN -> {
-                            // TODO If center, adjust height for lower algae intake; otherwise, for lower coral release
+                            // TODO If carrying coral, adjust height for lower coral release; otherwise, for lower algae intake
                         }
                         case LEFT -> {
-                            // TODO Move to left branch
+                            // TODO If carrying coral, move to left branch
                         }
                         case RIGHT -> {
-                            // TODO Move to right branch
+                            // TODO If carrying coral, move to right branch
                         }
                     }
                 }
