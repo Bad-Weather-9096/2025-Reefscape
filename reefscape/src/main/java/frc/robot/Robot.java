@@ -43,11 +43,6 @@ public class Robot extends TimedRobot {
 
     private static final String FIDUCIAL_ID_KEY = "fiducial-id";
 
-    private static final String X_SPEED_KEY = "x-speed";
-    private static final String Y_SPEED_KEY = "y-speed";
-
-    private static final String ROT_KEY = "rot";
-
     private static final double REVERSE_DISTANCE = 72.0; // inches
     private static final double REVERSE_TIME = 2.0; // seconds
 
@@ -82,6 +77,22 @@ public class Robot extends TimedRobot {
         new FieldElement(FieldElement.Type.REEF, -120.0)
     );
 
+    private void readLimelight() {
+        tv = LimelightHelpers.getTV(LIMELIGHT_NAME);
+
+        tx = LimelightHelpers.getTX(LIMELIGHT_NAME);
+        ty = LimelightHelpers.getTY(LIMELIGHT_NAME);
+
+        fiducialID = LimelightHelpers.getFiducialID(LIMELIGHT_NAME);
+
+        SmartDashboard.putBoolean(TV_KEY, tv);
+
+        SmartDashboard.putNumber(TX_KEY, tx);
+        SmartDashboard.putNumber(TY_KEY, ty);
+
+        SmartDashboard.putNumber(FIDUCIAL_ID_KEY, fiducialID);
+    }
+
     @Override
     public void robotInit() {
         CameraServer.startAutomaticCapture(new HttpCamera("limelight", LIMELIGHT_URL, HttpCameraKind.kMJPGStreamer));
@@ -92,11 +103,6 @@ public class Robot extends TimedRobot {
         autonomousMode = null;
 
         autoPilotParameters = null;
-
-        SmartDashboard.putNumber(X_SPEED_KEY, 0.0);
-        SmartDashboard.putNumber(Y_SPEED_KEY, 0.0);
-
-        SmartDashboard.putNumber(ROT_KEY, 0.0);
     }
 
     @Override
@@ -207,11 +213,6 @@ public class Robot extends TimedRobot {
             fieldRelative = true;
         }
 
-        SmartDashboard.putNumber(X_SPEED_KEY, xSpeed);
-        SmartDashboard.putNumber(Y_SPEED_KEY, ySpeed);
-
-        SmartDashboard.putNumber(ROT_KEY, rot);
-
         driveSubsystem.drive(xSpeed, ySpeed, rot, fieldRelative);
 
         driveSubsystem.periodic();
@@ -220,22 +221,6 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopExit() {
         driveSubsystem.drive(0.0, 0.0, 0.0, false);
-    }
-
-    private void readLimelight() {
-        tv = LimelightHelpers.getTV(LIMELIGHT_NAME);
-
-        tx = LimelightHelpers.getTX(LIMELIGHT_NAME);
-        ty = LimelightHelpers.getTY(LIMELIGHT_NAME);
-
-        fiducialID = LimelightHelpers.getFiducialID(LIMELIGHT_NAME);
-
-        SmartDashboard.putBoolean(TV_KEY, tv);
-
-        SmartDashboard.putNumber(TX_KEY, tx);
-        SmartDashboard.putNumber(TY_KEY, ty);
-
-        SmartDashboard.putNumber(FIDUCIAL_ID_KEY, fiducialID);
     }
 
     private AutoPilotParameters getDockingParameters() {
