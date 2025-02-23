@@ -167,17 +167,6 @@ public class Robot extends TimedRobot {
     public void teleopPeriodic() {
         readLimelight();
 
-        if (auxilliaryController.getXButton()) {
-            SmartDashboard.putNumber(X_SPEED_KEY, 0.0);
-            SmartDashboard.putNumber(Y_SPEED_KEY, 0.0);
-
-            SmartDashboard.putNumber(ROT_KEY, 0.0);
-
-            driveSubsystem.setX();
-
-            return;
-        }
-
         double xSpeed;
         double ySpeed;
         double rot;
