@@ -55,6 +55,8 @@ public class Robot extends TimedRobot {
     private static final double ELEVATOR_DEADBAND = 0.02;
     private static final double END_EFFECTOR_DEADBAND = 0.02;
 
+    private static final double BASE_HEIGHT = 5.0; // inches
+
     private static final List<FieldElement> fieldElements = List.of(
         new FieldElement(FieldElement.Type.CORAL_STATION, -126.0),
         new FieldElement(FieldElement.Type.CORAL_STATION, 126.0),
@@ -229,7 +231,7 @@ public class Robot extends TimedRobot {
     }
 
     private void operate() {
-        var leftY = -MathUtil.applyDeadband(driveController.getLeftY(), ELEVATOR_DEADBAND);
+        var leftY = -MathUtil.applyDeadband(auxilliaryController.getLeftY(), ELEVATOR_DEADBAND);
 
         if (leftY < 0.0) {
             elevatorSubsystem.raiseElevator();
@@ -239,14 +241,22 @@ public class Robot extends TimedRobot {
             elevatorSubsystem.stopElevator();
         }
 
-        var rightY = -MathUtil.applyDeadband(driveController.getLeftY(), END_EFFECTOR_DEADBAND);
+        var rightY = -MathUtil.applyDeadband(auxilliaryController.getLeftY(), END_EFFECTOR_DEADBAND);
 
         if (rightY < 0.0) {
             elevatorSubsystem.raiseEndEffector();
+        } else if (rightY > 0.0) {
+            elevatorSubsystem.lowerEndEffector();
+        } else {
+            elevatorSubsystem.stopEndEffector();
         }
 
-        if (rightY > 0.0) {
-            elevatorSubsystem.lowerEndEffector();
+        if (auxilliaryController.getLeftBumperButton()) {
+            elevatorSubsystem.receiveCoral();
+        }
+
+        if (auxilliaryController.getRightBumperButton()) {
+            elevatorSubsystem.releaseCoral();
         }
 
         elevatorSubsystem.periodic();
@@ -261,7 +271,7 @@ public class Robot extends TimedRobot {
         var fieldElement = fieldElements.get((int)fiducialID - 1);
 
         var ht = fieldElement.getType().getHeight().in(Units.Meters);
-        var hc = Distance.ofBaseUnits(elevatorSubsystem.getCameraHeight(), Units.Inches).in(Units.Meters);
+        var hc = Distance.ofBaseUnits(BASE_HEIGHT + elevatorSubsystem.getCameraHeight(), Units.Inches).in(Units.Meters);
 
         var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
         var dy = dx * Math.tan(Math.toRadians(tx));

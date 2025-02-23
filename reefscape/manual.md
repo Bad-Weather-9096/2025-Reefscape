@@ -18,7 +18,6 @@
   * left/right - select position (reef and coral station)
 * A button - engage auto-pilot
 * B button - limit rotation
-* X button - eject game piece
 * Left/right bumper - pick up/drop coral 
-* Left/rigth trigger - pick up/drop algae
+* Left/right trigger - pick up/drop algae
 

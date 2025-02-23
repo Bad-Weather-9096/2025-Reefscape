@@ -10,22 +10,26 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class ElevatorSubsystem extends SubsystemBase {
     private SparkMax elevatorController;
-    private SparkMax armController;
+    private SparkMax endEffectorController;
 
-    private Servo endEffectorServo;
+    private SparkMax algaeIntakeController;
+
+    private Servo coralIntakeServo;
 
     private static final int ELEVATOR_CAN_ID = 9;
-    private static final int ARM_CAN_ID = 10;
+    private static final int END_EFFECTOR_CAN_ID = 10;
+
+    private static final int ALGAE_INTAKE_CAN_ID = 11;
 
     // TODO
-    private static final double MAXIMUM_HEIGHT = 24.0; // inches
+    private static final int TICKS_PER_INCH = 24;
+
+    // TODO
+    private static final double MAXIMUM_EXTENSION = 24.0; // inches
+    private static final double CAMERA_OFFSET = 4.25; // inches
 
     // TODO
     private static final double ELEVATOR_SPEED = 0.1; // percent
-
-    // TODO
-    private static final double END_EFFECTOR_UP_ANGLE = 90;
-    private static final double END_EFFECTOR_DOWN_ANGLE = -90;
 
     public ElevatorSubsystem() {
         elevatorController = new SparkMax(ELEVATOR_CAN_ID, SparkLowLevel.MotorType.kBrushless);
@@ -40,37 +44,45 @@ public class ElevatorSubsystem extends SubsystemBase {
 
         elevatorController.getEncoder().setPosition(0);
 
-        armController = new SparkMax(ARM_CAN_ID, SparkLowLevel.MotorType.kBrushless);
+        endEffectorController = new SparkMax(END_EFFECTOR_CAN_ID, SparkLowLevel.MotorType.kBrushless);
 
-        var armConfig = new SparkMaxConfig();
+        var endEffectorConfig = new SparkMaxConfig();
 
-        armConfig.idleMode(SparkBaseConfig.IdleMode.kBrake).smartCurrentLimit(40);
+        endEffectorConfig.idleMode(SparkBaseConfig.IdleMode.kBrake).smartCurrentLimit(40);
 
-        armController.configure(armConfig,
+        endEffectorController.configure(endEffectorConfig,
             SparkBase.ResetMode.kResetSafeParameters,
             SparkBase.PersistMode.kPersistParameters);
 
-        armController.getEncoder().setPosition(0);
+        endEffectorController.getEncoder().setPosition(0);
 
-        endEffectorServo = new Servo(0);
+        algaeIntakeController = new SparkMax(ALGAE_INTAKE_CAN_ID, SparkLowLevel.MotorType.kBrushless);
+
+        var algaeIntakeConfig = new SparkMaxConfig();
+
+        algaeIntakeConfig.idleMode(SparkBaseConfig.IdleMode.kBrake).smartCurrentLimit(40);
+
+        algaeIntakeController.configure(algaeIntakeConfig,
+            SparkBase.ResetMode.kResetSafeParameters,
+            SparkBase.PersistMode.kPersistParameters);
+
+        coralIntakeServo = new Servo(0);
     }
 
-    public double getHeight() {
-        // TODO Convert ticks to inches
-        return 0.0;
+    private double getExtension() {
+        return elevatorController.getEncoder().getPosition() / TICKS_PER_INCH;
     }
 
     public double getCameraHeight() {
-        // TODO Return elevator height minus camera offset
-        return 9.25;
+        return getExtension() + CAMERA_OFFSET;
     }
 
     public void raiseElevator() {
-        elevatorController.set(getHeight() < MAXIMUM_HEIGHT ? ELEVATOR_SPEED : 0.0);
+        elevatorController.set(getExtension() < MAXIMUM_EXTENSION ? ELEVATOR_SPEED : 0.0);
     }
 
     public void lowerElevator() {
-        elevatorController.set(getHeight() > 0 ? -ELEVATOR_SPEED : 0.0);
+        elevatorController.set(getExtension() > 0 ? -ELEVATOR_SPEED : 0.0);
     }
 
     public void stopElevator() {
@@ -78,10 +90,43 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public void raiseEndEffector() {
-        endEffectorServo.set(END_EFFECTOR_UP_ANGLE);
+        // TODO
     }
 
     public void lowerEndEffector() {
-        endEffectorServo.set(END_EFFECTOR_DOWN_ANGLE);
+        // TODO
+    }
+
+    public void stopEndEffector() {
+        // TODO
+    }
+
+    public void moveLeft() {
+        // TODO Ignore if already moving left or right
+    }
+
+    public void moveRight() {
+        // TODO Ignore if already moving left or right
+    }
+
+    public void selectBranchLevel(int level) {
+        // TODO Ignore if branch level is currently being set
+        // TODO Left/right = coral, center = algae
+    }
+
+    public void receiveCoral() {
+        // TODO Set servo position
+    }
+
+    public void releaseCoral() {
+        // TODO Set servo position
+    }
+
+    public void receiveAlgae() {
+        // TODO Reverse low speed
+    }
+
+    public void releaseAlgae() {
+        // TODO Forward low speed
     }
 }
