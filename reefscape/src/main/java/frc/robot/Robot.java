@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.subsystems.ElevatorLevel;
 import frc.robot.subsystems.ElevatorSubsystem;
 
 import java.util.List;
@@ -156,7 +157,7 @@ public class Robot extends TimedRobot {
                     }
                 }
                 case DONE -> {
-                    // No-op
+                    // TODO Adjust height and retrieve algae (level based on tag)
                 }
             }
         }
@@ -211,6 +212,12 @@ public class Robot extends TimedRobot {
             }
 
             fieldRelative = false;
+
+            var fieldElement = fieldElements.get((int)fiducialID - 1);
+
+            if (fieldElement.getType() == FieldElement.Type.CORAL_STATION) {
+                elevatorSubsystem.adjustHeight(ElevatorLevel.CORAL_INTAKE);
+            }
         } else {
             autoPilotParameters = null;
 
@@ -250,6 +257,7 @@ public class Robot extends TimedRobot {
 
         if (auxilliaryController.getLeftBumperButtonPressed()) {
             elevatorSubsystem.receiveCoral();
+            elevatorSubsystem.adjustHeight(ElevatorLevel.BASE);
         }
 
         if (auxilliaryController.getRightBumperButtonPressed()) {
@@ -258,6 +266,7 @@ public class Robot extends TimedRobot {
 
         if (MathUtil.applyDeadband(auxilliaryController.getLeftTriggerAxis(), ALGAE_DEADBAND) > 0.0) {
             elevatorSubsystem.receiveAlgae();
+            elevatorSubsystem.adjustHeight(ElevatorLevel.BASE);
         } else if (MathUtil.applyDeadband(auxilliaryController.getRightTriggerAxis(), ALGAE_DEADBAND) > 0.0) {
             elevatorSubsystem.releaseAlgae();
         } else {
