@@ -52,6 +52,9 @@ public class Robot extends TimedRobot {
 
     private static final double DRIVE_DEADBAND = 0.05;
 
+    private static final double ELEVATOR_DEADBAND = 0.02;
+    private static final double END_EFFECTOR_DEADBAND = 0.02;
+
     private static final List<FieldElement> fieldElements = List.of(
         new FieldElement(FieldElement.Type.CORAL_STATION, -126.0),
         new FieldElement(FieldElement.Type.CORAL_STATION, 126.0),
@@ -175,6 +178,11 @@ public class Robot extends TimedRobot {
     public void teleopPeriodic() {
         readLimelight();
 
+        drive();
+        operate();
+    }
+
+    private void drive() {
         double xSpeed;
         double ySpeed;
         double rot;
@@ -218,6 +226,28 @@ public class Robot extends TimedRobot {
         driveSubsystem.drive(xSpeed, ySpeed, rot, fieldRelative);
 
         driveSubsystem.periodic();
+    }
+
+    private void operate() {
+        var leftY = -MathUtil.applyDeadband(driveController.getLeftY(), ELEVATOR_DEADBAND);
+
+        if (leftY < 0.0) {
+            elevatorSubsystem.raiseElevator();
+        } else if (leftY > 0.0) {
+            elevatorSubsystem.lowerElevator();
+        } else {
+            elevatorSubsystem.stopElevator();
+        }
+
+        var rightY = -MathUtil.applyDeadband(driveController.getLeftY(), END_EFFECTOR_DEADBAND);
+
+        if (rightY < 0.0) {
+            elevatorSubsystem.raiseEndEffector();
+        }
+
+        if (rightY > 0.0) {
+            elevatorSubsystem.lowerEndEffector();
+        }
 
         elevatorSubsystem.periodic();
     }

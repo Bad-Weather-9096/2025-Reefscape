@@ -73,6 +73,10 @@ public class ElevatorSubsystem extends SubsystemBase {
         elevatorController.set(getHeight() > 0 ? -ELEVATOR_SPEED : 0.0);
     }
 
+    public void stopElevator() {
+        elevatorController.set(0.0);
+    }
+
     public void raiseEndEffector() {
         endEffectorServo.set(END_EFFECTOR_UP_ANGLE);
     }
