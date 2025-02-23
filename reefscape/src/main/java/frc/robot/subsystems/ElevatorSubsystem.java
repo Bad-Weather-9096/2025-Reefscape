@@ -137,6 +137,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     public void adjustHeight(ElevatorLevel elevatorLevel) {
         // TODO Ignore if already adjusting height
-        // TODO Ignore if not adjusting height, but height is within tolerance
+        // TODO Ignore if not adjusting height, but height is within tolerance (note that direction could be up or down)
+        // TODO Show height in dashboard so operator can see it
     }
 }

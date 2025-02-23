@@ -217,6 +217,8 @@ public class Robot extends TimedRobot {
 
             if (fieldElement.getType() == FieldElement.Type.CORAL_STATION) {
                 elevatorSubsystem.adjustHeight(ElevatorLevel.CORAL_INTAKE);
+            } else {
+                elevatorSubsystem.adjustHeight(ElevatorLevel.BASE);
             }
         } else {
             autoPilotParameters = null;
@@ -258,10 +260,14 @@ public class Robot extends TimedRobot {
         if (auxilliaryController.getLeftBumperButtonPressed()) {
             elevatorSubsystem.receiveCoral();
             elevatorSubsystem.adjustHeight(ElevatorLevel.BASE);
+
+            // TODO Set coral flag
         }
 
         if (auxilliaryController.getRightBumperButtonPressed()) {
             elevatorSubsystem.releaseCoral();
+
+            // TODO Clear coral flag
         }
 
         if (MathUtil.applyDeadband(auxilliaryController.getLeftTriggerAxis(), ALGAE_DEADBAND) > 0.0) {
@@ -284,10 +290,10 @@ public class Robot extends TimedRobot {
                 case CORAL_STATION -> {
                     switch (direction) {
                         case LEFT -> {
-                            // TODO Move to left slot
+                            // TODO Move left
                         }
                         case RIGHT -> {
-                            // TODO Move to right slot
+                            // TODO Move right
                         }
                     }
                 }
@@ -300,10 +306,10 @@ public class Robot extends TimedRobot {
                             // TODO If carrying coral, adjust height for lower coral release; otherwise, for lower algae intake
                         }
                         case LEFT -> {
-                            // TODO If carrying coral, move to left branch
+                            // TODO Move left
                         }
                         case RIGHT -> {
-                            // TODO If carrying coral, move to right branch
+                            // TODO Move right
                         }
                     }
                 }
