@@ -73,6 +73,10 @@ public class Robot extends TimedRobot {
 
     private static final double BASE_HEIGHT = 5.0; // inches
 
+    // TODO
+    private static final double CORAL_STATION_OFFSET = 16.0; // inches
+    private static final double REEF_OFFSET = 12.0; // inches
+
     private static final List<FieldElement> fieldElements = List.of(
         new FieldElement(FieldElement.Type.CORAL_STATION, -126.0),
         new FieldElement(FieldElement.Type.CORAL_STATION, 126.0),
@@ -354,8 +358,8 @@ public class Robot extends TimedRobot {
             switch (fieldElement.getType()) {
                 case CORAL_STATION -> {
                     switch (direction) {
-                        case LEFT -> moveLeft();
-                        case RIGHT -> moveRight();
+                        case LEFT -> move(Direction.LEFT, -CORAL_STATION_OFFSET);
+                        case RIGHT -> move(Direction.RIGHT, CORAL_STATION_OFFSET);
                     }
                 }
                 case REEF -> {
@@ -374,8 +378,8 @@ public class Robot extends TimedRobot {
                                 elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.LOWER_ALGAE);
                             }
                         }
-                        case LEFT -> moveLeft();
-                        case RIGHT -> moveRight();
+                        case LEFT -> move(Direction.LEFT, -REEF_OFFSET);
+                        case RIGHT -> move(Direction.RIGHT, REEF_OFFSET);
                     }
                 }
             }
@@ -384,18 +388,9 @@ public class Robot extends TimedRobot {
         elevatorSubsystem.periodic();
     }
 
-    private void moveLeft() {
-        // TODO
-        move(0.0);
-    }
-
-    private void moveRight() {
-        // TODO
-        move(0.0);
-    }
-
-    private void move(double distance) {
+    private void move(Direction direction, double distance) {
         // TODO Create auto-pilot parameters
+        // TODO Set moving flag
     }
 
     @Override
