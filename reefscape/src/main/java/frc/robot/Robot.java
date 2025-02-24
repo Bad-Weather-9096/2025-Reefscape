@@ -32,33 +32,14 @@ public class Robot extends TimedRobot {
     private int fiducialID = -1;
 
     private AutonomousMode autonomousMode = null;
-    private boolean moving = false;
 
-    private AutoPilotParameters autoPilotParameters = null;
+    private boolean docking = false;
+    private boolean shifting = false;
+
+    private long end = Integer.MIN_VALUE;
 
     private static final String LIMELIGHT_URL = "http://10.90.96.11:5800";
-
     private static final String LIMELIGHT_NAME = "";
-
-    private static final String CAMERA_HEIGHT = "camera-height";
-
-    private static final String TV_KEY = "tv";
-    private static final String TX_KEY = "tx";
-    private static final String TY_KEY = "ty";
-
-    private static final String FIDUCIAL_ID_KEY = "fiducial-id";
-
-    private static final String HEADING = "heading";
-
-    private static final String X_SPEED = "x-speed";
-    private static final String Y_SPEED = "y-speed";
-
-    private static final String ROT = "rot";
-
-    private static final String ELEVATOR_EXTENSION = "elevator-extension";
-    private static final String END_EFFECTOR_ROTATION = "end-effector-rotation";
-    private static final String HAS_CORAL = "has-coral";
-    private static final String HAS_ALGAE = "has-algae";
 
     private static final double REVERSE_DISTANCE = 72.0; // inches
     private static final double REVERSE_TIME = 2.0; // seconds
@@ -105,8 +86,6 @@ public class Robot extends TimedRobot {
     );
 
     private void readLimelight() {
-        SmartDashboard.putNumber(CAMERA_HEIGHT, elevatorSubsystem.getCameraHeight());
-
         tv = LimelightHelpers.getTV(LIMELIGHT_NAME);
 
         tx = LimelightHelpers.getTX(LIMELIGHT_NAME);
@@ -114,24 +93,17 @@ public class Robot extends TimedRobot {
 
         fiducialID = (int)LimelightHelpers.getFiducialID(LIMELIGHT_NAME);
 
-        SmartDashboard.putBoolean(TV_KEY, tv);
+        SmartDashboard.putBoolean("tv", tv);
 
-        SmartDashboard.putNumber(TX_KEY, tx);
-        SmartDashboard.putNumber(TY_KEY, ty);
+        SmartDashboard.putNumber("tx", tx);
+        SmartDashboard.putNumber("ty", ty);
 
-        SmartDashboard.putNumber(FIDUCIAL_ID_KEY, fiducialID);
+        SmartDashboard.putNumber("fiducial-id", fiducialID);
     }
 
     @Override
     public void robotInit() {
         CameraServer.startAutomaticCapture(new HttpCamera("limelight", LIMELIGHT_URL, HttpCameraKind.kMJPGStreamer));
-    }
-
-    @Override
-    public void autonomousInit() {
-        autonomousMode = null;
-
-        autoPilotParameters = null;
     }
 
     @Override
@@ -147,16 +119,18 @@ public class Robot extends TimedRobot {
 
             var xSpeed = -(dr / REVERSE_TIME) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
 
-            autoPilotParameters = new AutoPilotParameters(now + (long)(REVERSE_TIME * 1000), xSpeed, 0.0, 0.0);
+            driveSubsystem.drive(xSpeed, 0.0, 0.0, false);
+
+            end = now + (long)(REVERSE_TIME * 1000);
         } else {
             switch (autonomousMode) {
                 case REVERSE -> {
-                    if (now >= autoPilotParameters.end()) {
+                    if (now >= end) {
                         autonomousMode = AutonomousMode.LOCATE_TAG;
 
                         var rot = LOCATE_TAG_SPEED / Constants.DriveConstants.kMaxAngularSpeed;
 
-                        autoPilotParameters = new AutoPilotParameters(0, 0.0, 0.0, rot);
+                        driveSubsystem.drive(0.0, 0.0, rot, false);
                     }
                 }
                 case LOCATE_TAG -> {
@@ -166,17 +140,18 @@ public class Robot extends TimedRobot {
                         if (fieldElement.getType() == FieldElement.Type.REEF) {
                             autonomousMode = AutonomousMode.DOCK;
 
-                            autoPilotParameters = getDockingParameters();
+                            dock();
                         }
                     }
                 }
                 case DOCK -> {
-                    if (now >= autoPilotParameters.end()) {
+                    if (now >= end) {
                         autonomousMode = AutonomousMode.DONE;
 
-                        autoPilotParameters = new AutoPilotParameters(0, 0.0, 0.0, 0.0);
+                        stop();
                     }
 
+                    // TODO fiducialID may be -1 at this point
                     if (fiducialID == 7
                         || fiducialID == 9
                         || fiducialID == 11
@@ -194,104 +169,36 @@ public class Robot extends TimedRobot {
             }
         }
 
-        driveSubsystem.drive(autoPilotParameters.xSpeed(), autoPilotParameters.ySpeed(), autoPilotParameters.rot(), false);
-
         driveSubsystem.periodic();
-
         elevatorSubsystem.periodic();
-    }
-
-    private AutoPilotParameters getDockingParameters() {
-        var fieldElement = fieldElements.get(fiducialID - 1);
-
-        var ht = fieldElement.getType().getHeight().in(Units.Meters);
-        var hc = Distance.ofBaseUnits(BASE_HEIGHT + elevatorSubsystem.getCameraHeight(), Units.Inches).in(Units.Meters);
-
-        var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
-        var dy = dx * Math.tan(Math.toRadians(tx));
-
-        var angle = fieldElement.getAngle().in(Units.Radians);
-        var heading = Math.toRadians(driveSubsystem.getHeading());
-
-        var a = angle - heading;
-
-        var t = getTime(dx, dy, a);
-
-        var now = System.currentTimeMillis();
-
-        return new AutoPilotParameters(now + (long)(t * 1000), dx / t, dy / t, a / t);
-    }
-
-    private double getTime(double dx, double dy, double a) {
-        var tx = dx / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
-        var ty = dy / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
-
-        var ta = Math.abs(a) / Constants.DriveConstants.kMaxAngularSpeed;
-
-        return Math.max(Math.max(tx, ty), ta) * 2.0;
     }
 
     @Override
     public void autonomousExit() {
-        driveSubsystem.drive(0.0, 0.0, 0.0, false);
-    }
-
-    @Override
-    public void teleopInit() {
-        autoPilotParameters = null;
+        stop();
     }
 
     @Override
     public void teleopPeriodic() {
         readLimelight();
 
-        drive();
+        navigate();
         operate();
     }
 
-    private void drive() {
-        SmartDashboard.putNumber(HEADING, driveSubsystem.getHeading());
-
+    private void navigate() {
         var now = System.currentTimeMillis();
 
-        double xSpeed;
-        double ySpeed;
-        double rot;
-        boolean fieldRelative;
-        if (moving) {
-            if (now < autoPilotParameters.end()) {
-                xSpeed = autoPilotParameters.xSpeed();
-                ySpeed = autoPilotParameters.ySpeed();
-
-                rot = autoPilotParameters.rot();
-            } else {
-                xSpeed = 0.0;
-                ySpeed = 0.0;
-
-                rot = 0.0;
-
-                moving = false;
+        if (shifting) {
+            if (now >= end) {
+                stop();
             }
+        } else if (auxilliaryController.getAButton() && tv) { // TODO tv may turn false during auto-pilot
+            dock();
 
-            fieldRelative = false;
-        } else if (auxilliaryController.getAButton() && tv) {
-            if (autoPilotParameters == null) {
-                autoPilotParameters = getDockingParameters();
+            if (now >= end) {
+                stop();
             }
-
-            if (now < autoPilotParameters.end()) {
-                xSpeed = autoPilotParameters.xSpeed();
-                ySpeed = autoPilotParameters.ySpeed();
-
-                rot = autoPilotParameters.rot();
-            } else {
-                xSpeed = 0.0;
-                ySpeed = 0.0;
-
-                rot = 0.0;
-            }
-
-            fieldRelative = false;
 
             var fieldElement = fieldElements.get(fiducialID - 1);
 
@@ -301,33 +208,20 @@ public class Robot extends TimedRobot {
                 elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.BASE);
             }
         } else {
-            autoPilotParameters = null;
+            docking = false;
 
-            xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
-            ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
+            var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
+            var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
 
-            rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
+            var rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
 
-            fieldRelative = true;
+            driveSubsystem.drive(xSpeed, ySpeed, rot, true);
         }
-
-        SmartDashboard.putNumber(X_SPEED, xSpeed);
-        SmartDashboard.putNumber(Y_SPEED, xSpeed);
-
-        SmartDashboard.putNumber(ROT, rot);
-
-        driveSubsystem.drive(xSpeed, ySpeed, rot, fieldRelative);
 
         driveSubsystem.periodic();
     }
 
     private void operate() {
-        SmartDashboard.putNumber(ELEVATOR_EXTENSION, elevatorSubsystem.getElevatorExtension());
-        SmartDashboard.putNumber(END_EFFECTOR_ROTATION, elevatorSubsystem.getEndEffectorRotation());
-
-        SmartDashboard.putBoolean(HAS_CORAL, elevatorSubsystem.hasCoral());
-        SmartDashboard.putBoolean(HAS_ALGAE, elevatorSubsystem.hasAlgae());
-
         var leftY = -MathUtil.applyDeadband(auxilliaryController.getLeftY(), ELEVATOR_DEADBAND);
 
         if (leftY < 0.0) {
@@ -368,7 +262,7 @@ public class Robot extends TimedRobot {
 
         var pov = auxilliaryController.getPOV();
 
-        if (pov != -1 && tv) {
+        if (pov != -1 && tv) { // TODO tv may be false at this point
             var direction = Direction.fromAngle(pov);
 
             var fieldElement = fieldElements.get(fiducialID - 1);
@@ -376,8 +270,8 @@ public class Robot extends TimedRobot {
             switch (fieldElement.getType()) {
                 case CORAL_STATION -> {
                     switch (direction) {
-                        case LEFT -> move(-CORAL_STATION_OFFSET);
-                        case RIGHT -> move(CORAL_STATION_OFFSET);
+                        case LEFT -> shift(-CORAL_STATION_OFFSET);
+                        case RIGHT -> shift(CORAL_STATION_OFFSET);
                     }
                 }
                 case REEF -> {
@@ -396,8 +290,8 @@ public class Robot extends TimedRobot {
                                 elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.LOWER_ALGAE);
                             }
                         }
-                        case LEFT -> move(-REEF_OFFSET);
-                        case RIGHT -> move(REEF_OFFSET);
+                        case LEFT -> shift(-REEF_OFFSET);
+                        case RIGHT -> shift(REEF_OFFSET);
                     }
                 }
             }
@@ -406,16 +300,65 @@ public class Robot extends TimedRobot {
         elevatorSubsystem.periodic();
     }
 
-    private void move(double distance) {
-        var now = System.currentTimeMillis();
-
-        autoPilotParameters = new AutoPilotParameters(now + (long)(MOVE_TIME * 1000), 0.0, distance / MOVE_TIME, 0.0);
-
-        moving = true;
-    }
-
     @Override
     public void teleopExit() {
+        stop();
+    }
+
+    private void dock() {
+        var fieldElement = fieldElements.get(fiducialID - 1);
+
+        var ht = fieldElement.getType().getHeight().in(Units.Meters);
+        var hc = Distance.ofBaseUnits(BASE_HEIGHT + elevatorSubsystem.getCameraHeight(), Units.Inches).in(Units.Meters);
+
+        var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
+        var dy = dx * Math.tan(Math.toRadians(tx));
+
+        var angle = fieldElement.getAngle().in(Units.Radians);
+        var heading = Math.toRadians(driveSubsystem.getHeading());
+
+        var a = angle - heading;
+
+        var t = getMaximumDockTime(dx, dy, a);
+
+        var xSpeed = dx / t;
+        var ySpeed = dy / t;
+        var rot = a / t;
+
+        driveSubsystem.drive(xSpeed, ySpeed, rot, false);
+
+        docking = true;
+
+        end = System.currentTimeMillis() + (long)(t * 1000);
+    }
+
+    private double getMaximumDockTime(double dx, double dy, double a) {
+        var tx = dx / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
+        var ty = dy / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
+
+        var ta = Math.abs(a) / Constants.DriveConstants.kMaxAngularSpeed;
+
+        return Math.max(Math.max(tx, ty), ta) * 2.0;
+    }
+
+    private void shift(double distance) {
+        if (shifting) {
+            return;
+        }
+
+        var ySpeed = distance / MOVE_TIME;
+
+        driveSubsystem.drive(0.0, ySpeed, 0.0, false);
+
+        shifting = true;
+
+        end = System.currentTimeMillis() + (long)(MOVE_TIME * 1000);
+    }
+
+    private void stop() {
+        docking = false;
+        shifting = false;
+
         driveSubsystem.drive(0.0, 0.0, 0.0, false);
     }
 }

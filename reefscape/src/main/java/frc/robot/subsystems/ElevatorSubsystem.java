@@ -6,6 +6,7 @@ import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.wpilibj.Servo;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class ElevatorSubsystem extends SubsystemBase {
@@ -176,6 +177,14 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        SmartDashboard.putNumber("camera-height", getCameraHeight());
+
+        SmartDashboard.putNumber("elevator-extension", getElevatorExtension());
+        SmartDashboard.putNumber("end-effector-rotation", getEndEffectorRotation());
+
+        SmartDashboard.putBoolean("has-coral", hasCoral);
+        SmartDashboard.putBoolean("has-algae", hasAlgae);
+
         // TODO
     }
 }
