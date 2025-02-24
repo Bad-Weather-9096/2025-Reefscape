@@ -16,6 +16,9 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private Servo coralIntakeServo;
 
+    private boolean hasCoral = false;
+    private boolean hasAlgae = false;
+
     private static final int ELEVATOR_CAN_ID = 9;
     private static final int END_EFFECTOR_CAN_ID = 10;
 
@@ -80,35 +83,35 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public double getCameraHeight() {
-        return getExtension() + CAMERA_OFFSET;
+        return getElevatorExtension() + CAMERA_OFFSET;
     }
 
-    private double getExtension() {
+    public double getElevatorExtension() {
         return elevatorController.getEncoder().getPosition() / TICKS_PER_INCH;
     }
 
     public void raiseElevator() {
-        elevatorController.set(getExtension() < MAXIMUM_EXTENSION ? ELEVATOR_SPEED : 0.0);
+        elevatorController.set(getElevatorExtension() < MAXIMUM_EXTENSION ? ELEVATOR_SPEED : 0.0);
     }
 
     public void lowerElevator() {
-        elevatorController.set(getExtension() > 0 ? -ELEVATOR_SPEED : 0.0);
+        elevatorController.set(getElevatorExtension() > 0 ? -ELEVATOR_SPEED : 0.0);
     }
 
     public void stopElevator() {
         elevatorController.set(0.0);
     }
 
-    private double getRotation() {
+    public double getEndEffectorRotation() {
         return endEffectorController.getEncoder().getPosition() / TICKS_PER_DEGREE;
     }
 
     public void raiseEndEffector() {
-        endEffectorController.set(getRotation() > 0 ? -END_EFFECTOR_SPEED : 0.0);
+        endEffectorController.set(getEndEffectorRotation() > 0 ? -END_EFFECTOR_SPEED : 0.0);
     }
 
     public void lowerEndEffector() {
-        endEffectorController.set(getRotation() < MAXIMUM_ROTATION ? END_EFFECTOR_SPEED : 0.0);
+        endEffectorController.set(getEndEffectorRotation() < MAXIMUM_ROTATION ? END_EFFECTOR_SPEED : 0.0);
     }
 
     public void stopEndEffector() {
@@ -117,27 +120,41 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     public void receiveCoral() {
         coralIntakeServo.set(CORAL_INTAKE_POSITION);
+
+        hasCoral = true;
     }
 
     public void releaseCoral() {
         coralIntakeServo.set(-CORAL_INTAKE_POSITION);
+
+        hasCoral = false;
+    }
+
+    public boolean hasCoral() {
+        return hasCoral;
     }
 
     public void receiveAlgae() {
         algaeIntakeController.set(ALGAE_INTAKE_SPEED);
+
+        hasAlgae = true;
     }
 
     public void releaseAlgae() {
-        algaeIntakeController.set(-ALGAE_INTAKE_SPEED);
-    }
-
-    public void stopAlgae() {
+        // TODO Reverse briefly
         algaeIntakeController.set(0.0);
+
+        hasAlgae = false;
     }
 
-    public void adjustHeight(ElevatorLevel elevatorLevel) {
-        // TODO Ignore if already adjusting height
-        // TODO Ignore if not adjusting height, but height is within tolerance (note that direction could be up or down)
+    public boolean hasAlgae() {
+        return hasAlgae;
+    }
+
+    public void adjustPosition(ElevatorPosition elevatorLevel) {
+        // TODO Ignore if already adjusting position or position height is within tolerance
         // TODO Show height in dashboard so operator can see it
+
+        // TODO IMPORTANT This method also needs to adjust the end effector angle
     }
 }

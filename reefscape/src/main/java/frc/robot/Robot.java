@@ -10,7 +10,7 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.DriveSubsystem;
-import frc.robot.subsystems.ElevatorLevel;
+import frc.robot.subsystems.ElevatorPosition;
 import frc.robot.subsystems.ElevatorSubsystem;
 
 import java.util.List;
@@ -30,7 +30,7 @@ public class Robot extends TimedRobot {
     private double tx = 0.0;
     private double ty = 0.0;
 
-    private double fiducialID = -1.0;
+    private int fiducialID = -1;
 
     private AutonomousMode autonomousMode = null;
 
@@ -40,11 +40,25 @@ public class Robot extends TimedRobot {
 
     private static final String LIMELIGHT_NAME = "";
 
+    private static final String CAMERA_HEIGHT = "camera-height";
+
     private static final String TV_KEY = "tv";
     private static final String TX_KEY = "tx";
     private static final String TY_KEY = "ty";
 
     private static final String FIDUCIAL_ID_KEY = "fiducial-id";
+
+    private static final String HEADING = "heading";
+
+    private static final String X_SPEED = "x-speed";
+    private static final String Y_SPEED = "y-speed";
+
+    private static final String ROT = "rot";
+
+    private static final String ELEVATOR_EXTENSION = "elevator-extension";
+    private static final String END_EFFECTOR_ROTATION = "end-effector-rotation";
+    private static final String HAS_CORAL = "has-coral";
+    private static final String HAS_ALGAE = "has-algae";
 
     private static final double REVERSE_DISTANCE = 72.0; // inches
     private static final double REVERSE_TIME = 2.0; // seconds
@@ -86,12 +100,14 @@ public class Robot extends TimedRobot {
     );
 
     private void readLimelight() {
+        SmartDashboard.putNumber(CAMERA_HEIGHT, elevatorSubsystem.getCameraHeight());
+
         tv = LimelightHelpers.getTV(LIMELIGHT_NAME);
 
         tx = LimelightHelpers.getTX(LIMELIGHT_NAME);
         ty = LimelightHelpers.getTY(LIMELIGHT_NAME);
 
-        fiducialID = LimelightHelpers.getFiducialID(LIMELIGHT_NAME);
+        fiducialID = (int)LimelightHelpers.getFiducialID(LIMELIGHT_NAME);
 
         SmartDashboard.putBoolean(TV_KEY, tv);
 
@@ -140,7 +156,7 @@ public class Robot extends TimedRobot {
                 }
                 case LOCATE_TAG -> {
                     if (tv) {
-                        var fieldElement = fieldElements.get((int)fiducialID - 1);
+                        var fieldElement = fieldElements.get(fiducialID - 1);
 
                         if (fieldElement.getType() == FieldElement.Type.REEF) {
                             autonomousMode = AutonomousMode.DOCK;
@@ -155,9 +171,23 @@ public class Robot extends TimedRobot {
 
                         autoPilotParameters = new AutoPilotParameters(0, 0.0, 0.0, 0.0);
                     }
+
+                    ElevatorPosition elevatorPosition;
+                    if (fiducialID == 7
+                        || fiducialID == 9
+                        || fiducialID == 11
+                        || fiducialID == 18
+                        || fiducialID == 20
+                        || fiducialID == 22) {
+                        elevatorPosition = ElevatorPosition.UPPER_ALGAE;
+                    } else {
+                        elevatorPosition = ElevatorPosition.LOWER_ALGAE;
+                    }
+
+                    elevatorSubsystem.adjustPosition(elevatorPosition);
                 }
                 case DONE -> {
-                    // TODO Adjust height for algae retrieval (level based on tag)
+                    // No-op
                 }
             }
         }
@@ -169,163 +199,8 @@ public class Robot extends TimedRobot {
         elevatorSubsystem.periodic();
     }
 
-    @Override
-    public void autonomousExit() {
-        driveSubsystem.drive(0.0, 0.0, 0.0, false);
-    }
-
-    @Override
-    public void teleopInit() {
-        autoPilotParameters = null;
-    }
-
-    @Override
-    public void teleopPeriodic() {
-        readLimelight();
-
-        drive();
-        operate();
-    }
-
-    private void drive() {
-        double xSpeed;
-        double ySpeed;
-        double rot;
-        boolean fieldRelative;
-        if (auxilliaryController.getAButton() && tv) {
-            if (autoPilotParameters == null) {
-                autoPilotParameters = getDockingParameters();
-            }
-
-            var now = System.currentTimeMillis();
-
-            if (now < autoPilotParameters.end()) {
-                xSpeed = autoPilotParameters.xSpeed();
-                ySpeed = autoPilotParameters.ySpeed();
-
-                rot = autoPilotParameters.rot();
-            } else {
-                xSpeed = 0.0;
-                ySpeed = 0.0;
-
-                rot = 0.0;
-            }
-
-            fieldRelative = false;
-
-            var fieldElement = fieldElements.get((int)fiducialID - 1);
-
-            if (fieldElement.getType() == FieldElement.Type.CORAL_STATION) {
-                elevatorSubsystem.adjustHeight(ElevatorLevel.CORAL_INTAKE);
-            } else {
-                elevatorSubsystem.adjustHeight(ElevatorLevel.BASE);
-            }
-        } else {
-            autoPilotParameters = null;
-
-            xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
-            ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
-
-            rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
-
-            fieldRelative = true;
-        }
-
-        driveSubsystem.drive(xSpeed, ySpeed, rot, fieldRelative);
-
-        driveSubsystem.periodic();
-    }
-
-    private void operate() {
-        var leftY = -MathUtil.applyDeadband(auxilliaryController.getLeftY(), ELEVATOR_DEADBAND);
-
-        if (leftY < 0.0) {
-            elevatorSubsystem.raiseElevator();
-        } else if (leftY > 0.0) {
-            elevatorSubsystem.lowerElevator();
-        } else {
-            elevatorSubsystem.stopElevator();
-        }
-
-        var rightY = -MathUtil.applyDeadband(auxilliaryController.getLeftY(), END_EFFECTOR_DEADBAND);
-
-        if (rightY < 0.0) {
-            elevatorSubsystem.raiseEndEffector();
-        } else if (rightY > 0.0) {
-            elevatorSubsystem.lowerEndEffector();
-        } else {
-            elevatorSubsystem.stopEndEffector();
-        }
-
-        if (auxilliaryController.getLeftBumperButtonPressed()) {
-            elevatorSubsystem.receiveCoral();
-            elevatorSubsystem.adjustHeight(ElevatorLevel.BASE);
-
-            // TODO Set coral flag
-        }
-
-        if (auxilliaryController.getRightBumperButtonPressed()) {
-            elevatorSubsystem.releaseCoral();
-
-            // TODO Clear coral flag
-        }
-
-        if (MathUtil.applyDeadband(auxilliaryController.getLeftTriggerAxis(), ALGAE_DEADBAND) > 0.0) {
-            elevatorSubsystem.receiveAlgae();
-            elevatorSubsystem.adjustHeight(ElevatorLevel.BASE);
-        } else if (MathUtil.applyDeadband(auxilliaryController.getRightTriggerAxis(), ALGAE_DEADBAND) > 0.0) {
-            elevatorSubsystem.releaseAlgae();
-        } else {
-            elevatorSubsystem.stopAlgae();
-        }
-
-        var pov = auxilliaryController.getPOV();
-
-        if (pov != -1) {
-            var direction = Direction.fromAngle(pov);
-
-            var fieldElement = fieldElements.get((int)fiducialID - 1);
-
-            switch (fieldElement.getType()) {
-                case CORAL_STATION -> {
-                    switch (direction) {
-                        case LEFT -> {
-                            // TODO Move left
-                        }
-                        case RIGHT -> {
-                            // TODO Move right
-                        }
-                    }
-                }
-                case REEF -> {
-                    switch (direction) {
-                        case UP -> {
-                            // TODO If carrying coral, adjust height for upper coral release; otherwise, for upper algae intake
-                        }
-                        case DOWN -> {
-                            // TODO If carrying coral, adjust height for lower coral release; otherwise, for lower algae intake
-                        }
-                        case LEFT -> {
-                            // TODO Move left
-                        }
-                        case RIGHT -> {
-                            // TODO Move right
-                        }
-                    }
-                }
-            }
-        }
-
-        elevatorSubsystem.periodic();
-    }
-
-    @Override
-    public void teleopExit() {
-        driveSubsystem.drive(0.0, 0.0, 0.0, false);
-    }
-
     private AutoPilotParameters getDockingParameters() {
-        var fieldElement = fieldElements.get((int)fiducialID - 1);
+        var fieldElement = fieldElements.get(fiducialID - 1);
 
         var ht = fieldElement.getType().getHeight().in(Units.Meters);
         var hc = Distance.ofBaseUnits(BASE_HEIGHT + elevatorSubsystem.getCameraHeight(), Units.Inches).in(Units.Meters);
@@ -352,5 +227,183 @@ public class Robot extends TimedRobot {
         var ta = Math.abs(a) / Constants.DriveConstants.kMaxAngularSpeed;
 
         return Math.max(Math.max(tx, ty), ta) * 2.0;
+    }
+
+    @Override
+    public void autonomousExit() {
+        driveSubsystem.drive(0.0, 0.0, 0.0, false);
+    }
+
+    @Override
+    public void teleopInit() {
+        autoPilotParameters = null;
+    }
+
+    @Override
+    public void teleopPeriodic() {
+        readLimelight();
+
+        drive();
+        operate();
+    }
+
+    private void drive() {
+        SmartDashboard.putNumber(HEADING, driveSubsystem.getHeading());
+
+        double xSpeed;
+        double ySpeed;
+        double rot;
+        boolean fieldRelative;
+        if (auxilliaryController.getAButton() && tv) {
+            if (autoPilotParameters == null) {
+                autoPilotParameters = getDockingParameters();
+            }
+
+            var now = System.currentTimeMillis();
+
+            if (now < autoPilotParameters.end()) {
+                xSpeed = autoPilotParameters.xSpeed();
+                ySpeed = autoPilotParameters.ySpeed();
+
+                rot = autoPilotParameters.rot();
+            } else {
+                xSpeed = 0.0;
+                ySpeed = 0.0;
+
+                rot = 0.0;
+            }
+
+            fieldRelative = false;
+
+            var fieldElement = fieldElements.get(fiducialID - 1);
+
+            if (fieldElement.getType() == FieldElement.Type.CORAL_STATION) {
+                elevatorSubsystem.adjustPosition(ElevatorPosition.CORAL_INTAKE);
+            } else {
+                elevatorSubsystem.adjustPosition(ElevatorPosition.BASE);
+            }
+        } else {
+            autoPilotParameters = null;
+
+            xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
+            ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
+
+            rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
+
+            fieldRelative = true;
+        }
+
+        SmartDashboard.putNumber(X_SPEED, xSpeed);
+        SmartDashboard.putNumber(Y_SPEED, xSpeed);
+
+        SmartDashboard.putNumber(ROT, rot);
+
+        driveSubsystem.drive(xSpeed, ySpeed, rot, fieldRelative);
+
+        driveSubsystem.periodic();
+    }
+
+    private void operate() {
+        SmartDashboard.putNumber(ELEVATOR_EXTENSION, elevatorSubsystem.getElevatorExtension());
+        SmartDashboard.putNumber(END_EFFECTOR_ROTATION, elevatorSubsystem.getEndEffectorRotation());
+
+        SmartDashboard.putBoolean(HAS_CORAL, elevatorSubsystem.hasCoral());
+        SmartDashboard.putBoolean(HAS_ALGAE, elevatorSubsystem.hasAlgae());
+
+        var leftY = -MathUtil.applyDeadband(auxilliaryController.getLeftY(), ELEVATOR_DEADBAND);
+
+        if (leftY < 0.0) {
+            elevatorSubsystem.raiseElevator();
+        } else if (leftY > 0.0) {
+            elevatorSubsystem.lowerElevator();
+        } else {
+            elevatorSubsystem.stopElevator();
+        }
+
+        var rightY = -MathUtil.applyDeadband(auxilliaryController.getLeftY(), END_EFFECTOR_DEADBAND);
+
+        if (rightY < 0.0) {
+            elevatorSubsystem.raiseEndEffector();
+        } else if (rightY > 0.0) {
+            elevatorSubsystem.lowerEndEffector();
+        } else {
+            elevatorSubsystem.stopEndEffector();
+        }
+
+        if (auxilliaryController.getLeftBumperButtonPressed()) {
+            elevatorSubsystem.receiveCoral();
+            elevatorSubsystem.adjustPosition(ElevatorPosition.BASE);
+        }
+
+        if (auxilliaryController.getRightBumperButtonPressed()) {
+            elevatorSubsystem.releaseCoral();
+        }
+
+        if (MathUtil.applyDeadband(auxilliaryController.getLeftTriggerAxis(), ALGAE_DEADBAND) > 0.0) {
+            elevatorSubsystem.receiveAlgae();
+            elevatorSubsystem.adjustPosition(ElevatorPosition.PROCESSOR);
+        }
+
+        if (MathUtil.applyDeadband(auxilliaryController.getRightTriggerAxis(), ALGAE_DEADBAND) > 0.0) {
+            elevatorSubsystem.releaseAlgae();
+        }
+
+        var pov = auxilliaryController.getPOV();
+
+        if (pov != -1 && tv) {
+            var direction = Direction.fromAngle(pov);
+
+            var fieldElement = fieldElements.get(fiducialID - 1);
+
+            switch (fieldElement.getType()) {
+                case CORAL_STATION -> {
+                    switch (direction) {
+                        case LEFT -> moveLeft();
+                        case RIGHT -> moveRight();
+                    }
+                }
+                case REEF -> {
+                    switch (direction) {
+                        case UP -> {
+                            if (elevatorSubsystem.hasCoral()) {
+                                elevatorSubsystem.adjustPosition(ElevatorPosition.UPPER_CORAL);
+                            } else {
+                                elevatorSubsystem.adjustPosition(ElevatorPosition.UPPER_ALGAE);
+                            }
+                        }
+                        case DOWN -> {
+                            if (elevatorSubsystem.hasCoral()) {
+                                elevatorSubsystem.adjustPosition(ElevatorPosition.LOWER_CORAL);
+                            } else {
+                                elevatorSubsystem.adjustPosition(ElevatorPosition.LOWER_ALGAE);
+                            }
+                        }
+                        case LEFT -> moveLeft();
+                        case RIGHT -> moveRight();
+                    }
+                }
+            }
+        }
+
+        elevatorSubsystem.periodic();
+    }
+
+    private void moveLeft() {
+        // TODO
+        move(0.0);
+    }
+
+    private void moveRight() {
+        // TODO
+        move(0.0);
+    }
+
+    private void move(double distance) {
+        // TODO
+    }
+
+    @Override
+    public void teleopExit() {
+        driveSubsystem.drive(0.0, 0.0, 0.0, false);
     }
 }
