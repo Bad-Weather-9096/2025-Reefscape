@@ -162,9 +162,9 @@ public class Robot extends TimedRobot {
                                 || fiducialID == 18
                                 || fiducialID == 20
                                 || fiducialID == 22) {
-                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.UPPER_ALGAE);
+                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.UPPER_ALGAE_INTAKE);
                             } else {
-                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.LOWER_ALGAE);
+                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.LOWER_ALGAE_INTAKE);
                             }
                         }
                     }
@@ -211,7 +211,7 @@ public class Robot extends TimedRobot {
 
                 switch (target.getType()) {
                     case CORAL_STATION -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.CORAL_INTAKE);
-                    case PROCESSOR -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.PROCESSOR);
+                    case PROCESSOR -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.ALGAE_RELEASE);
                     case REEF -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.BASE);
                 }
 
@@ -265,7 +265,7 @@ public class Robot extends TimedRobot {
 
         if (MathUtil.applyDeadband(auxilliaryController.getLeftTriggerAxis(), ALGAE_INTAKE_DEADBAND) > 0.0) {
             elevatorSubsystem.receiveAlgae();
-            elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.PROCESSOR);
+            elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.ALGAE_RELEASE);
         }
 
         if (MathUtil.applyDeadband(auxilliaryController.getRightTriggerAxis(), ALGAE_INTAKE_DEADBAND) > 0.0) {
@@ -288,16 +288,16 @@ public class Robot extends TimedRobot {
                     switch (direction) {
                         case UP -> {
                             if (elevatorSubsystem.hasCoral()) {
-                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.UPPER_CORAL);
+                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.UPPER_CORAL_RELEASE);
                             } else {
-                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.UPPER_ALGAE);
+                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.UPPER_ALGAE_INTAKE);
                             }
                         }
                         case DOWN -> {
                             if (elevatorSubsystem.hasCoral()) {
-                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.LOWER_CORAL);
+                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.LOWER_CORAL_RELEASE);
                             } else {
-                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.LOWER_ALGAE);
+                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.LOWER_ALGAE_INTAKE);
                             }
                         }
                         case LEFT -> shift(-REEF_OFFSET);

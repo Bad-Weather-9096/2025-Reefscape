@@ -14,12 +14,12 @@ public class ElevatorSubsystem extends SubsystemBase {
     public enum Position {
         // TODO
         BASE(0.0, 0.0),
-        PROCESSOR(0.0, 0.0),
+        ALGAE_RELEASE(0.0, 0.0),
         CORAL_INTAKE(0.0, 0.0),
-        LOWER_ALGAE(0.0, 0.0),
-        UPPER_ALGAE(0.0, 0.0),
-        LOWER_CORAL(0.0, 0.0),
-        UPPER_CORAL(0.0, 0.0);
+        LOWER_ALGAE_INTAKE(0.0, 0.0),
+        UPPER_ALGAE_INTAKE(0.0, 0.0),
+        LOWER_CORAL_RELEASE(0.0, 0.0),
+        UPPER_CORAL_RELEASE(0.0, 0.0);
 
         private final double elevatorExtension; // inches
         private final double endEffectorAngle; // degrees
