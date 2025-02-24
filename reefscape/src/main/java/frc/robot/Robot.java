@@ -108,6 +108,14 @@ public class Robot extends TimedRobot {
     }
 
     @Override
+    public void robotPeriodic() {
+        SmartDashboard.putBoolean("target-locked", target != null);
+
+        driveSubsystem.periodic();
+        elevatorSubsystem.periodic();
+    }
+
+    @Override
     public void autonomousPeriodic() {
         readLimelight();
 
@@ -142,6 +150,17 @@ public class Robot extends TimedRobot {
                             autonomousMode = AutonomousMode.DOCK;
 
                             dock();
+
+                            if (fiducialID == 7
+                                || fiducialID == 9
+                                || fiducialID == 11
+                                || fiducialID == 18
+                                || fiducialID == 20
+                                || fiducialID == 22) {
+                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.UPPER_ALGAE);
+                            } else {
+                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.LOWER_ALGAE);
+                            }
                         }
                     }
                 }
@@ -151,17 +170,12 @@ public class Robot extends TimedRobot {
 
                         stop();
                     }
-
-                    // TODO Adjust elevator position?
                 }
                 case DONE -> {
                     // No-op
                 }
             }
         }
-
-        driveSubsystem.periodic();
-        elevatorSubsystem.periodic();
     }
 
     @Override
@@ -175,9 +189,6 @@ public class Robot extends TimedRobot {
 
         navigate();
         operate();
-
-        driveSubsystem.periodic();
-        elevatorSubsystem.periodic();
     }
 
     private void navigate() {
