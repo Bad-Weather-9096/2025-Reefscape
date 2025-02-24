@@ -189,8 +189,8 @@ public class Robot extends TimedRobot {
 
                 shifting = false;
             }
-        } else if (auxilliaryController.getAButton()) {
-            if (target == null && tv) {
+        } else if (auxilliaryController.getAButton() && (target != null || tv)) {
+            if (target == null) {
                 dock();
 
                 switch (target.getType()) {
@@ -198,9 +198,11 @@ public class Robot extends TimedRobot {
                     case PROCESSOR -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.PROCESSOR);
                     case REEF -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.BASE);
                 }
+
+                return;
             }
 
-            if (target != null && now >= end) {
+            if (now >= end) {
                 stop();
             }
         } else {
