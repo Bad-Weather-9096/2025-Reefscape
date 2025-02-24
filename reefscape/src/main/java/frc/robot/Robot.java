@@ -129,7 +129,7 @@ public class Robot extends TimedRobot {
         if (autonomousMode == null) {
             autonomousMode = AutonomousMode.REVERSE;
 
-            var dr = Distance.ofBaseUnits(REVERSE_DISTANCE, Units.Inches).in(Units.Meters);
+            var dr = Units.Inches.of(REVERSE_DISTANCE).in(Units.Meters);
 
             var xSpeed = -(dr / REVERSE_TIME) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
 
@@ -317,9 +317,11 @@ public class Robot extends TimedRobot {
         var fieldElement = fieldElements.get(fiducialID - 1);
 
         var ht = fieldElement.getType().getHeight().in(Units.Meters);
-        var hc = Distance.ofBaseUnits(BASE_HEIGHT + elevatorSubsystem.getCameraHeight(), Units.Inches).in(Units.Meters);
+        var hc = Units.Inches.of(BASE_HEIGHT + elevatorSubsystem.getCameraHeight()).in(Units.Meters);
 
-        var ci = Distance.ofBaseUnits(CAMERA_INSET, Units.Inches).in(Units.Meters);
+        var ci = Units.Inches.of(CAMERA_INSET).in(Units.Meters);
+
+        System.out.printf("ht = %.2f, hc = %.2f, ci = %.2f\n", ht, hc, ci);
 
         var dx = (ht - hc) / Math.tan(Math.toRadians(ty)) - ci;
         var dy = dx * Math.tan(Math.toRadians(tx));
@@ -327,9 +329,13 @@ public class Robot extends TimedRobot {
         var angle = fieldElement.getAngle().in(Units.Radians);
         var heading = Math.toRadians(driveSubsystem.getHeading());
 
+        System.out.printf("angle = %.1f, heading = %.1f\n", angle, heading);
+
         var a = angle - heading;
 
         var t = getMaximumDockingTime(dx, dy, a);
+
+        System.out.printf("dx = %.1f, dy = %.1f, a = %.1f, t = %.1f\n", dx, dy, a, t);
 
         var xSpeed = dx / t;
         var ySpeed = dy / t;

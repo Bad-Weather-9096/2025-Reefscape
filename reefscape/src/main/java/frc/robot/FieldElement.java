@@ -14,7 +14,7 @@ public final class FieldElement {
         private final Distance height;
 
         Type(double height) {
-            this.height = Distance.ofBaseUnits(height, Units.Inches);
+            this.height = Units.Inches.of(height);
         }
 
         public Distance getHeight() {
@@ -27,7 +27,7 @@ public final class FieldElement {
 
     public FieldElement(Type type, double angle) {
         this.type = type;
-        this.angle = Angle.ofBaseUnits(angle, Units.Degrees);
+        this.angle = Units.Degrees.of(angle);
     }
 
     public Type getType() {

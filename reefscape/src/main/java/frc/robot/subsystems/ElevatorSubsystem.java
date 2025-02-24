@@ -46,7 +46,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private static final int ALGAE_INTAKE_CAN_ID = 11;
 
-    private static final double CAMERA_OFFSET = 4.25; // inches
+    private static final double CAMERA_OFFSET = 15.5; // inches
 
     // TODO Elevator constants
     private static final int TICKS_PER_INCH = 24;
