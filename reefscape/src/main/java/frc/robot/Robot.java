@@ -152,7 +152,7 @@ public class Robot extends TimedRobot {
                         stop();
                     }
 
-                    // TODO Adjust elevator position
+                    // TODO Adjust elevator position?
                 }
                 case DONE -> {
                     // No-op
@@ -186,23 +186,25 @@ public class Robot extends TimedRobot {
         if (shifting) {
             if (now >= end) {
                 stop();
+
+                shifting = false;
             }
         } else if (auxilliaryController.getAButton()) {
             if (target == null) {
                 if (tv) {
                     dock();
+
+                    switch (target.getType()) {
+                        case CORAL_STATION -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.CORAL_INTAKE);
+                        case PROCESSOR -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.PROCESSOR);
+                        case REEF -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.BASE);
+                    }
                 } else {
                     stop();
                 }
             } else {
                 if (now >= end) {
                     stop();
-                }
-
-                switch (target.getType()) {
-                    case CORAL_STATION -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.CORAL_INTAKE);
-                    case PROCESSOR -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.PROCESSOR);
-                    case REEF -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.BASE);
                 }
             }
         } else {
@@ -348,10 +350,6 @@ public class Robot extends TimedRobot {
     }
 
     private void stop() {
-        target = null;
-
-        shifting = false;
-
         driveSubsystem.drive(0.0, 0.0, 0.0, false);
     }
 }
