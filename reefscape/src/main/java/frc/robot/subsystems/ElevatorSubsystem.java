@@ -5,6 +5,7 @@ import com.revrobotics.spark.SparkLowLevel;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -36,8 +37,9 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private Servo coralIntakeServo;
 
+    private Position position = null;
+
     private boolean hasCoral = false;
-    private boolean hasAlgae = false;
 
     private static final int ELEVATOR_CAN_ID = 9;
     private static final int END_EFFECTOR_CAN_ID = 10;
@@ -50,13 +52,15 @@ public class ElevatorSubsystem extends SubsystemBase {
     private static final int TICKS_PER_INCH = 24;
 
     private static final double ELEVATOR_SPEED = 0.2; // percent
-    private static final double MAXIMUM_EXTENSION = 24.0; // inches
+    private static final double MAXIMUM_ELEVATOR_EXTENSION = 24.0; // inches
+    private static final double ELEVATOR_EXTENSION_DEADBAND = 0.1;
 
     // TODO End effector constants
     private static final int TICKS_PER_DEGREE = 24;
 
     private static final double END_EFFECTOR_SPEED = 0.1; // percent
-    private static final double MAXIMUM_ROTATION = 270.0; // degrees
+    private static final double MAXIMUM_END_EFFECTOR_ROTATION = 270.0; // degrees
+    private static final double END_EFFECTOR_ANGLE_DEADBAND = 0.1;
 
     // TODO Algae intake constants
     private static final double ALGAE_INTAKE_SPEED = 0.1; // percent
@@ -111,31 +115,43 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public void raiseElevator() {
-        elevatorController.set(getElevatorExtension() < MAXIMUM_EXTENSION ? ELEVATOR_SPEED : 0.0);
+        position = null;
+
+        elevatorController.set(getElevatorExtension() < MAXIMUM_ELEVATOR_EXTENSION ? ELEVATOR_SPEED : 0.0);
     }
 
     public void lowerElevator() {
+        position = null;
+
         elevatorController.set(getElevatorExtension() > 0 ? -ELEVATOR_SPEED : 0.0);
     }
 
     public void stopElevator() {
-        elevatorController.set(0.0);
+        if (position == null) {
+            elevatorController.set(0.0);
+        }
     }
 
-    public double getEndEffectorRotation() {
+    public double getEndEffectorAngle() {
         return endEffectorController.getEncoder().getPosition() / TICKS_PER_DEGREE;
     }
 
     public void raiseEndEffector() {
-        endEffectorController.set(getEndEffectorRotation() > 0 ? -END_EFFECTOR_SPEED : 0.0);
+        position = null;
+
+        endEffectorController.set(getEndEffectorAngle() > 0 ? -END_EFFECTOR_SPEED : 0.0);
     }
 
     public void lowerEndEffector() {
-        endEffectorController.set(getEndEffectorRotation() < MAXIMUM_ROTATION ? END_EFFECTOR_SPEED : 0.0);
+        position = null;
+
+        endEffectorController.set(getEndEffectorAngle() < MAXIMUM_END_EFFECTOR_ROTATION ? END_EFFECTOR_SPEED : 0.0);
     }
 
     public void stopEndEffector() {
-        endEffectorController.set(0.0);
+        if (position == null) {
+            endEffectorController.set(0.0);
+        }
     }
 
     public void receiveCoral() {
@@ -156,35 +172,43 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     public void receiveAlgae() {
         algaeIntakeController.set(ALGAE_INTAKE_SPEED);
-
-        hasAlgae = true;
     }
 
     public void releaseAlgae() {
-        // TODO Reverse briefly
+        // TODO Reverse briefly?
         algaeIntakeController.set(0.0);
-
-        hasAlgae = false;
-    }
-
-    public boolean hasAlgae() {
-        return hasAlgae;
     }
 
     public void adjustPosition(Position position) {
-        // TODO If not already adjusting position, adjust height and end effector angle
+        this.position = position;
     }
 
     @Override
     public void periodic() {
         SmartDashboard.putNumber("camera-height", getCameraHeight());
 
-        SmartDashboard.putNumber("elevator-extension", getElevatorExtension());
-        SmartDashboard.putNumber("end-effector-rotation", getEndEffectorRotation());
+        var elevatorExtension = getElevatorExtension();
+
+        if (position != null) {
+            var elevatorExtensionDelta = MathUtil.applyDeadband(position.elevatorExtension - elevatorExtension, ELEVATOR_EXTENSION_DEADBAND);
+            var elevatorSpeed = Math.signum(elevatorExtensionDelta) * ELEVATOR_SPEED;
+
+            endEffectorController.set(elevatorSpeed);
+        }
+
+        SmartDashboard.putNumber("elevator-extension", elevatorExtension);
+
+        var endEffectorAngle = getEndEffectorAngle();
+
+        if (position != null) {
+            var endEffectorAngleDelta = MathUtil.applyDeadband(position.endEffectorAngle - endEffectorAngle, END_EFFECTOR_ANGLE_DEADBAND);
+            var endEffectorSpeed = Math.signum(endEffectorAngleDelta) * END_EFFECTOR_SPEED;
+
+            endEffectorController.set(endEffectorSpeed);
+        }
+
+        SmartDashboard.putNumber("end-effector-angle", endEffectorAngle);
 
         SmartDashboard.putBoolean("has-coral", hasCoral);
-        SmartDashboard.putBoolean("has-algae", hasAlgae);
-
-        // TODO
     }
 }
