@@ -171,7 +171,7 @@ public class ElevatorSubsystem extends SubsystemBase {
         return hasAlgae;
     }
 
-    public void adjustPosition(Position elevatorLevel) {
+    public void adjustPosition(Position position) {
         // TODO If not already adjusting position, adjust height and end effector angle
     }
 
