@@ -33,7 +33,8 @@ public class Robot extends TimedRobot {
 
     private AutonomousMode autonomousMode = null;
 
-    private boolean docking = false;
+    private FieldElement target = null;
+
     private boolean shifting = false;
 
     private long end = Integer.MIN_VALUE;
@@ -151,17 +152,7 @@ public class Robot extends TimedRobot {
                         stop();
                     }
 
-                    // TODO fiducialID may be -1 at this point
-                    if (fiducialID == 7
-                        || fiducialID == 9
-                        || fiducialID == 11
-                        || fiducialID == 18
-                        || fiducialID == 20
-                        || fiducialID == 22) {
-                        elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.UPPER_ALGAE);
-                    } else {
-                        elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.LOWER_ALGAE);
-                    }
+                    // TODO Adjust elevator position
                 }
                 case DONE -> {
                     // No-op
@@ -184,6 +175,9 @@ public class Robot extends TimedRobot {
 
         navigate();
         operate();
+
+        driveSubsystem.periodic();
+        elevatorSubsystem.periodic();
     }
 
     private void navigate() {
@@ -193,22 +187,26 @@ public class Robot extends TimedRobot {
             if (now >= end) {
                 stop();
             }
-        } else if (auxilliaryController.getAButton() && tv) { // TODO tv may turn false during auto-pilot
-            dock();
-
-            if (now >= end) {
-                stop();
-            }
-
-            var fieldElement = fieldElements.get(fiducialID - 1);
-
-            if (fieldElement.getType() == FieldElement.Type.CORAL_STATION) {
-                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.CORAL_INTAKE);
+        } else if (auxilliaryController.getAButton()) {
+            if (target == null) {
+                if (tv) {
+                    dock();
+                } else {
+                    stop();
+                }
             } else {
-                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.BASE);
+                if (now >= end) {
+                    stop();
+                }
+
+                switch (target.getType()) {
+                    case CORAL_STATION -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.CORAL_INTAKE);
+                    case PROCESSOR -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.PROCESSOR);
+                    case REEF -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.BASE);
+                }
             }
         } else {
-            docking = false;
+            target = null;
 
             var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
             var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
@@ -217,8 +215,6 @@ public class Robot extends TimedRobot {
 
             driveSubsystem.drive(xSpeed, ySpeed, rot, true);
         }
-
-        driveSubsystem.periodic();
     }
 
     private void operate() {
@@ -262,12 +258,10 @@ public class Robot extends TimedRobot {
 
         var pov = auxilliaryController.getPOV();
 
-        if (pov != -1 && tv) { // TODO tv may be false at this point
+        if (pov != -1 && target != null) {
             var direction = Direction.fromAngle(pov);
 
-            var fieldElement = fieldElements.get(fiducialID - 1);
-
-            switch (fieldElement.getType()) {
+            switch (target.getType()) {
                 case CORAL_STATION -> {
                     switch (direction) {
                         case LEFT -> shift(-CORAL_STATION_OFFSET);
@@ -296,8 +290,6 @@ public class Robot extends TimedRobot {
                 }
             }
         }
-
-        elevatorSubsystem.periodic();
     }
 
     @Override
@@ -327,7 +319,7 @@ public class Robot extends TimedRobot {
 
         driveSubsystem.drive(xSpeed, ySpeed, rot, false);
 
-        docking = true;
+        target = fieldElement;
 
         end = System.currentTimeMillis() + (long)(t * 1000);
     }
@@ -356,7 +348,8 @@ public class Robot extends TimedRobot {
     }
 
     private void stop() {
-        docking = false;
+        target = null;
+
         shifting = false;
 
         driveSubsystem.drive(0.0, 0.0, 0.0, false);
