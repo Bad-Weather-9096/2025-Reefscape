@@ -10,7 +10,6 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.DriveSubsystem;
-import frc.robot.subsystems.ElevatorPosition;
 import frc.robot.subsystems.ElevatorSubsystem;
 
 import java.util.List;
@@ -172,19 +171,16 @@ public class Robot extends TimedRobot {
                         autoPilotParameters = new AutoPilotParameters(0, 0.0, 0.0, 0.0);
                     }
 
-                    ElevatorPosition elevatorPosition;
                     if (fiducialID == 7
                         || fiducialID == 9
                         || fiducialID == 11
                         || fiducialID == 18
                         || fiducialID == 20
                         || fiducialID == 22) {
-                        elevatorPosition = ElevatorPosition.UPPER_ALGAE;
+                        elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.UPPER_ALGAE);
                     } else {
-                        elevatorPosition = ElevatorPosition.LOWER_ALGAE;
+                        elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.LOWER_ALGAE);
                     }
-
-                    elevatorSubsystem.adjustPosition(elevatorPosition);
                 }
                 case DONE -> {
                     // No-op
@@ -278,9 +274,9 @@ public class Robot extends TimedRobot {
             var fieldElement = fieldElements.get(fiducialID - 1);
 
             if (fieldElement.getType() == FieldElement.Type.CORAL_STATION) {
-                elevatorSubsystem.adjustPosition(ElevatorPosition.CORAL_INTAKE);
+                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.CORAL_INTAKE);
             } else {
-                elevatorSubsystem.adjustPosition(ElevatorPosition.BASE);
+                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.BASE);
             }
         } else {
             autoPilotParameters = null;
@@ -332,7 +328,7 @@ public class Robot extends TimedRobot {
 
         if (auxilliaryController.getLeftBumperButtonPressed()) {
             elevatorSubsystem.receiveCoral();
-            elevatorSubsystem.adjustPosition(ElevatorPosition.BASE);
+            elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.BASE);
         }
 
         if (auxilliaryController.getRightBumperButtonPressed()) {
@@ -341,7 +337,7 @@ public class Robot extends TimedRobot {
 
         if (MathUtil.applyDeadband(auxilliaryController.getLeftTriggerAxis(), ALGAE_DEADBAND) > 0.0) {
             elevatorSubsystem.receiveAlgae();
-            elevatorSubsystem.adjustPosition(ElevatorPosition.PROCESSOR);
+            elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.PROCESSOR);
         }
 
         if (MathUtil.applyDeadband(auxilliaryController.getRightTriggerAxis(), ALGAE_DEADBAND) > 0.0) {
@@ -366,16 +362,16 @@ public class Robot extends TimedRobot {
                     switch (direction) {
                         case UP -> {
                             if (elevatorSubsystem.hasCoral()) {
-                                elevatorSubsystem.adjustPosition(ElevatorPosition.UPPER_CORAL);
+                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.UPPER_CORAL);
                             } else {
-                                elevatorSubsystem.adjustPosition(ElevatorPosition.UPPER_ALGAE);
+                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.UPPER_ALGAE);
                             }
                         }
                         case DOWN -> {
                             if (elevatorSubsystem.hasCoral()) {
-                                elevatorSubsystem.adjustPosition(ElevatorPosition.LOWER_CORAL);
+                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.LOWER_CORAL);
                             } else {
-                                elevatorSubsystem.adjustPosition(ElevatorPosition.LOWER_ALGAE);
+                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.LOWER_ALGAE);
                             }
                         }
                         case LEFT -> moveLeft();

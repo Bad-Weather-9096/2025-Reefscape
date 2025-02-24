@@ -9,6 +9,25 @@ import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class ElevatorSubsystem extends SubsystemBase {
+    public enum Position {
+        // TODO
+        BASE(0.0, 0.0),
+        PROCESSOR(0.0, 0.0),
+        CORAL_INTAKE(0.0, 0.0),
+        LOWER_ALGAE(0.0, 0.0),
+        UPPER_ALGAE(0.0, 0.0),
+        LOWER_CORAL(0.0, 0.0),
+        UPPER_CORAL(0.0, 0.0);
+
+        private final double elevatorExtension; // inches
+        private final double endEffectorAngle; // degrees
+
+        Position(double elevatorExtension, double endEffectorAngle) {
+            this.elevatorExtension = elevatorExtension;
+            this.endEffectorAngle = endEffectorAngle;
+        }
+    }
+
     private SparkMax elevatorController;
     private SparkMax endEffectorController;
 
@@ -151,10 +170,8 @@ public class ElevatorSubsystem extends SubsystemBase {
         return hasAlgae;
     }
 
-    public void adjustPosition(ElevatorPosition elevatorLevel) {
+    public void adjustPosition(Position elevatorLevel) {
         // TODO Ignore if already adjusting position or position height is within tolerance
-        // TODO Show height in dashboard so operator can see it
-
-        // TODO IMPORTANT This method also needs to adjust the end effector angle
+        // TODO Otherwise, adjust height and end effector angle
     }
 }
