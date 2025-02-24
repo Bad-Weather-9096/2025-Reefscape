@@ -32,6 +32,7 @@ public class Robot extends TimedRobot {
     private int fiducialID = -1;
 
     private AutonomousMode autonomousMode = null;
+    private boolean moving = false;
 
     private AutoPilotParameters autoPilotParameters = null;
 
@@ -76,6 +77,7 @@ public class Robot extends TimedRobot {
     // TODO
     private static final double CORAL_STATION_OFFSET = 16.0; // inches
     private static final double REEF_OFFSET = 12.0; // inches
+    private static final double MOVE_TIME = 1.5; // seconds
 
     private static final List<FieldElement> fieldElements = List.of(
         new FieldElement(FieldElement.Type.CORAL_STATION, -126.0),
@@ -250,16 +252,32 @@ public class Robot extends TimedRobot {
     private void drive() {
         SmartDashboard.putNumber(HEADING, driveSubsystem.getHeading());
 
+        var now = System.currentTimeMillis();
+
         double xSpeed;
         double ySpeed;
         double rot;
         boolean fieldRelative;
-        if (auxilliaryController.getAButton() && tv) {
+        if (moving) {
+            if (now < autoPilotParameters.end()) {
+                xSpeed = autoPilotParameters.xSpeed();
+                ySpeed = autoPilotParameters.ySpeed();
+
+                rot = autoPilotParameters.rot();
+            } else {
+                xSpeed = 0.0;
+                ySpeed = 0.0;
+
+                rot = 0.0;
+
+                moving = false;
+            }
+
+            fieldRelative = false;
+        } else if (auxilliaryController.getAButton() && tv) {
             if (autoPilotParameters == null) {
                 autoPilotParameters = getDockingParameters();
             }
-
-            var now = System.currentTimeMillis();
 
             if (now < autoPilotParameters.end()) {
                 xSpeed = autoPilotParameters.xSpeed();
@@ -358,8 +376,8 @@ public class Robot extends TimedRobot {
             switch (fieldElement.getType()) {
                 case CORAL_STATION -> {
                     switch (direction) {
-                        case LEFT -> move(Direction.LEFT, -CORAL_STATION_OFFSET);
-                        case RIGHT -> move(Direction.RIGHT, CORAL_STATION_OFFSET);
+                        case LEFT -> move(-CORAL_STATION_OFFSET);
+                        case RIGHT -> move(CORAL_STATION_OFFSET);
                     }
                 }
                 case REEF -> {
@@ -378,8 +396,8 @@ public class Robot extends TimedRobot {
                                 elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.LOWER_ALGAE);
                             }
                         }
-                        case LEFT -> move(Direction.LEFT, -REEF_OFFSET);
-                        case RIGHT -> move(Direction.RIGHT, REEF_OFFSET);
+                        case LEFT -> move(-REEF_OFFSET);
+                        case RIGHT -> move(REEF_OFFSET);
                     }
                 }
             }
@@ -388,9 +406,12 @@ public class Robot extends TimedRobot {
         elevatorSubsystem.periodic();
     }
 
-    private void move(Direction direction, double distance) {
-        // TODO Create auto-pilot parameters
-        // TODO Set moving flag
+    private void move(double distance) {
+        var now = System.currentTimeMillis();
+
+        autoPilotParameters = new AutoPilotParameters(now + (long)(MOVE_TIME * 1000), 0.0, distance / MOVE_TIME, 0.0);
+
+        moving = true;
     }
 
     @Override
