@@ -37,13 +37,13 @@ public class Robot extends TimedRobot {
 
     private boolean shifting = false;
 
-    private long end = Integer.MIN_VALUE;
+    private long end = Long.MIN_VALUE;
 
     private static final String LIMELIGHT_URL = "http://10.90.96.11:5800";
     private static final String LIMELIGHT_NAME = "";
 
     private static final double REVERSE_DISTANCE = 72.0; // inches
-    private static final double REVERSE_TIME = 2.0; // seconds
+    private static final double REVERSE_TIME = 4.0; // seconds
 
     private static final double LOCATE_TAG_SPEED = Math.PI / 2; // radians/second
 
@@ -52,7 +52,7 @@ public class Robot extends TimedRobot {
     private static final double ELEVATOR_DEADBAND = 0.02;
     private static final double END_EFFECTOR_DEADBAND = 0.02;
 
-    private static final double ALGAE_DEADBAND = 0.05;
+    private static final double ALGAE_INTAKE_DEADBAND = 0.05;
 
     private static final double BASE_HEIGHT = 5.0; // inches
     private static final double CAMERA_INSET = 0.0; // inches
@@ -263,12 +263,12 @@ public class Robot extends TimedRobot {
             elevatorSubsystem.releaseCoral();
         }
 
-        if (MathUtil.applyDeadband(auxilliaryController.getLeftTriggerAxis(), ALGAE_DEADBAND) > 0.0) {
+        if (MathUtil.applyDeadband(auxilliaryController.getLeftTriggerAxis(), ALGAE_INTAKE_DEADBAND) > 0.0) {
             elevatorSubsystem.receiveAlgae();
             elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.PROCESSOR);
         }
 
-        if (MathUtil.applyDeadband(auxilliaryController.getRightTriggerAxis(), ALGAE_DEADBAND) > 0.0) {
+        if (MathUtil.applyDeadband(auxilliaryController.getRightTriggerAxis(), ALGAE_INTAKE_DEADBAND) > 0.0) {
             elevatorSubsystem.releaseAlgae();
         }
 
