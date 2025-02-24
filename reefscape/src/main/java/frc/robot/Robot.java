@@ -55,10 +55,10 @@ public class Robot extends TimedRobot {
     private static final double ALGAE_DEADBAND = 0.05;
 
     private static final double BASE_HEIGHT = 5.0; // inches
+    private static final double CAMERA_INSET = 0.0; // inches
 
-    // TODO
-    private static final double CORAL_STATION_OFFSET = 16.0; // inches
-    private static final double REEF_OFFSET = 12.0; // inches
+    private static final double CORAL_STATION_OFFSET = 8.0; // inches
+    private static final double REEF_OFFSET = 6.5; // inches
     private static final double MOVE_TIME = 1.5; // seconds
 
     private static final List<FieldElement> fieldElements = List.of(
@@ -113,6 +113,11 @@ public class Robot extends TimedRobot {
 
         driveSubsystem.periodic();
         elevatorSubsystem.periodic();
+    }
+
+    @Override
+    public void autonomousInit() {
+        autonomousMode = null;
     }
 
     @Override
@@ -314,7 +319,9 @@ public class Robot extends TimedRobot {
         var ht = fieldElement.getType().getHeight().in(Units.Meters);
         var hc = Distance.ofBaseUnits(BASE_HEIGHT + elevatorSubsystem.getCameraHeight(), Units.Inches).in(Units.Meters);
 
-        var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
+        var ci = Distance.ofBaseUnits(CAMERA_INSET, Units.Inches).in(Units.Meters);
+
+        var dx = (ht - hc) / Math.tan(Math.toRadians(ty)) - ci;
         var dy = dx * Math.tan(Math.toRadians(tx));
 
         var angle = fieldElement.getAngle().in(Units.Radians);
@@ -322,7 +329,7 @@ public class Robot extends TimedRobot {
 
         var a = angle - heading;
 
-        var t = getMaximumDockTime(dx, dy, a);
+        var t = getMaximumDockingTime(dx, dy, a);
 
         var xSpeed = dx / t;
         var ySpeed = dy / t;
@@ -335,7 +342,7 @@ public class Robot extends TimedRobot {
         end = System.currentTimeMillis() + (long)(t * 1000);
     }
 
-    private double getMaximumDockTime(double dx, double dy, double a) {
+    private double getMaximumDockingTime(double dx, double dy, double a) {
         var tx = dx / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
         var ty = dy / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
 
