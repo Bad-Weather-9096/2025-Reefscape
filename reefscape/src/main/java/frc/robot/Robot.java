@@ -395,7 +395,7 @@ public class Robot extends TimedRobot {
     }
 
     private void move(double distance) {
-        // TODO
+        // TODO Create auto-pilot parameters
     }
 
     @Override

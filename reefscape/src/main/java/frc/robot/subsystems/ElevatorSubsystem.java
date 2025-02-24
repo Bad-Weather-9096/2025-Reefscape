@@ -171,7 +171,11 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public void adjustPosition(Position elevatorLevel) {
-        // TODO Ignore if already adjusting position or position height is within tolerance
-        // TODO Otherwise, adjust height and end effector angle
+        // TODO If not already adjusting position, adjust height and end effector angle
+    }
+
+    @Override
+    public void periodic() {
+        // TODO
     }
 }
