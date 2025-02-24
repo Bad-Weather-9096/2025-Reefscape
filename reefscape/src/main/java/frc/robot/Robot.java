@@ -190,22 +190,18 @@ public class Robot extends TimedRobot {
                 shifting = false;
             }
         } else if (auxilliaryController.getAButton()) {
-            if (target == null) {
-                if (tv) {
-                    dock();
+            if (target == null && tv) {
+                dock();
 
-                    switch (target.getType()) {
-                        case CORAL_STATION -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.CORAL_INTAKE);
-                        case PROCESSOR -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.PROCESSOR);
-                        case REEF -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.BASE);
-                    }
-                } else {
-                    stop();
+                switch (target.getType()) {
+                    case CORAL_STATION -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.CORAL_INTAKE);
+                    case PROCESSOR -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.PROCESSOR);
+                    case REEF -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.BASE);
                 }
-            } else {
-                if (now >= end) {
-                    stop();
-                }
+            }
+
+            if (target != null && now >= end) {
+                stop();
             }
         } else {
             target = null;
