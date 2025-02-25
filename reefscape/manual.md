@@ -7,7 +7,7 @@
   * left/right - strafe
 * Right stick
   * left/right - spin
-* D-pad + A-button - nudge (robot-relative)
+* D-pad - nudge (robot-relative)
 
 ## Auxilliary Controller
 * Left stick

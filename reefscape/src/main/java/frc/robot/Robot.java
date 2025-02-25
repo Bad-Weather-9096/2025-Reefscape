@@ -232,7 +232,7 @@ public class Robot extends TimedRobot {
             if (now >= end) {
                 stop();
             }
-        } else if (driveController.getAButton()) {
+        } else {
             var pov = auxilliaryController.getPOV();
 
             if (pov != -1) {
@@ -251,16 +251,16 @@ public class Robot extends TimedRobot {
                 };
 
                 driveSubsystem.drive(xSpeed, ySpeed, 0.0, false);
+            } else {
+                target = null;
+
+                var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
+                var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
+
+                var rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
+
+                driveSubsystem.drive(xSpeed, ySpeed, rot, true);
             }
-        } else {
-            target = null;
-
-            var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
-            var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
-
-            var rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
-
-            driveSubsystem.drive(xSpeed, ySpeed, rot, true);
         }
     }
 
