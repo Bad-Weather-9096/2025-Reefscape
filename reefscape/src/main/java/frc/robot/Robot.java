@@ -48,6 +48,8 @@ public class Robot extends TimedRobot {
 
     private static final double DRIVE_DEADBAND = 0.05;
 
+    private static final double NUDGE_SPEED = 0.1; // percent
+
     private static final double ELEVATOR_DEADBAND = 0.02;
     private static final double END_EFFECTOR_DEADBAND = 0.02;
 
@@ -219,6 +221,26 @@ public class Robot extends TimedRobot {
 
             if (now >= end) {
                 stop();
+            }
+        } else if (driveController.getAButton()) {
+            var pov = auxilliaryController.getPOV();
+
+            if (pov != -1) {
+                var direction = Direction.fromAngle(pov);
+
+                var xSpeed = switch (direction) {
+                    case UP -> NUDGE_SPEED;
+                    case DOWN -> -NUDGE_SPEED;
+                    default -> 0.0;
+                };
+
+                var ySpeed = switch (direction) {
+                    case LEFT -> -NUDGE_SPEED;
+                    case RIGHT -> NUDGE_SPEED;
+                    default -> 0.0;
+                };
+
+                driveSubsystem.drive(xSpeed, ySpeed, 0.0, false);
             }
         } else {
             target = null;

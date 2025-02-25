@@ -10,6 +10,7 @@ Robot will not be pre-loaded with coral. Robot will reverse approximately 7 feet
   * left/right - strafe
 * Right stick
   * left/right - spin
+* D-pad + A-button - nudge (robot-relative)
 
 ## Auxilliary Controller
 * Left stick
