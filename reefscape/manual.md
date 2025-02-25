@@ -21,6 +21,7 @@ Robot will not be pre-loaded with coral. Robot will reverse approximately 7 feet
   * up/down - select level (reef)
   * left/right - select position (reef and coral station)
 * A-button - engage auto-pilot
+* X-button - extract algae
 * Left/right bumper - pick up/drop coral 
 * Left/right trigger - pick up/drop algae
 

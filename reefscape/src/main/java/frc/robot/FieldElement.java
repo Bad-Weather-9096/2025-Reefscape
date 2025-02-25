@@ -6,19 +6,25 @@ import edu.wpi.first.units.measure.Distance;
 
 public final class FieldElement {
     public enum Type {
-        CORAL_STATION(55.25),
-        PROCESSOR(47.88),
-        BARGE(70.73),
-        REEF(8.75);
+        CORAL_STATION(55.25, 8.0),
+        PROCESSOR(47.88, 8.0),
+        BARGE(70.73, 0.0),
+        REEF(8.75, 0.0);
 
         private final Distance height;
+        private final Distance standoff;
 
-        Type(double height) {
+        Type(double height, double standoff) {
             this.height = Units.Inches.of(height);
+            this.standoff = Units.Inches.of(standoff);
         }
 
         public Distance getHeight() {
             return height;
+        }
+
+        public Distance getStandoff() {
+            return standoff;
         }
     }
 

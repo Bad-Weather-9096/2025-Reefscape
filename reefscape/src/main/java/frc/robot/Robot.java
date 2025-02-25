@@ -35,6 +35,7 @@ public class Robot extends TimedRobot {
     private FieldElement target = null;
 
     private boolean shifting = false;
+    private boolean extractingAlgae = false;
 
     private long end = Long.MIN_VALUE;
 
@@ -57,7 +58,7 @@ public class Robot extends TimedRobot {
 
     private static final double CORAL_STATION_OFFSET = 8.0; // inches
     private static final double REEF_OFFSET = 6.5; // inches
-    private static final double MOVE_TIME = 1.5; // seconds
+    private static final double SHIFT_TIME = 1.5; // seconds
 
     private static final double BASE_HEIGHT = 5.0; // inches
     private static final double CAMERA_INSET = 3.0; // inches
@@ -206,6 +207,12 @@ public class Robot extends TimedRobot {
 
                 shifting = false;
             }
+        } else if (extractingAlgae) {
+            if (now >= end) {
+                stop();
+
+                extractingAlgae = false;
+            }
         } else if (auxilliaryController.getAButton() && (target != null || tv)) {
             if (target == null) {
                 dock();
@@ -213,7 +220,7 @@ public class Robot extends TimedRobot {
                 switch (target.getType()) {
                     case CORAL_STATION -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.CORAL_INTAKE);
                     case PROCESSOR -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.ALGAE_RELEASE);
-                    case REEF -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.BASE);
+                    case REEF -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.TRANSPORT);
                 }
 
                 return;
@@ -275,9 +282,12 @@ public class Robot extends TimedRobot {
             elevatorSubsystem.stopEndEffector();
         }
 
+        if (auxilliaryController.getXButtonPressed()) {
+            extractAlgae();
+        }
+
         if (auxilliaryController.getLeftBumperButtonPressed()) {
             elevatorSubsystem.receiveCoral();
-            elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.BASE);
         }
 
         if (auxilliaryController.getRightBumperButtonPressed()) {
@@ -286,7 +296,6 @@ public class Robot extends TimedRobot {
 
         if (MathUtil.applyDeadband(auxilliaryController.getLeftTriggerAxis(), ALGAE_INTAKE_DEADBAND) > 0.0) {
             elevatorSubsystem.receiveAlgae();
-            elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.ALGAE_RELEASE);
         }
 
         if (MathUtil.applyDeadband(auxilliaryController.getRightTriggerAxis(), ALGAE_INTAKE_DEADBAND) > 0.0) {
@@ -337,7 +346,9 @@ public class Robot extends TimedRobot {
     private void dock() {
         var fieldElement = fieldElements.get(fiducialID - 1);
 
-        var ht = fieldElement.getType().getHeight().in(Units.Meters);
+        var fieldElementType = fieldElement.getType();
+
+        var ht = fieldElementType.getHeight().in(Units.Meters);
         var hc = Units.Inches.of(BASE_HEIGHT + elevatorSubsystem.getCameraHeight()).in(Units.Meters);
 
         var ci = Units.Inches.of(CAMERA_INSET).in(Units.Meters);
@@ -346,6 +357,12 @@ public class Robot extends TimedRobot {
 
         var dx = (ht - hc) / Math.tan(Math.toRadians(ty)) - ci;
         var dy = dx * Math.tan(Math.toRadians(tx));
+
+        var st = fieldElementType.getStandoff().in(Units.Meters);
+
+        System.out.printf("st = %.2f\n", st);
+
+        dx -= st;
 
         var angle = fieldElement.getAngle().in(Units.Radians);
         var heading = Math.toRadians(driveSubsystem.getHeading());
@@ -384,13 +401,27 @@ public class Robot extends TimedRobot {
             return;
         }
 
-        var ySpeed = distance / MOVE_TIME;
+        var ySpeed = distance / SHIFT_TIME;
 
         driveSubsystem.drive(0.0, ySpeed, 0.0, false);
 
         shifting = true;
 
-        end = System.currentTimeMillis() + (long)(MOVE_TIME * 1000);
+        end = System.currentTimeMillis() + (long)(SHIFT_TIME * 1000);
+    }
+
+    private void extractAlgae() {
+        if (extractingAlgae) {
+            return;
+        }
+
+        // TODO Reverse/raise elevator
+
+        var t = 0.0; // TODO
+
+        extractingAlgae = true;
+
+        end = System.currentTimeMillis() + (long)(t * 1000);
     }
 
     private void stop() {

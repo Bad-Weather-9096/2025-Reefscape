@@ -12,14 +12,13 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class ElevatorSubsystem extends SubsystemBase {
     public enum Position {
-        // TODO
-        BASE(0.0, 0.0),
-        ALGAE_RELEASE(0.0, 0.0),
-        CORAL_INTAKE(0.0, 0.0),
-        LOWER_ALGAE_INTAKE(0.0, 0.0),
-        UPPER_ALGAE_INTAKE(0.0, 0.0),
-        LOWER_CORAL_RELEASE(0.0, 0.0),
-        UPPER_CORAL_RELEASE(0.0, 0.0);
+        TRANSPORT(32.0, 90.0),
+        ALGAE_RELEASE(20.0, 215.0),
+        CORAL_INTAKE(24.0, 135.0),
+        LOWER_ALGAE_INTAKE(20.0, 125.0),
+        UPPER_ALGAE_INTAKE(48.0, 125.0),
+        LOWER_CORAL_RELEASE(32.0, 215.0),
+        UPPER_CORAL_RELEASE(60.0, 215.0);
 
         private final double elevatorExtension; // inches
         private final double endEffectorAngle; // degrees
@@ -48,24 +47,20 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private static final double CAMERA_OFFSET = 15.5; // inches
 
-    // TODO Elevator constants
     private static final int TICKS_PER_INCH = 24;
 
     private static final double ELEVATOR_SPEED = 0.2; // percent
-    private static final double MAXIMUM_ELEVATOR_EXTENSION = 24.0; // inches
+    private static final double MAXIMUM_ELEVATOR_EXTENSION = 72.0; // inches
     private static final double ELEVATOR_EXTENSION_DEADBAND = 0.1;
 
-    // TODO End effector constants
     private static final int TICKS_PER_DEGREE = 24;
 
     private static final double END_EFFECTOR_SPEED = 0.1; // percent
-    private static final double MAXIMUM_END_EFFECTOR_ROTATION = 270.0; // degrees
+    private static final double MAXIMUM_END_EFFECTOR_ROTATION = 225.0; // degrees
     private static final double END_EFFECTOR_ANGLE_DEADBAND = 0.1;
 
-    // TODO Algae intake constants
     private static final double ALGAE_INTAKE_SPEED = 0.1; // percent
 
-    // TODO Coral intake constants
     private static final double CORAL_INTAKE_POSITION = 0.5;
 
     public ElevatorSubsystem() {
@@ -175,8 +170,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public void releaseAlgae() {
-        // TODO Reverse briefly?
-        algaeIntakeController.set(0.0);
+        algaeIntakeController.set(-ALGAE_INTAKE_SPEED);
     }
 
     public void adjustPosition(Position position) {
