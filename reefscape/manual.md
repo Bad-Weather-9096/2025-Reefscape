@@ -1,9 +1,6 @@
 # Robot Operation
 <img src="360_controller.png" width="660px"/>
 
-## Autonomous Mode
-Robot will not be pre-loaded with coral. Robot will reverse approximately 7 feet and then rotate until a reef target is identified. Auto-pilot will guide the robot to the target, where it will position the end effector for algae retrieval. First action by drive team will be to pick up the algae and deliver it to the processor.
-
 ## Drive Controller
 * Left stick (field-relative)
   * up/down - advance/retreat
@@ -24,6 +21,9 @@ Robot will not be pre-loaded with coral. Robot will reverse approximately 7 feet
 * X-button - extract algae
 * Left/right bumper - pick up/drop coral 
 * Left/right trigger - pick up/drop algae
+
+## Autonomous Mode
+Robot will not be pre-loaded with coral. Robot will reverse approximately 7 feet and then rotate until a reef target is identified. Auto-pilot will guide the robot to the target, where it will position the end effector for algae retrieval. First action by drive team will be to pick up the algae and deliver it to the processor.
 
 ## Notes
 * Auto-pilot can be engaged before a tag is identified; however, once activated, the robot will lock onto the first tag it sees. Make sure you are pointing in the right direction before you press the A button.
