@@ -5,7 +5,6 @@ import com.revrobotics.spark.SparkLowLevel;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
-import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -38,6 +37,9 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private Position position = null;
 
+    private double elevatorExtensionOffset = 0.0;
+    private double endEffectorAngleOffset = 0.0;
+
     private boolean hasCoral = false;
 
     private static final int ELEVATOR_CAN_ID = 9;
@@ -47,21 +49,20 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private static final double CAMERA_OFFSET = 15.5; // inches
 
-    private static final int TICKS_PER_INCH = 24;
+    private static final double ELEVATOR_DISTANCE_PER_ROTATION = 12.0; // inches
 
-    private static final double ELEVATOR_SPEED = 0.2; // percent
+    private static final double ELEVATOR_SPEED = 0.05; // percent
     private static final double MAXIMUM_ELEVATOR_EXTENSION = 72.0; // inches
-    private static final double ELEVATOR_EXTENSION_DEADBAND = 0.1;
 
-    private static final int TICKS_PER_DEGREE = 24;
-
-    private static final double END_EFFECTOR_SPEED = 0.1; // percent
+    private static final double END_EFFECTOR_SPEED = 0.05; // percent
     private static final double MAXIMUM_END_EFFECTOR_ROTATION = 225.0; // degrees
-    private static final double END_EFFECTOR_ANGLE_DEADBAND = 0.1;
 
     private static final double ALGAE_INTAKE_SPEED = 0.1; // percent
 
     private static final double CORAL_INTAKE_POSITION = 0.5;
+
+    private static final double ALGAE_EXTRACTION_EXTENSION_OFFSET = 8.0; // inches
+    private static final double ALGAE_EXTRACTION_END_EFFECTOR_OFFSET = -5.0; // degrees
 
     public ElevatorSubsystem() {
         elevatorController = new SparkMax(ELEVATOR_CAN_ID, SparkLowLevel.MotorType.kBrushless);
@@ -74,7 +75,7 @@ public class ElevatorSubsystem extends SubsystemBase {
             SparkBase.ResetMode.kResetSafeParameters,
             SparkBase.PersistMode.kPersistParameters);
 
-        elevatorController.getEncoder().setPosition(0);
+        elevatorController.getEncoder().setPosition(0.0);
 
         endEffectorController = new SparkMax(END_EFFECTOR_CAN_ID, SparkLowLevel.MotorType.kBrushless);
 
@@ -86,7 +87,7 @@ public class ElevatorSubsystem extends SubsystemBase {
             SparkBase.ResetMode.kResetSafeParameters,
             SparkBase.PersistMode.kPersistParameters);
 
-        endEffectorController.getEncoder().setPosition(0);
+        endEffectorController.getEncoder().setPosition(0.0);
 
         algaeIntakeController = new SparkMax(ALGAE_INTAKE_CAN_ID, SparkLowLevel.MotorType.kBrushless);
 
@@ -106,17 +107,17 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public double getElevatorExtension() {
-        return elevatorController.getEncoder().getPosition() / TICKS_PER_INCH;
+        return elevatorController.getEncoder().getPosition() * ELEVATOR_DISTANCE_PER_ROTATION;
     }
 
     public void raiseElevator() {
-        position = null;
+        adjustPosition(null);
 
         elevatorController.set(getElevatorExtension() < MAXIMUM_ELEVATOR_EXTENSION ? ELEVATOR_SPEED : 0.0);
     }
 
     public void lowerElevator() {
-        position = null;
+        adjustPosition(null);
 
         elevatorController.set(getElevatorExtension() > 0 ? -ELEVATOR_SPEED : 0.0);
     }
@@ -128,17 +129,17 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public double getEndEffectorAngle() {
-        return endEffectorController.getEncoder().getPosition() / TICKS_PER_DEGREE;
+        return endEffectorController.getEncoder().getPosition() * 360.0;
     }
 
     public void raiseEndEffector() {
-        position = null;
+        adjustPosition(null);
 
         endEffectorController.set(getEndEffectorAngle() > 0 ? -END_EFFECTOR_SPEED : 0.0);
     }
 
     public void lowerEndEffector() {
-        position = null;
+        adjustPosition(null);
 
         endEffectorController.set(getEndEffectorAngle() < MAXIMUM_END_EFFECTOR_ROTATION ? END_EFFECTOR_SPEED : 0.0);
     }
@@ -175,11 +176,14 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     public void adjustPosition(Position position) {
         this.position = position;
+
+        elevatorExtensionOffset = 0.0;
+        endEffectorAngleOffset = 0.0;
     }
 
-    public double extractAlgae() {
-        // TODO Raise elevator and adjust angle slightly
-        return 0;
+    public void extractAlgae() {
+        elevatorExtensionOffset = ALGAE_EXTRACTION_EXTENSION_OFFSET;
+        endEffectorAngleOffset = ALGAE_EXTRACTION_END_EFFECTOR_OFFSET;
     }
 
     @Override
@@ -189,7 +193,7 @@ public class ElevatorSubsystem extends SubsystemBase {
         var elevatorExtension = getElevatorExtension();
 
         if (position != null) {
-            var elevatorExtensionDelta = MathUtil.applyDeadband(position.elevatorExtension - elevatorExtension, ELEVATOR_EXTENSION_DEADBAND);
+            var elevatorExtensionDelta = (position.elevatorExtension + elevatorExtensionOffset) - elevatorExtension;
             var elevatorSpeed = Math.signum(elevatorExtensionDelta) * ELEVATOR_SPEED;
 
             endEffectorController.set(elevatorSpeed);
@@ -200,7 +204,7 @@ public class ElevatorSubsystem extends SubsystemBase {
         var endEffectorAngle = getEndEffectorAngle();
 
         if (position != null) {
-            var endEffectorAngleDelta = MathUtil.applyDeadband(position.endEffectorAngle - endEffectorAngle, END_EFFECTOR_ANGLE_DEADBAND);
+            var endEffectorAngleDelta = (position.endEffectorAngle + endEffectorAngleOffset) - endEffectorAngle;
             var endEffectorSpeed = Math.signum(endEffectorAngleDelta) * END_EFFECTOR_SPEED;
 
             endEffectorController.set(endEffectorSpeed);

@@ -63,7 +63,8 @@ public class Robot extends TimedRobot {
     private static final double BASE_HEIGHT = 5.0; // inches
     private static final double CAMERA_INSET = 3.0; // inches
 
-    private static final double ALGAE_EXTRACTION_DISTANCE = 12.0; // inches
+    private static final double ALGAE_EXTRACTION_SPEED = 0.05; // percent
+    private static final double ALGAE_EXTRACTION_TIME = 4.0; // seconds
 
     private static final List<FieldElement> fieldElements = List.of(
         new FieldElement(FieldElement.Type.CORAL_STATION, -126.0),
@@ -284,7 +285,7 @@ public class Robot extends TimedRobot {
             elevatorSubsystem.stopEndEffector();
         }
 
-        if (auxilliaryController.getXButtonPressed()) {
+        if (auxilliaryController.getXButtonPressed() && target != null && target.getType() == FieldElement.Type.REEF) {
             extractAlgae();
         }
 
@@ -417,15 +418,13 @@ public class Robot extends TimedRobot {
             return;
         }
 
-        var t = elevatorSubsystem.extractAlgae();
+        driveSubsystem.drive(ALGAE_EXTRACTION_SPEED, 0.0, 0.0, false);
 
-        var xSpeed = (ALGAE_EXTRACTION_DISTANCE / t) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
-
-        driveSubsystem.drive(xSpeed, 0.0, 0.0, false);
+        elevatorSubsystem.extractAlgae();
 
         extractingAlgae = true;
 
-        end = System.currentTimeMillis() + (long)(t * 1000);
+        end = System.currentTimeMillis() + (long)(ALGAE_EXTRACTION_TIME * 1000);
     }
 
     private void stop() {
