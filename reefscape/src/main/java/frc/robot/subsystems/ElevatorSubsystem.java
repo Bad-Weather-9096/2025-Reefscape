@@ -177,6 +177,11 @@ public class ElevatorSubsystem extends SubsystemBase {
         this.position = position;
     }
 
+    public double extractAlgae() {
+        // TODO Raise elevator and adjust angle slightly
+        return 0;
+    }
+
     @Override
     public void periodic() {
         SmartDashboard.putNumber("camera-height", getCameraHeight());

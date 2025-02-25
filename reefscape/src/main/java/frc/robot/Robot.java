@@ -63,6 +63,8 @@ public class Robot extends TimedRobot {
     private static final double BASE_HEIGHT = 5.0; // inches
     private static final double CAMERA_INSET = 3.0; // inches
 
+    private static final double ALGAE_EXTRACTION_DISTANCE = 12.0; // inches
+
     private static final List<FieldElement> fieldElements = List.of(
         new FieldElement(FieldElement.Type.CORAL_STATION, -126.0),
         new FieldElement(FieldElement.Type.CORAL_STATION, 126.0),
@@ -415,9 +417,11 @@ public class Robot extends TimedRobot {
             return;
         }
 
-        // TODO Reverse/raise elevator
+        var t = elevatorSubsystem.extractAlgae();
 
-        var t = 0.0; // TODO
+        var xSpeed = (ALGAE_EXTRACTION_DISTANCE / t) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
+
+        driveSubsystem.drive(xSpeed, 0.0, 0.0, false);
 
         extractingAlgae = true;
 
