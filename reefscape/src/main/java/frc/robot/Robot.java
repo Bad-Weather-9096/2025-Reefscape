@@ -5,7 +5,6 @@ import edu.wpi.first.cscore.HttpCamera;
 import edu.wpi.first.cscore.HttpCamera.HttpCameraKind;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.units.Units;
-import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -54,12 +53,12 @@ public class Robot extends TimedRobot {
 
     private static final double ALGAE_INTAKE_DEADBAND = 0.05;
 
-    private static final double BASE_HEIGHT = 5.0; // inches
-    private static final double CAMERA_INSET = 0.0; // inches
-
     private static final double CORAL_STATION_OFFSET = 8.0; // inches
     private static final double REEF_OFFSET = 6.5; // inches
     private static final double MOVE_TIME = 1.5; // seconds
+
+    private static final double BASE_HEIGHT = 5.0; // inches
+    private static final double CAMERA_INSET = 3.0; // inches
 
     private static final List<FieldElement> fieldElements = List.of(
         new FieldElement(FieldElement.Type.CORAL_STATION, -126.0),
@@ -333,12 +332,13 @@ public class Robot extends TimedRobot {
 
         var a = angle - heading;
 
-        var t = getMaximumDockingTime(dx, dy, a);
+        var t = getTime(dx, dy, a);
 
         System.out.printf("dx = %.1f, dy = %.1f, a = %.1f, t = %.1f\n", dx, dy, a, t);
 
         var xSpeed = dx / t;
         var ySpeed = dy / t;
+
         var rot = a / t;
 
         driveSubsystem.drive(xSpeed, ySpeed, rot, false);
@@ -348,7 +348,7 @@ public class Robot extends TimedRobot {
         end = System.currentTimeMillis() + (long)(t * 1000);
     }
 
-    private double getMaximumDockingTime(double dx, double dy, double a) {
+    private double getTime(double dx, double dy, double a) {
         var tx = dx / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
         var ty = dy / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
 
