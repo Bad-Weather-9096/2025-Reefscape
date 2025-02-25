@@ -30,5 +30,6 @@ Robot will not be pre-loaded with coral. Robot will reverse approximately 7 feet
 * Auto-pilot overrides manual drive control. Releasing the A button disengages auto-pilot and returns control to the driver.
 * Position adjustment and algae extraction also override manual drive control. These actions cannot be canceled once initiated.
 * Level/position selection and algae extraction require prior acquisition of a target lock via auto-pilot. If a target has not been identified, the controls that trigger these actions will do nothing.
-* With the exception of nudge mode, manual control clears any existing target lock. If the robot is moved after an auto-pilot sequence has been initiated, you will need to re-target.
-* Manual elevator and end effector control may disrupt operation and should be used sparingly, if at all.
+* Level selection is cargo-dependent. If the robot is carrying coral, the up/down buttons will select the appropriate coral release level. Otherwise, they will select the appropriate algae extraction level.
+* Resuming manual drive control clears any existing target lock. With the exception of nudge operations, if the robot is moved after an auto-pilot sequence has been initiated, you will need to re-target.
+* Manual elevator and end effector control may disrupt automated behaviors and should be used sparingly, if at all.

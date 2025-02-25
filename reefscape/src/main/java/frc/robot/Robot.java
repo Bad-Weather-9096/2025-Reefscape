@@ -48,6 +48,7 @@ public class Robot extends TimedRobot {
     private static final double LOCATE_TAG_SPEED = Math.PI / 2; // radians/second
 
     private static final double DRIVE_DEADBAND = 0.05;
+    private static final double TARGET_RELEASE_DEADBAND = 0.5;
 
     private static final double NUDGE_SPEED = 0.1; // percent
 
@@ -252,10 +253,14 @@ public class Robot extends TimedRobot {
 
                 driveSubsystem.drive(xSpeed, ySpeed, 0.0, false);
             } else {
-                target = null;
+                var speedDeadband = (target == null) ? DRIVE_DEADBAND : TARGET_RELEASE_DEADBAND;
 
-                var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
-                var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
+                var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), speedDeadband);
+                var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), speedDeadband);
+
+                if (xSpeed > 0.0 || ySpeed > 0.0) {
+                    target = null;
+                }
 
                 var rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
 

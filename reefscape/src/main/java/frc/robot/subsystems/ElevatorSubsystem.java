@@ -14,10 +14,10 @@ public class ElevatorSubsystem extends SubsystemBase {
         TRANSPORT(32.0, 90.0),
         ALGAE_RELEASE(20.0, 215.0),
         CORAL_INTAKE(24.0, 135.0),
-        LOWER_ALGAE_INTAKE(20.0, 125.0),
-        UPPER_ALGAE_INTAKE(48.0, 125.0),
-        LOWER_CORAL_RELEASE(32.0, 215.0),
-        UPPER_CORAL_RELEASE(60.0, 215.0);
+        LOWER_ALGAE_INTAKE(32.0, 180.0),
+        UPPER_ALGAE_INTAKE(48.0, 180.0),
+        LOWER_CORAL_RELEASE(40.0, 215.0),
+        UPPER_CORAL_RELEASE(56.0, 215.0);
 
         private final double elevatorExtension; // inches
         private final double endEffectorAngle; // degrees
@@ -49,7 +49,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private static final double CAMERA_OFFSET = 15.5; // inches
 
-    private static final double ELEVATOR_DISTANCE_PER_ROTATION = 12.0; // inches
+    private static final double ELEVATOR_DISTANCE_PER_ROTATION = 4.0; // inches
 
     private static final double ELEVATOR_SPEED = 0.05; // percent
     private static final double MAXIMUM_ELEVATOR_EXTENSION = 72.0; // inches
@@ -62,7 +62,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     private static final double CORAL_INTAKE_POSITION = 0.5;
 
     private static final double ALGAE_EXTRACTION_EXTENSION_OFFSET = 8.0; // inches
-    private static final double ALGAE_EXTRACTION_END_EFFECTOR_OFFSET = -5.0; // degrees
+    private static final double ALGAE_EXTRACTION_END_EFFECTOR_ANGLE_OFFSET = -5.0; // degrees
 
     public ElevatorSubsystem() {
         elevatorController = new SparkMax(ELEVATOR_CAN_ID, SparkLowLevel.MotorType.kBrushless);
@@ -107,7 +107,11 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public double getElevatorExtension() {
-        return elevatorController.getEncoder().getPosition() * ELEVATOR_DISTANCE_PER_ROTATION;
+        var position = elevatorController.getEncoder().getPosition();
+
+        SmartDashboard.putNumber("elevator-position", position);
+
+        return position * ELEVATOR_DISTANCE_PER_ROTATION;
     }
 
     public void raiseElevator() {
@@ -129,7 +133,11 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public double getEndEffectorAngle() {
-        return endEffectorController.getEncoder().getPosition() * 360.0;
+        var position = endEffectorController.getEncoder().getPosition();
+
+        SmartDashboard.putNumber("end-effector-position", position);
+
+        return position * 360.0;
     }
 
     public void raiseEndEffector() {
@@ -183,7 +191,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     public void extractAlgae() {
         elevatorExtensionOffset = ALGAE_EXTRACTION_EXTENSION_OFFSET;
-        endEffectorAngleOffset = ALGAE_EXTRACTION_END_EFFECTOR_OFFSET;
+        endEffectorAngleOffset = ALGAE_EXTRACTION_END_EFFECTOR_ANGLE_OFFSET;
     }
 
     @Override
