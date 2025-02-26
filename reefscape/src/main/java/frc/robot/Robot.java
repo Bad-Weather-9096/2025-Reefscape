@@ -366,7 +366,7 @@ public class Robot extends TimedRobot {
         var heading = Math.toRadians(driveSubsystem.getHeading());
 
         var dx = (ht - hc) / Math.tan(Math.toRadians(ty)) - ci;
-        var dy = dx * Math.tan(Math.toRadians(tx + heading));
+        var dy = dx * Math.tan(Math.toRadians(tx) + heading);
 
         var st = type.getStandoff().in(Units.Meters);
 
