@@ -54,20 +54,19 @@ public class AutoPilotCalculationsTest {
         var ht = type.getHeight().in(Units.Meters) + Units.Inches.of(TAG_HEIGHT).in(Units.Meters) / 2;
         var hc = Units.Inches.of(BASE_HEIGHT + CAMERA_HEIGHT).in(Units.Meters);
 
-        var ci = Units.Inches.of(CAMERA_INSET).in(Units.Meters);
-
         var heading = Math.toRadians(yaw);
 
-        System.out.printf("ht = %.2f, hc = %.2f, ci = %.2f, heading = %.2f\n", ht, hc, ci, heading);
+        System.out.printf("ht = %.2f, hc = %.2f, heading = %.2f\n", ht, hc, heading);
 
-        var dx = (ht - hc) / Math.tan(Math.toRadians(ty)) - ci;
+        var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
         var dy = dx * Math.tan(Math.toRadians(tx) + heading);
 
         var st = type.getStandoff().in(Units.Meters);
+        var ci = Units.Inches.of(CAMERA_INSET).in(Units.Meters);
 
-        System.out.printf("st = %.2f\n", st);
+        System.out.printf("st = %.2f, ci = %.2f\n", st, ci);
 
-        dx -= st;
+        dx -= (st + ci);
 
         var a = angle - heading;
 

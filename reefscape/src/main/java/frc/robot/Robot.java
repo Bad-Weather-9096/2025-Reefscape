@@ -361,16 +361,15 @@ public class Robot extends TimedRobot {
         var ht = type.getHeight().in(Units.Meters) + Units.Inches.of(TAG_HEIGHT).in(Units.Meters) / 2;
         var hc = Units.Inches.of(BASE_HEIGHT + elevatorSubsystem.getCameraHeight()).in(Units.Meters);
 
-        var ci = Units.Inches.of(CAMERA_INSET).in(Units.Meters);
-
         var heading = Math.toRadians(driveSubsystem.getHeading());
 
-        var dx = (ht - hc) / Math.tan(Math.toRadians(ty)) - ci;
+        var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
         var dy = dx * Math.tan(Math.toRadians(tx) + heading);
 
         var st = type.getStandoff().in(Units.Meters);
+        var ci = Units.Inches.of(CAMERA_INSET).in(Units.Meters);
 
-        dx -= st;
+        dx -= (st + ci);
 
         var a = angle - heading;
 
