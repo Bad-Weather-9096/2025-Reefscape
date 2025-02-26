@@ -12,34 +12,34 @@ public class AutoPilotCalculationsTest {
     @Test
     public void testCalculations() {
         logResult("parallel with field element/aligned with tag",
-            new FieldElement(FieldElement.Type.REEF, 0.0), 0.0, 0.0, -15.0);
+            new FieldElement(FieldElement.Type.REEF, 0.0), 0.0, 0.0, -5.0);
 
         logResult("parallel with field element/to the left of tag",
-            new FieldElement(FieldElement.Type.REEF, 0.0), 0.0, 26.6, -15.0);
+            new FieldElement(FieldElement.Type.REEF, 0.0), 0.0, 26.6, -5.0);
 
         logResult("parallel with field element/to the right of tag",
-            new FieldElement(FieldElement.Type.REEF, 0.0), 0.0, -26.6, -15.0);
+            new FieldElement(FieldElement.Type.REEF, 0.0), 0.0, -26.6, -5.0);
 
         logResult("turned 45 degrees CW/to the left of tag",
-            new FieldElement(FieldElement.Type.REEF, 0.0), 45.0, -18.4, -15.0);
+            new FieldElement(FieldElement.Type.REEF, 0.0), 45.0, -18.4, -5.0);
 
         logResult("turned 45 degrees CCW/to the right of tag",
-            new FieldElement(FieldElement.Type.REEF, 0.0), -45.0, 18.4, -15.0);
+            new FieldElement(FieldElement.Type.REEF, 0.0), -45.0, 18.4, -5.0);
 
         logResult("parallel with field element/aligned with tag",
-            new FieldElement(FieldElement.Type.CORAL_STATION, 0.0), 0.0, 0.0, 15.0);
+            new FieldElement(FieldElement.Type.CORAL_STATION, 0.0), 0.0, 0.0, 12.5);
 
         logResult("parallel with field element/to the left of tag",
-            new FieldElement(FieldElement.Type.CORAL_STATION, 0.0), 0.0, 26.6, 15.0);
+            new FieldElement(FieldElement.Type.CORAL_STATION, 0.0), 0.0, 26.6, 12.5);
 
         logResult("parallel with field element/to the right of tag",
-            new FieldElement(FieldElement.Type.CORAL_STATION, 0.0), 0.0, -26.6, 15.0);
+            new FieldElement(FieldElement.Type.CORAL_STATION, 0.0), 0.0, -26.6, 12.5);
 
         logResult("turned 45 degrees CW/to the left of tag",
-            new FieldElement(FieldElement.Type.CORAL_STATION, 0.0), 45.0, -18.4, 15.0);
+            new FieldElement(FieldElement.Type.CORAL_STATION, 0.0), 45.0, -18.4, 12.5);
 
         logResult("turned 45 degrees CCW/to the right of tag",
-            new FieldElement(FieldElement.Type.CORAL_STATION, 0.0), -45.0, 18.4, 15.0);
+            new FieldElement(FieldElement.Type.CORAL_STATION, 0.0), -45.0, 18.4, 12.5);
     }
 
     private void logResult(String label, FieldElement fieldElement, double yaw, double tx, double ty) {
