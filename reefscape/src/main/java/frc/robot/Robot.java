@@ -397,8 +397,8 @@ public class Robot extends TimedRobot {
     }
 
     private double getTime(double dx, double dy, double a) {
-        var tx = dx / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
-        var ty = dy / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
+        var tx = Math.abs(dx) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
+        var ty = Math.abs(dy) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
 
         var ta = Math.abs(a) / Constants.DriveConstants.kMaxAngularSpeed;
 
