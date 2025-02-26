@@ -360,7 +360,7 @@ public class Robot extends TimedRobot {
 
         System.out.printf("type = %s, angle = %.2f\n", type, angle);
 
-        var ht = type.getHeight().in(Units.Meters) + TAG_HEIGHT / 2;
+        var ht = type.getHeight().in(Units.Meters) + Units.Inches.of(TAG_HEIGHT).in(Units.Meters) / 2;
         var hc = Units.Inches.of(BASE_HEIGHT + elevatorSubsystem.getCameraHeight()).in(Units.Meters);
 
         var ci = Units.Inches.of(CAMERA_INSET).in(Units.Meters);
