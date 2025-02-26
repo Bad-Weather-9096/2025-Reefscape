@@ -23,8 +23,6 @@ public class Robot extends TimedRobot {
     private DriveSubsystem driveSubsystem = new DriveSubsystem();
     private ElevatorSubsystem elevatorSubsystem = new ElevatorSubsystem();
 
-    private boolean tv = false;
-
     private double tx = 0.0;
     private double ty = 0.0;
 
@@ -32,8 +30,7 @@ public class Robot extends TimedRobot {
 
     private AutonomousMode autonomousMode = null;
 
-    private FieldElement target = null;
-
+    private boolean docking = false;
     private boolean shifting = false;
     private boolean extractingAlgae = false;
 
@@ -93,19 +90,25 @@ public class Robot extends TimedRobot {
     );
 
     private void readLimelight() {
-        tv = LimelightHelpers.getTV(LIMELIGHT_NAME);
-
         tx = LimelightHelpers.getTX(LIMELIGHT_NAME);
         ty = LimelightHelpers.getTY(LIMELIGHT_NAME);
-
-        fiducialID = (int)LimelightHelpers.getFiducialID(LIMELIGHT_NAME);
-
-        SmartDashboard.putBoolean("tv", tv);
 
         SmartDashboard.putNumber("tx", tx);
         SmartDashboard.putNumber("ty", ty);
 
+        var tv = LimelightHelpers.getTV(LIMELIGHT_NAME);
+
+        SmartDashboard.putBoolean("tv", tv);
+
+        if (tv) {
+            fiducialID = (int)LimelightHelpers.getFiducialID(LIMELIGHT_NAME);
+        }
+
         SmartDashboard.putNumber("fiducial-id", fiducialID);
+    }
+
+    private FieldElement getTarget() {
+        return (fiducialID == -1) ? null : fieldElements.get(fiducialID - 1);
     }
 
     @Override
@@ -115,8 +118,6 @@ public class Robot extends TimedRobot {
 
     @Override
     public void robotPeriodic() {
-        SmartDashboard.putBoolean("target-locked", target != null);
-
         driveSubsystem.periodic();
         elevatorSubsystem.periodic();
     }
@@ -154,30 +155,30 @@ public class Robot extends TimedRobot {
                     }
                 }
                 case LOCATE_TAG -> {
-                    if (tv) {
-                        var fieldElement = fieldElements.get(fiducialID - 1);
+                    var target = getTarget();
 
-                        if (fieldElement.getType() == FieldElement.Type.REEF) {
-                            autonomousMode = AutonomousMode.DOCK;
+                    if (target != null && target.getType() == FieldElement.Type.REEF) {
+                        autonomousMode = AutonomousMode.DOCK;
 
-                            dock();
+                        dock();
 
-                            if (fiducialID == 7
-                                || fiducialID == 9
-                                || fiducialID == 11
-                                || fiducialID == 18
-                                || fiducialID == 20
-                                || fiducialID == 22) {
-                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.UPPER_ALGAE_INTAKE);
-                            } else {
-                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.LOWER_ALGAE_INTAKE);
-                            }
+                        if (fiducialID == 7
+                            || fiducialID == 9
+                            || fiducialID == 11
+                            || fiducialID == 18
+                            || fiducialID == 20
+                            || fiducialID == 22) {
+                            elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.UPPER_ALGAE_INTAKE);
+                        } else {
+                            elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.LOWER_ALGAE_INTAKE);
                         }
                     }
                 }
                 case DOCK -> {
                     if (now >= end) {
                         autonomousMode = AutonomousMode.DONE;
+
+                        docking = false;
 
                         stop();
                     }
@@ -205,7 +206,17 @@ public class Robot extends TimedRobot {
     private void navigate() {
         var now = System.currentTimeMillis();
 
-        if (shifting) {
+        if (driveController.getXButtonPressed()) {
+            docking = false;
+        }
+
+        if (docking) {
+            if (now >= end) {
+                stop();
+
+                docking = false;
+            }
+        } else if (shifting) {
             if (now >= end) {
                 stop();
 
@@ -217,8 +228,12 @@ public class Robot extends TimedRobot {
 
                 extractingAlgae = false;
             }
-        } else if (auxilliaryController.getAButton() && (target != null || tv)) {
-            if (target == null) {
+        } else {
+            var target = getTarget();
+
+            // TODO This could re-initiate docking after completion
+            // TODO It could also dock to the previous tag; only set target if A or B is pressed in readLimelight()?
+            if (auxilliaryController.getAButton() && target != null) {
                 dock();
 
                 switch (target.getType()) {
@@ -226,57 +241,47 @@ public class Robot extends TimedRobot {
                     case PROCESSOR -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.ALGAE_RELEASE);
                     case REEF -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.TRANSPORT);
                 }
-
-                return;
-            }
-
-            if (now >= end) {
-                stop();
-            }
-        } else {
-            var pov = auxilliaryController.getPOV();
-
-            if (pov != -1) {
-                var direction = Direction.fromAngle(pov);
-
-                var xSpeed = switch (direction) {
-                    case UP -> NUDGE_SPEED;
-                    case DOWN -> -NUDGE_SPEED;
-                    default -> 0.0;
-                };
-
-                var ySpeed = switch (direction) {
-                    case LEFT -> -NUDGE_SPEED;
-                    case RIGHT -> NUDGE_SPEED;
-                    default -> 0.0;
-                };
-
-                driveSubsystem.drive(xSpeed, ySpeed, 0.0, false);
             } else {
-                var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
-                var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
+                var pov = auxilliaryController.getPOV();
 
-                var rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
+                if (pov != -1) {
+                    var direction = Direction.fromAngle(pov);
 
-                if (auxilliaryController.getBButton()) {
-                    if (target == null && tv) {
-                        target = fieldElements.get(fiducialID - 1);
+                    var xSpeed = switch (direction) {
+                        case UP -> NUDGE_SPEED;
+                        case DOWN -> -NUDGE_SPEED;
+                        default -> 0.0;
+                    };
+
+                    var ySpeed = switch (direction) {
+                        case LEFT -> -NUDGE_SPEED;
+                        case RIGHT -> NUDGE_SPEED;
+                        default -> 0.0;
+                    };
+
+                    driveSubsystem.drive(xSpeed, ySpeed, 0.0, false);
+                } else {
+                    var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
+                    var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
+
+                    var rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
+
+                    if (auxilliaryController.getBButton() && target != null) {
+                        var heading = driveSubsystem.getHeading();
+
+                        if ((int)Math.signum(tx + heading) != (int)Math.signum(ySpeed)) {
+                            ySpeed = 0.0;
+                        }
+
+                        var angle = target.getAngle().baseUnitMagnitude();
+
+                        if ((int)Math.signum(angle - heading) != (int)Math.signum(rot)) {
+                            rot = 0.0;
+                        }
                     }
 
-                    var heading = driveSubsystem.getHeading();
-
-                    if ((int)Math.signum(tx + heading) != (int)Math.signum(ySpeed)) {
-                        ySpeed = 0.0;
-                    }
-
-                    var angle = target.getAngle().baseUnitMagnitude();
-
-                    if ((int)Math.signum(angle - heading) != (int)Math.signum(rot)) {
-                        rot = 0.0;
-                    }
+                    driveSubsystem.drive(xSpeed, ySpeed, rot, true);
                 }
-
-                driveSubsystem.drive(xSpeed, ySpeed, rot, true);
             }
         }
     }
@@ -301,6 +306,8 @@ public class Robot extends TimedRobot {
         } else {
             elevatorSubsystem.stopEndEffector();
         }
+
+        var target = getTarget();
 
         if (auxilliaryController.getXButtonPressed() && target != null && target.getType() == FieldElement.Type.REEF) {
             extractAlgae();
@@ -364,10 +371,14 @@ public class Robot extends TimedRobot {
     }
 
     private void dock() {
-        var fieldElement = fieldElements.get(fiducialID - 1);
+        if (docking) {
+            return;
+        }
 
-        var type = fieldElement.getType();
-        var angle = fieldElement.getAngle().in(Units.Radians);
+        var target = getTarget();
+
+        var type = target.getType();
+        var angle = target.getAngle().in(Units.Radians);
 
         var ht = type.getHeight().in(Units.Meters) + Units.Inches.of(TAG_HEIGHT).in(Units.Meters) / 2;
         var hc = Units.Inches.of(BASE_HEIGHT + elevatorSubsystem.getCameraHeight()).in(Units.Meters);
@@ -393,7 +404,7 @@ public class Robot extends TimedRobot {
 
         driveSubsystem.drive(xSpeed, ySpeed, rot, false);
 
-        target = fieldElement;
+        docking = true;
 
         end = System.currentTimeMillis() + (long)(t * 1000);
     }
