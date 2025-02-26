@@ -107,7 +107,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public double getElevatorExtension() {
-        var position = elevatorController.getEncoder().getPosition();
+        var position = 0.0; // TODO elevatorController.getEncoder().getPosition();
 
         SmartDashboard.putNumber("elevator-position", position);
 
@@ -133,7 +133,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public double getEndEffectorAngle() {
-        var position = endEffectorController.getEncoder().getPosition();
+        var position = 0.0; // TODO endEffectorController.getEncoder().getPosition();
 
         SmartDashboard.putNumber("end-effector-position", position);
 

@@ -358,8 +358,6 @@ public class Robot extends TimedRobot {
         var type = fieldElement.getType();
         var angle = fieldElement.getAngle().in(Units.Radians);
 
-        System.out.printf("type = %s, angle = %.2f\n", type, angle);
-
         var ht = type.getHeight().in(Units.Meters) + Units.Inches.of(TAG_HEIGHT).in(Units.Meters) / 2;
         var hc = Units.Inches.of(BASE_HEIGHT + elevatorSubsystem.getCameraHeight()).in(Units.Meters);
 
@@ -367,22 +365,16 @@ public class Robot extends TimedRobot {
 
         var heading = Math.toRadians(driveSubsystem.getHeading());
 
-        System.out.printf("ht = %.2f, hc = %.2f, ci = %.2f, heading = %.2f\n", ht, hc, ci, heading);
-
         var dx = (ht - hc) / Math.tan(Math.toRadians(ty)) - ci;
         var dy = dx * Math.tan(Math.toRadians(tx + heading));
 
         var st = type.getStandoff().in(Units.Meters);
-
-        System.out.printf("st = %.2f\n", st);
 
         dx -= st;
 
         var a = angle - heading;
 
         var t = getTime(dx, dy, a);
-
-        System.out.printf("dx = %.1f, dy = %.1f, a = %.1f, t = %.1f\n", dx, dy, a, t);
 
         var xSpeed = dx / t;
         var ySpeed = dy / t;
