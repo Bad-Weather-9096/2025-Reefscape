@@ -30,7 +30,6 @@ public class Robot extends TimedRobot {
 
     private AutonomousMode autonomousMode = null;
 
-    private boolean docking = false;
     private boolean shifting = false;
     private boolean extractingAlgae = false;
 
@@ -160,7 +159,7 @@ public class Robot extends TimedRobot {
                     if (target != null && target.getType() == FieldElement.Type.REEF) {
                         autonomousMode = AutonomousMode.DOCK;
 
-                        dock();
+                        dock(target);
 
                         if (fiducialID == 7
                             || fiducialID == 9
@@ -178,8 +177,6 @@ public class Robot extends TimedRobot {
                     if (now >= end) {
                         autonomousMode = AutonomousMode.DONE;
 
-                        docking = false;
-
                         stop();
                     }
                 }
@@ -188,6 +185,46 @@ public class Robot extends TimedRobot {
                 }
             }
         }
+    }
+
+    private void dock(FieldElement target) {
+        var type = target.getType();
+        var angle = target.getAngle().in(Units.Radians);
+
+        var ht = type.getHeight().in(Units.Meters) + Units.Inches.of(TAG_HEIGHT).in(Units.Meters) / 2;
+        var hc = Units.Inches.of(BASE_HEIGHT + elevatorSubsystem.getCameraHeight()).in(Units.Meters);
+
+        var heading = Math.toRadians(driveSubsystem.getHeading());
+
+        var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
+        var dy = dx * Math.tan(Math.toRadians(tx) + heading);
+
+        var st = type.getStandoff().in(Units.Meters);
+        var ci = Units.Inches.of(CAMERA_INSET).in(Units.Meters);
+
+        dx -= (st + ci);
+
+        var a = angle - heading;
+
+        var t = getTime(dx, dy, a);
+
+        var xSpeed = dx / t;
+        var ySpeed = dy / t;
+
+        var rot = a / t;
+
+        driveSubsystem.drive(xSpeed, ySpeed, rot, false);
+
+        end = System.currentTimeMillis() + (long)(t * 1000);
+    }
+
+    private double getTime(double dx, double dy, double a) {
+        var tx = Math.abs(dx) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
+        var ty = Math.abs(dy) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
+
+        var ta = Math.abs(a) / Constants.DriveConstants.kMaxAngularSpeed;
+
+        return Math.max(Math.max(tx, ty), ta) * 2.0;
     }
 
     @Override
@@ -206,17 +243,7 @@ public class Robot extends TimedRobot {
     private void navigate() {
         var now = System.currentTimeMillis();
 
-        if (driveController.getXButtonPressed()) {
-            docking = false;
-        }
-
-        if (docking) {
-            if (now >= end) {
-                stop();
-
-                docking = false;
-            }
-        } else if (shifting) {
+        if (shifting) {
             if (now >= end) {
                 stop();
 
@@ -229,44 +256,34 @@ public class Robot extends TimedRobot {
                 extractingAlgae = false;
             }
         } else {
-            var target = getTarget();
+            var pov = auxilliaryController.getPOV();
 
-            // TODO This could re-initiate docking after completion
-            // TODO It could also dock to the previous tag; only set target if A or B is pressed in readLimelight()?
-            if (auxilliaryController.getAButton() && target != null) {
-                dock();
+            if (pov != -1) {
+                var direction = Direction.fromAngle(pov);
 
-                switch (target.getType()) {
-                    case CORAL_STATION -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.CORAL_INTAKE);
-                    case PROCESSOR -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.ALGAE_RELEASE);
-                    case REEF -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.TRANSPORT);
-                }
+                var xSpeed = switch (direction) {
+                    case UP -> NUDGE_SPEED;
+                    case DOWN -> -NUDGE_SPEED;
+                    default -> 0.0;
+                };
+
+                var ySpeed = switch (direction) {
+                    case LEFT -> -NUDGE_SPEED;
+                    case RIGHT -> NUDGE_SPEED;
+                    default -> 0.0;
+                };
+
+                driveSubsystem.drive(xSpeed, ySpeed, 0.0, false);
             } else {
-                var pov = auxilliaryController.getPOV();
+                var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
+                var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
 
-                if (pov != -1) {
-                    var direction = Direction.fromAngle(pov);
+                var rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
 
-                    var xSpeed = switch (direction) {
-                        case UP -> NUDGE_SPEED;
-                        case DOWN -> -NUDGE_SPEED;
-                        default -> 0.0;
-                    };
+                if (auxilliaryController.getAButton()) {
+                    var target = getTarget();
 
-                    var ySpeed = switch (direction) {
-                        case LEFT -> -NUDGE_SPEED;
-                        case RIGHT -> NUDGE_SPEED;
-                        default -> 0.0;
-                    };
-
-                    driveSubsystem.drive(xSpeed, ySpeed, 0.0, false);
-                } else {
-                    var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
-                    var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
-
-                    var rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
-
-                    if (auxilliaryController.getBButton() && target != null) {
+                    if (target != null) {
                         var heading = driveSubsystem.getHeading();
 
                         if ((int)Math.signum(tx + heading) != (int)Math.signum(ySpeed)) {
@@ -278,10 +295,16 @@ public class Robot extends TimedRobot {
                         if ((int)Math.signum(angle - heading) != (int)Math.signum(rot)) {
                             rot = 0.0;
                         }
-                    }
 
-                    driveSubsystem.drive(xSpeed, ySpeed, rot, true);
+                        switch (target.getType()) {
+                            case CORAL_STATION -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.CORAL_INTAKE);
+                            case PROCESSOR -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.ALGAE_RELEASE);
+                            case REEF -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.TRANSPORT);
+                        }
+                    }
                 }
+
+                driveSubsystem.drive(xSpeed, ySpeed, rot, true);
             }
         }
     }
@@ -368,54 +391,6 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopExit() {
         stop();
-    }
-
-    private void dock() {
-        if (docking) {
-            return;
-        }
-
-        var target = getTarget();
-
-        var type = target.getType();
-        var angle = target.getAngle().in(Units.Radians);
-
-        var ht = type.getHeight().in(Units.Meters) + Units.Inches.of(TAG_HEIGHT).in(Units.Meters) / 2;
-        var hc = Units.Inches.of(BASE_HEIGHT + elevatorSubsystem.getCameraHeight()).in(Units.Meters);
-
-        var heading = Math.toRadians(driveSubsystem.getHeading());
-
-        var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
-        var dy = dx * Math.tan(Math.toRadians(tx) + heading);
-
-        var st = type.getStandoff().in(Units.Meters);
-        var ci = Units.Inches.of(CAMERA_INSET).in(Units.Meters);
-
-        dx -= (st + ci);
-
-        var a = angle - heading;
-
-        var t = getTime(dx, dy, a);
-
-        var xSpeed = dx / t;
-        var ySpeed = dy / t;
-
-        var rot = a / t;
-
-        driveSubsystem.drive(xSpeed, ySpeed, rot, false);
-
-        docking = true;
-
-        end = System.currentTimeMillis() + (long)(t * 1000);
-    }
-
-    private double getTime(double dx, double dy, double a) {
-        var tx = Math.abs(dx) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
-        var ty = Math.abs(dy) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
-
-        var ta = Math.abs(a) / Constants.DriveConstants.kMaxAngularSpeed;
-
-        return Math.max(Math.max(tx, ty), ta) * 2.0;
     }
 
     private void shift(double distance) {

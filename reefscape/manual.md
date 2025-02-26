@@ -17,8 +17,7 @@
 * D-pad
   * up/down - select level (reef)
   * left/right - select position (reef and coral station)
-* A-button - engage auto-pilot
-* B-button - limit steering
+* A-button - limit steering
 * X-button - extract algae
 * Left/right bumper - pick up/drop coral 
 * Left/right trigger - pick up/drop algae
