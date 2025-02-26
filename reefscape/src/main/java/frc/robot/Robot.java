@@ -48,7 +48,6 @@ public class Robot extends TimedRobot {
     private static final double LOCATE_TAG_SPEED = Math.PI / 2; // radians/second
 
     private static final double DRIVE_DEADBAND = 0.05;
-    private static final double TARGET_RELEASE_DEADBAND = 0.1;
 
     private static final double NUDGE_SPEED = 0.1; // percent
 
@@ -254,16 +253,28 @@ public class Robot extends TimedRobot {
 
                 driveSubsystem.drive(xSpeed, ySpeed, 0.0, false);
             } else {
-                var speedDeadband = (target == null) ? DRIVE_DEADBAND : TARGET_RELEASE_DEADBAND;
-
-                var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), speedDeadband);
-                var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), speedDeadband);
-
-                if (xSpeed > 0.0 || ySpeed > 0.0) {
-                    target = null;
-                }
+                var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
+                var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
 
                 var rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
+
+                if (auxilliaryController.getBButton()) {
+                    if (target == null && tv) {
+                        target = fieldElements.get(fiducialID - 1);
+                    }
+
+                    var heading = driveSubsystem.getHeading();
+
+                    if ((int)Math.signum(tx + heading) != (int)Math.signum(ySpeed)) {
+                        ySpeed = 0.0;
+                    }
+
+                    var angle = target.getAngle().baseUnitMagnitude();
+
+                    if ((int)Math.signum(angle - heading) != (int)Math.signum(rot)) {
+                        rot = 0.0;
+                    }
+                }
 
                 driveSubsystem.drive(xSpeed, ySpeed, rot, true);
             }
