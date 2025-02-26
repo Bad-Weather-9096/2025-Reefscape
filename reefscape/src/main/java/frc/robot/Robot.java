@@ -48,7 +48,7 @@ public class Robot extends TimedRobot {
     private static final double LOCATE_TAG_SPEED = Math.PI / 2; // radians/second
 
     private static final double DRIVE_DEADBAND = 0.05;
-    private static final double TARGET_RELEASE_DEADBAND = 0.5;
+    private static final double TARGET_RELEASE_DEADBAND = 0.1;
 
     private static final double NUDGE_SPEED = 0.1; // percent
 
@@ -61,8 +61,9 @@ public class Robot extends TimedRobot {
     private static final double REEF_OFFSET = 6.5; // inches
     private static final double SHIFT_TIME = 1.5; // seconds
 
+    private static final double TAG_HEIGHT = 6.5; // inches
     private static final double BASE_HEIGHT = 5.0; // inches
-    private static final double CAMERA_INSET = 3.0; // inches
+    private static final double CAMERA_INSET = 2.5; // inches
 
     private static final double ALGAE_EXTRACTION_SPEED = 0.05; // percent
     private static final double ALGAE_EXTRACTION_TIME = 4.0; // seconds
@@ -354,28 +355,28 @@ public class Robot extends TimedRobot {
     private void dock() {
         var fieldElement = fieldElements.get(fiducialID - 1);
 
-        var fieldElementType = fieldElement.getType();
+        var type = fieldElement.getType();
+        var angle = fieldElement.getAngle().in(Units.Radians);
 
-        var ht = fieldElementType.getHeight().in(Units.Meters);
+        System.out.printf("type = %s, angle = %.2f\n", type, angle);
+
+        var ht = type.getHeight().in(Units.Meters) + TAG_HEIGHT / 2;
         var hc = Units.Inches.of(BASE_HEIGHT + elevatorSubsystem.getCameraHeight()).in(Units.Meters);
 
         var ci = Units.Inches.of(CAMERA_INSET).in(Units.Meters);
 
-        System.out.printf("ht = %.2f, hc = %.2f, ci = %.2f\n", ht, hc, ci);
+        var heading = Math.toRadians(driveSubsystem.getHeading());
+
+        System.out.printf("ht = %.2f, hc = %.2f, ci = %.2f, heading = %.2f\n", ht, hc, ci, heading);
 
         var dx = (ht - hc) / Math.tan(Math.toRadians(ty)) - ci;
-        var dy = dx * Math.tan(Math.toRadians(tx));
+        var dy = dx * Math.tan(Math.toRadians(tx + heading));
 
-        var st = fieldElementType.getStandoff().in(Units.Meters);
+        var st = type.getStandoff().in(Units.Meters);
 
         System.out.printf("st = %.2f\n", st);
 
         dx -= st;
-
-        var angle = fieldElement.getAngle().in(Units.Radians);
-        var heading = Math.toRadians(driveSubsystem.getHeading());
-
-        System.out.printf("angle = %.1f, heading = %.1f\n", angle, heading);
 
         var a = angle - heading;
 
