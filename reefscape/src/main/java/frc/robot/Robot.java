@@ -46,7 +46,8 @@ public class Robot extends TimedRobot {
 
     private static final double LOCATE_TAG_SPEED = Math.PI / 2; // radians/second
 
-    private static final double ABS_TX_MAX = 24.5;
+    private static final double HFOV = 54.0; // degrees
+
     private static final double DRIVE_DEADBAND = 0.05;
 
     private static final double ELEVATOR_DEADBAND = 0.02;
@@ -276,9 +277,13 @@ public class Robot extends TimedRobot {
             boolean fieldRelative;
             if (driveController.getAButton() && target != null) {
                 if (tv) {
-                    ySpeed = tx / ABS_TX_MAX;
+                    ySpeed = tx / (HFOV / 2);
 
-                    rot = (target.getAngle().in(Units.Degrees) - driveSubsystem.getHeading()) / ABS_TX_MAX;
+                    rot = (target.getAngle().in(Units.Degrees) - driveSubsystem.getHeading()) / (HFOV / 2);
+                } else {
+                    ySpeed = 0.0;
+
+                    rot = 0.0;
                 }
 
                 fieldRelative = false;

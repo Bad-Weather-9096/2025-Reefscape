@@ -7,7 +7,7 @@
   * left/right - strafe
 * Right stick
   * left/right - spin
-* A-button - align to target
+* A-button - align to target (robot-relative)
 
 ## Auxilliary Controller
 * Left stick
@@ -16,8 +16,8 @@
   * up/down - raise/lower end effector
 * D-pad
   * up/down - select level (reef)
-  * left/right - select branch (reef)/slot (coral station)
-* A-button - adjust position
+  * left/right - select position (reef/coral station)
+* A-button - adjust for target
 * X-button - extract algae
 * Left/right bumper - pick up/drop coral 
 * Left/right trigger - pick up/drop algae
