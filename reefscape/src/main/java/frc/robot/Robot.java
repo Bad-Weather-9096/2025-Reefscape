@@ -88,19 +88,19 @@ public class Robot extends TimedRobot {
     );
 
     private void readLimelight() {
-        tx = LimelightHelpers.getTX(LIMELIGHT_NAME);
-        ty = LimelightHelpers.getTY(LIMELIGHT_NAME);
-
-        SmartDashboard.putNumber("tx", tx);
-        SmartDashboard.putNumber("ty", ty);
-
         var tv = LimelightHelpers.getTV(LIMELIGHT_NAME);
 
         SmartDashboard.putBoolean("tv", tv);
 
         if (tv) {
+            tx = LimelightHelpers.getTX(LIMELIGHT_NAME);
+            ty = LimelightHelpers.getTY(LIMELIGHT_NAME);
+
             fiducialID = (int)LimelightHelpers.getFiducialID(LIMELIGHT_NAME);
         }
+
+        SmartDashboard.putNumber("tx", tx);
+        SmartDashboard.putNumber("ty", ty);
 
         SmartDashboard.putNumber("fiducial-id", fiducialID);
     }
@@ -264,14 +264,15 @@ public class Robot extends TimedRobot {
             }
         } else {
             var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
-            var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
 
             var target = getTarget();
 
+            double ySpeed;
             double rot;
             boolean fieldRelative;
             if (driveController.getAButton() && target != null) {
-                // TODO Adjust ySpeed based on tx, if available
+                // TODO Apply kP to ySpeed and rot
+                ySpeed = Math.signum(tx) * Constants.DriveConstants.kMaxSpeedMetersPerSecond;
 
                 var angle = target.getAngle().in(Units.Radians);
                 var heading = Math.toRadians(driveSubsystem.getHeading());
@@ -280,6 +281,8 @@ public class Robot extends TimedRobot {
 
                 fieldRelative = false;
             } else {
+                ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
+
                 rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
 
                 fieldRelative = true;
