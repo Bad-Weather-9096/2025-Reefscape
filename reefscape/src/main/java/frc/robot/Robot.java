@@ -24,6 +24,8 @@ public class Robot extends TimedRobot {
     private DriveSubsystem driveSubsystem = new DriveSubsystem();
     private ElevatorSubsystem elevatorSubsystem = new ElevatorSubsystem();
 
+    private boolean tv = false;
+
     private double tx = 0.0;
     private double ty = 0.0;
 
@@ -44,6 +46,7 @@ public class Robot extends TimedRobot {
 
     private static final double LOCATE_TAG_SPEED = Math.PI / 2; // radians/second
 
+    private static final double ABS_TX_MAX = 24.5;
     private static final double DRIVE_DEADBAND = 0.05;
 
     private static final double ELEVATOR_DEADBAND = 0.02;
@@ -88,19 +91,19 @@ public class Robot extends TimedRobot {
     );
 
     private void readLimelight() {
-        var tv = LimelightHelpers.getTV(LIMELIGHT_NAME);
+        tv = LimelightHelpers.getTV(LIMELIGHT_NAME);
 
         SmartDashboard.putBoolean("tv", tv);
 
-        if (tv) {
-            tx = LimelightHelpers.getTX(LIMELIGHT_NAME);
-            ty = LimelightHelpers.getTY(LIMELIGHT_NAME);
-
-            fiducialID = (int)LimelightHelpers.getFiducialID(LIMELIGHT_NAME);
-        }
+        tx = LimelightHelpers.getTX(LIMELIGHT_NAME);
+        ty = LimelightHelpers.getTY(LIMELIGHT_NAME);
 
         SmartDashboard.putNumber("tx", tx);
         SmartDashboard.putNumber("ty", ty);
+
+        if (tv) {
+            fiducialID = (int)LimelightHelpers.getFiducialID(LIMELIGHT_NAME);
+        }
 
         SmartDashboard.putNumber("fiducial-id", fiducialID);
     }
@@ -264,27 +267,22 @@ public class Robot extends TimedRobot {
             }
         } else {
             var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
+            var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
+
+            var rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
 
             var target = getTarget();
 
-            double ySpeed;
-            double rot;
             boolean fieldRelative;
             if (driveController.getAButton() && target != null) {
-                // TODO Apply kP to ySpeed and rot
-                ySpeed = Math.signum(tx) * Constants.DriveConstants.kMaxSpeedMetersPerSecond;
+                if (tv) {
+                    ySpeed = tx / ABS_TX_MAX;
 
-                var angle = target.getAngle().in(Units.Radians);
-                var heading = Math.toRadians(driveSubsystem.getHeading());
-
-                rot = (angle - heading) / Constants.DriveConstants.kMaxAngularSpeed;
+                    rot = (target.getAngle().in(Units.Degrees) - driveSubsystem.getHeading()) / ABS_TX_MAX;
+                }
 
                 fieldRelative = false;
             } else {
-                ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
-
-                rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
-
                 fieldRelative = true;
             }
 
