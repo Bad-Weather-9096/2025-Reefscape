@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 
+import java.awt.geom.Point2D;
 import java.util.List;
 
 /**
@@ -18,7 +19,7 @@ import java.util.List;
  */
 public class Robot extends TimedRobot {
     private XboxController driveController = new XboxController(0);
-    private XboxController auxilliaryController = new XboxController(1);
+    private XboxController elevatorController = new XboxController(1);
 
     private DriveSubsystem driveSubsystem = new DriveSubsystem();
     private ElevatorSubsystem elevatorSubsystem = new ElevatorSubsystem();
@@ -44,8 +45,6 @@ public class Robot extends TimedRobot {
     private static final double LOCATE_TAG_SPEED = Math.PI / 2; // radians/second
 
     private static final double DRIVE_DEADBAND = 0.05;
-
-    private static final double NUDGE_SPEED = 0.1; // percent
 
     private static final double ELEVATOR_DEADBAND = 0.02;
     private static final double END_EFFECTOR_DEADBAND = 0.02;
@@ -188,23 +187,14 @@ public class Robot extends TimedRobot {
     }
 
     private void dock(FieldElement target) {
-        var type = target.getType();
-        var angle = target.getAngle().in(Units.Radians);
+        var heading = driveSubsystem.getHeading();
 
-        var ht = type.getHeight().in(Units.Meters) + Units.Inches.of(TAG_HEIGHT).in(Units.Meters) / 2;
-        var hc = Units.Inches.of(BASE_HEIGHT + elevatorSubsystem.getCameraHeight()).in(Units.Meters);
+        var location = getLocation(target, elevatorSubsystem.getCameraHeight(), tx, ty, heading);
 
-        var heading = Math.toRadians(driveSubsystem.getHeading());
+        var dx = location.getX();
+        var dy = location.getY();
 
-        var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
-        var dy = dx * Math.tan(Math.toRadians(tx) + heading);
-
-        var st = type.getStandoff().in(Units.Meters);
-        var ci = Units.Inches.of(CAMERA_INSET).in(Units.Meters);
-
-        dx -= (st + ci);
-
-        var a = angle - heading;
+        var a = Math.toRadians(target.getAngle().in(Units.Degrees) - heading);
 
         var t = getTime(dx, dy, a);
 
@@ -218,7 +208,24 @@ public class Robot extends TimedRobot {
         end = System.currentTimeMillis() + (long)(t * 1000);
     }
 
-    private double getTime(double dx, double dy, double a) {
+    protected static Point2D getLocation(FieldElement target, double cameraHeight, double tx, double ty, double heading) {
+        var type = target.getType();
+
+        var ht = type.getHeight().in(Units.Meters) + Units.Inches.of(TAG_HEIGHT).in(Units.Meters) / 2;
+        var hc = Units.Inches.of(BASE_HEIGHT + cameraHeight).in(Units.Meters);
+
+        var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
+        var dy = dx * Math.tan(Math.toRadians(tx) + Math.toRadians(heading));
+
+        var st = type.getStandoff().in(Units.Meters);
+        var ci = Units.Inches.of(CAMERA_INSET).in(Units.Meters);
+
+        dx -= (st + ci);
+
+        return new Point2D.Double(dx, dy);
+    }
+
+    protected static double getTime(double dx, double dy, double a) {
         var tx = Math.abs(dx) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
         var ty = Math.abs(dy) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
 
@@ -256,61 +263,17 @@ public class Robot extends TimedRobot {
                 extractingAlgae = false;
             }
         } else {
-            var pov = auxilliaryController.getPOV();
+            var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
+            var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
 
-            if (pov != -1) {
-                var direction = Direction.fromAngle(pov);
+            var rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
 
-                var xSpeed = switch (direction) {
-                    case UP -> NUDGE_SPEED;
-                    case DOWN -> -NUDGE_SPEED;
-                    default -> 0.0;
-                };
-
-                var ySpeed = switch (direction) {
-                    case LEFT -> -NUDGE_SPEED;
-                    case RIGHT -> NUDGE_SPEED;
-                    default -> 0.0;
-                };
-
-                driveSubsystem.drive(xSpeed, ySpeed, 0.0, false);
-            } else {
-                var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
-                var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
-
-                var rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
-
-                if (auxilliaryController.getAButton()) {
-                    var target = getTarget();
-
-                    if (target != null) {
-                        var heading = driveSubsystem.getHeading();
-
-                        if ((int)Math.signum(tx + heading) != (int)Math.signum(ySpeed)) {
-                            ySpeed = 0.0;
-                        }
-
-                        var angle = target.getAngle().baseUnitMagnitude();
-
-                        if ((int)Math.signum(angle - heading) != (int)Math.signum(rot)) {
-                            rot = 0.0;
-                        }
-
-                        switch (target.getType()) {
-                            case CORAL_STATION -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.CORAL_INTAKE);
-                            case PROCESSOR -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.ALGAE_RELEASE);
-                            case REEF -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.TRANSPORT);
-                        }
-                    }
-                }
-
-                driveSubsystem.drive(xSpeed, ySpeed, rot, true);
-            }
+            driveSubsystem.drive(xSpeed, ySpeed, rot, true);
         }
     }
 
     private void operate() {
-        var leftY = -MathUtil.applyDeadband(auxilliaryController.getLeftY(), ELEVATOR_DEADBAND);
+        var leftY = -MathUtil.applyDeadband(elevatorController.getLeftY(), ELEVATOR_DEADBAND);
 
         if (leftY < 0.0) {
             elevatorSubsystem.raiseElevator();
@@ -320,7 +283,7 @@ public class Robot extends TimedRobot {
             elevatorSubsystem.stopElevator();
         }
 
-        var rightY = -MathUtil.applyDeadband(auxilliaryController.getLeftY(), END_EFFECTOR_DEADBAND);
+        var rightY = -MathUtil.applyDeadband(elevatorController.getLeftY(), END_EFFECTOR_DEADBAND);
 
         if (rightY < 0.0) {
             elevatorSubsystem.raiseEndEffector();
@@ -332,27 +295,35 @@ public class Robot extends TimedRobot {
 
         var target = getTarget();
 
-        if (auxilliaryController.getXButtonPressed() && target != null && target.getType() == FieldElement.Type.REEF) {
+        if (elevatorController.getAButtonPressed() && target != null) {
+            switch (target.getType()) {
+                case CORAL_STATION -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.CORAL_INTAKE);
+                case PROCESSOR -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.ALGAE_RELEASE);
+                case REEF -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.TRANSPORT);
+            }
+        }
+
+        if (elevatorController.getXButtonPressed() && target != null && target.getType() == FieldElement.Type.REEF) {
             extractAlgae();
         }
 
-        if (auxilliaryController.getLeftBumperButtonPressed()) {
+        if (elevatorController.getLeftBumperButtonPressed()) {
             elevatorSubsystem.receiveCoral();
         }
 
-        if (auxilliaryController.getRightBumperButtonPressed()) {
+        if (elevatorController.getRightBumperButtonPressed()) {
             elevatorSubsystem.releaseCoral();
         }
 
-        if (MathUtil.applyDeadband(auxilliaryController.getLeftTriggerAxis(), ALGAE_INTAKE_DEADBAND) > 0.0) {
+        if (MathUtil.applyDeadband(elevatorController.getLeftTriggerAxis(), ALGAE_INTAKE_DEADBAND) > 0.0) {
             elevatorSubsystem.receiveAlgae();
         }
 
-        if (MathUtil.applyDeadband(auxilliaryController.getRightTriggerAxis(), ALGAE_INTAKE_DEADBAND) > 0.0) {
+        if (MathUtil.applyDeadband(elevatorController.getRightTriggerAxis(), ALGAE_INTAKE_DEADBAND) > 0.0) {
             elevatorSubsystem.releaseAlgae();
         }
 
-        var pov = auxilliaryController.getPOV();
+        var pov = elevatorController.getPOV();
 
         if (pov != -1 && target != null) {
             var direction = Direction.fromAngle(pov);

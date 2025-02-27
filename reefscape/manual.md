@@ -2,12 +2,12 @@
 <img src="360_controller.png" width="660px"/>
 
 ## Drive Controller
-* Left stick (field-relative)
-  * up/down - advance/retreat
+* Left stick
+  * up/down - forward/reverse
   * left/right - strafe
 * Right stick
   * left/right - spin
-* D-pad - nudge (robot-relative)
+* A-button - align to target
 
 ## Auxilliary Controller
 * Left stick
@@ -16,8 +16,8 @@
   * up/down - raise/lower end effector
 * D-pad
   * up/down - select level (reef)
-  * left/right - select position (reef and coral station)
-* A-button - limit steering
+  * left/right - select branch (reef)/slot (coral station)
+* A-button - adjust position
 * X-button - extract algae
 * Left/right bumper - pick up/drop coral 
 * Left/right trigger - pick up/drop algae
