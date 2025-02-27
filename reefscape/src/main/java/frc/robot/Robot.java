@@ -266,9 +266,26 @@ public class Robot extends TimedRobot {
             var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
             var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
 
-            var rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
+            var target = getTarget();
 
-            driveSubsystem.drive(xSpeed, ySpeed, rot, true);
+            double rot;
+            boolean fieldRelative;
+            if (driveController.getAButton() && target != null) {
+                // TODO Adjust ySpeed based on tx, if available
+
+                var angle = target.getAngle().in(Units.Radians);
+                var heading = Math.toRadians(driveSubsystem.getHeading());
+
+                rot = (angle - heading) / Constants.DriveConstants.kMaxAngularSpeed;
+
+                fieldRelative = false;
+            } else {
+                rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
+
+                fieldRelative = true;
+            }
+
+            driveSubsystem.drive(xSpeed, ySpeed, rot, fieldRelative);
         }
     }
 
