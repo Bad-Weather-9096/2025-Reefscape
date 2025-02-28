@@ -2,6 +2,8 @@ package frc.robot;
 
 public enum AutonomousMode {
     REVERSE,
-    DOCK,
+    ALIGN,
+    LOCATE_TAG,
+    ADVANCE,
     DONE
 }

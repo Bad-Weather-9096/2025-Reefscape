@@ -11,7 +11,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 
-import java.awt.geom.Point2D;
 import java.util.List;
 
 /**
@@ -56,10 +55,6 @@ public class Robot extends TimedRobot {
     private static final double CORAL_STATION_OFFSET = 8.0; // inches
     private static final double REEF_OFFSET = 6.5; // inches
     private static final double SHIFT_TIME = 1.5; // seconds
-
-    private static final double TAG_HEIGHT = 6.5; // inches
-    private static final double BASE_HEIGHT = 5.0; // inches
-    private static final double CAMERA_INSET = 2.5; // inches
 
     private static final double ALGAE_EXTRACTION_SPEED = 0.05; // percent
     private static final double ALGAE_EXTRACTION_TIME = 4.0; // seconds
@@ -142,100 +137,38 @@ public class Robot extends TimedRobot {
 
             var rot = (Math.PI / REVERSE_TIME) / Constants.DriveConstants.kMaxAngularSpeed;
 
-            driveSubsystem.drive(xSpeed, 0.0, rot, true);
+            driveSubsystem.drive(xSpeed, 0.0, rot, false);
 
             end = now + (long)(REVERSE_TIME * 1000);
         } else {
             switch (autonomousMode) {
                 case REVERSE -> {
                     if (now >= end) {
-                        var target = getTarget();
+                        autonomousMode = AutonomousMode.ALIGN;
 
-                        if (target != null && target.getType() == FieldElement.Type.REEF) {
-                            autonomousMode = AutonomousMode.DOCK;
-
-                            dock(target);
-
-                            if (fiducialID == 7
-                                || fiducialID == 9
-                                || fiducialID == 11
-                                || fiducialID == 18
-                                || fiducialID == 20
-                                || fiducialID == 22) {
-                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.UPPER_ALGAE_INTAKE);
-                            } else {
-                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.LOWER_ALGAE_INTAKE);
-                            }
-                        } else {
-                            autonomousMode = AutonomousMode.DONE;
-
-                            stop();
-                        }
+                        // TODO Rotate left or right (set end)
                     }
                 }
-                case DOCK -> {
+                case ALIGN -> {
                     if (now >= end) {
-                        autonomousMode = AutonomousMode.DONE;
+                        autonomousMode = AutonomousMode.LOCATE_TAG;
 
-                        stop();
+                        // TODO Move left or right (robot-relative)
                     }
+                }
+                case LOCATE_TAG -> {
+                    // TODO While !tv || abs(tx) > 0...
+
+                    // TODO Move forward (robot-relative; set end)
+                }
+                case ADVANCE -> {
+                    // TODO Until end...
                 }
                 case DONE -> {
                     // No-op
                 }
             }
         }
-    }
-
-    private void dock(FieldElement target) {
-        var heading = driveSubsystem.getHeading();
-
-        var location = getLocation(target, elevatorSubsystem.getCameraHeight(), tx, ty);
-
-        var dx = location.getX();
-        var dy = location.getY();
-
-        var angle = target.getAngle().in(Units.Degrees);
-
-        var a = Math.toRadians(normalizeAngle(angle - heading));
-
-        var t = getTime(dx, dy, a);
-
-        var xSpeed = dx / t;
-        var ySpeed = dy / t;
-
-        var rot = a / t;
-
-        driveSubsystem.drive(xSpeed, ySpeed, rot, true);
-
-        end = System.currentTimeMillis() + (long)(t * 1000);
-    }
-
-    private static Point2D getLocation(FieldElement target, double cameraHeight, double tx, double ty) {
-        var type = target.getType();
-
-        var ht = type.getHeight().in(Units.Meters) + Units.Inches.of(TAG_HEIGHT).in(Units.Meters) / 2;
-        var hc = Units.Inches.of(BASE_HEIGHT + cameraHeight).in(Units.Meters);
-
-        // TODO Update dx/dy calculations to use hypoteneuse
-        var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
-        var dy = dx * Math.tan(Math.toRadians(tx));
-
-        var st = type.getStandoff().in(Units.Meters);
-        var ci = Units.Inches.of(CAMERA_INSET).in(Units.Meters);
-
-        dx -= (st + ci);
-
-        return new Point2D.Double(dx, dy);
-    }
-
-    protected static double getTime(double dx, double dy, double a) {
-        var tx = Math.abs(dx) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
-        var ty = Math.abs(dy) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
-
-        var ta = Math.abs(a) / Constants.DriveConstants.kMaxAngularSpeed;
-
-        return Math.max(Math.max(tx, ty), ta) * 2.0;
     }
 
     private static double normalizeAngle(double angle) {
