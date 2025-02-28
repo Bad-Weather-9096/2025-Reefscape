@@ -38,10 +38,10 @@ public class Robot extends TimedRobot {
     private static final String LIMELIGHT_URL = "http://10.90.96.11:5800";
     private static final String LIMELIGHT_NAME = "";
 
+    private static final double CAMERA_HFOV = 44.0; // degrees
+
     private static final double REVERSE_DISTANCE = 72.0; // inches
     private static final double REVERSE_TIME = 4.0; // seconds
-
-    private static final double HFOV = 44.0; // degrees
 
     private static final double DRIVE_DEADBAND = 0.05;
 
@@ -97,6 +97,28 @@ public class Robot extends TimedRobot {
         elevatorSubsystem.periodic();
     }
 
+    private void readLimelight() {
+        tv = LimelightHelpers.getTV(LIMELIGHT_NAME);
+
+        SmartDashboard.putBoolean("tv", tv);
+
+        tx = LimelightHelpers.getTX(LIMELIGHT_NAME);
+        ty = LimelightHelpers.getTY(LIMELIGHT_NAME);
+
+        SmartDashboard.putNumber("tx", tx);
+        SmartDashboard.putNumber("ty", ty);
+
+        if (tv) {
+            fiducialID = (int)LimelightHelpers.getFiducialID(LIMELIGHT_NAME);
+        }
+
+        SmartDashboard.putNumber("fiducial-id", fiducialID);
+    }
+
+    private FieldElement getTarget() {
+        return (fiducialID == -1) ? null : fieldElements.get(fiducialID - 1);
+    }
+
     @Override
     public void autonomousInit() {
         var dr = Units.Inches.of(REVERSE_DISTANCE).in(Units.Meters);
@@ -127,28 +149,6 @@ public class Robot extends TimedRobot {
         operate();
     }
 
-    private void readLimelight() {
-        tv = LimelightHelpers.getTV(LIMELIGHT_NAME);
-
-        SmartDashboard.putBoolean("tv", tv);
-
-        tx = LimelightHelpers.getTX(LIMELIGHT_NAME);
-        ty = LimelightHelpers.getTY(LIMELIGHT_NAME);
-
-        SmartDashboard.putNumber("tx", tx);
-        SmartDashboard.putNumber("ty", ty);
-
-        if (tv) {
-            fiducialID = (int)LimelightHelpers.getFiducialID(LIMELIGHT_NAME);
-        }
-
-        SmartDashboard.putNumber("fiducial-id", fiducialID);
-    }
-
-    private FieldElement getTarget() {
-        return (fiducialID == -1) ? null : fieldElements.get(fiducialID - 1);
-    }
-
     private void navigate() {
         var now = System.currentTimeMillis();
 
@@ -175,12 +175,12 @@ public class Robot extends TimedRobot {
             boolean fieldRelative;
             if (driveController.getAButton() && target != null) {
                 if (tv) {
-                    ySpeed = tx / (HFOV / 2);
+                    ySpeed = tx / (CAMERA_HFOV / 2);
 
                     var angle = target.getAngle().in(Units.Degrees);
                     var heading = driveSubsystem.getHeading();
 
-                    rot = normalizeAngle(angle - heading) / (90 - HFOV / 2);
+                    rot = normalizeAngle(angle - heading) / (90 - CAMERA_HFOV / 2);
                 } else {
                     ySpeed = 0.0;
 
