@@ -30,8 +30,6 @@ public class Robot extends TimedRobot {
 
     private int fiducialID = -1;
 
-    private AutonomousMode autonomousMode = null;
-
     private boolean shifting = false;
     private boolean extractingAlgae = false;
 
@@ -43,7 +41,7 @@ public class Robot extends TimedRobot {
     private static final double REVERSE_DISTANCE = 72.0; // inches
     private static final double REVERSE_TIME = 4.0; // seconds
 
-    private static final double HFOV = 54.0; // degrees
+    private static final double HFOV = 44.0; // degrees
 
     private static final double DRIVE_DEADBAND = 0.05;
 
@@ -84,6 +82,51 @@ public class Robot extends TimedRobot {
         new FieldElement(FieldElement.Type.REEF, -120.0)
     );
 
+    private static double normalizeAngle(double angle) {
+        return (angle + 360.0) % 360.0;
+    }
+
+    @Override
+    public void robotInit() {
+        CameraServer.startAutomaticCapture(new HttpCamera("limelight", LIMELIGHT_URL, HttpCameraKind.kMJPGStreamer));
+    }
+
+    @Override
+    public void robotPeriodic() {
+        driveSubsystem.periodic();
+        elevatorSubsystem.periodic();
+    }
+
+    @Override
+    public void autonomousInit() {
+        var dr = Units.Inches.of(REVERSE_DISTANCE).in(Units.Meters);
+
+        var xSpeed = -(dr / REVERSE_TIME) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
+
+        var rot = (Math.PI / REVERSE_TIME) / Constants.DriveConstants.kMaxAngularSpeed;
+
+        driveSubsystem.drive(xSpeed, 0.0, rot, false);
+
+        end = System.currentTimeMillis() + (long)(REVERSE_TIME * 1000);
+    }
+
+    @Override
+    public void autonomousPeriodic() {
+        var now = System.currentTimeMillis();
+
+        if (now >= end) {
+            stop();
+        }
+    }
+
+    @Override
+    public void teleopPeriodic() {
+        readLimelight();
+
+        navigate();
+        operate();
+    }
+
     private void readLimelight() {
         tv = LimelightHelpers.getTV(LIMELIGHT_NAME);
 
@@ -104,88 +147,6 @@ public class Robot extends TimedRobot {
 
     private FieldElement getTarget() {
         return (fiducialID == -1) ? null : fieldElements.get(fiducialID - 1);
-    }
-
-    @Override
-    public void robotInit() {
-        CameraServer.startAutomaticCapture(new HttpCamera("limelight", LIMELIGHT_URL, HttpCameraKind.kMJPGStreamer));
-    }
-
-    @Override
-    public void robotPeriodic() {
-        driveSubsystem.periodic();
-        elevatorSubsystem.periodic();
-    }
-
-    @Override
-    public void autonomousInit() {
-        autonomousMode = null;
-    }
-
-    @Override
-    public void autonomousPeriodic() {
-        readLimelight();
-
-        var now = System.currentTimeMillis();
-
-        if (autonomousMode == null) {
-            autonomousMode = AutonomousMode.REVERSE;
-
-            var dr = Units.Inches.of(REVERSE_DISTANCE).in(Units.Meters);
-
-            var xSpeed = -(dr / REVERSE_TIME) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
-
-            var rot = (Math.PI / REVERSE_TIME) / Constants.DriveConstants.kMaxAngularSpeed;
-
-            driveSubsystem.drive(xSpeed, 0.0, rot, false);
-
-            end = now + (long)(REVERSE_TIME * 1000);
-        } else {
-            switch (autonomousMode) {
-                case REVERSE -> {
-                    if (now >= end) {
-                        autonomousMode = AutonomousMode.ALIGN;
-
-                        // TODO Rotate left or right (set end)
-                    }
-                }
-                case ALIGN -> {
-                    if (now >= end) {
-                        autonomousMode = AutonomousMode.LOCATE_TAG;
-
-                        // TODO Move left or right (robot-relative)
-                    }
-                }
-                case LOCATE_TAG -> {
-                    // TODO While !tv || abs(tx) > 0...
-
-                    // TODO Move forward (robot-relative; set end)
-                }
-                case ADVANCE -> {
-                    // TODO Until end...
-                }
-                case DONE -> {
-                    // No-op
-                }
-            }
-        }
-    }
-
-    private static double normalizeAngle(double angle) {
-        return (angle + 360.0) % 360.0;
-    }
-
-    @Override
-    public void autonomousExit() {
-        stop();
-    }
-
-    @Override
-    public void teleopPeriodic() {
-        readLimelight();
-
-        navigate();
-        operate();
     }
 
     private void navigate() {
