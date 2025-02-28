@@ -21,6 +21,3 @@
 * X-button - extract algae
 * Left/right bumper - pick up/drop coral 
 * Left/right trigger - pick up/drop algae
-
-## Autonomous Mode
-Robot will not be pre-loaded with coral. Robot will reverse approximately 7 feet and then rotate until a reef target is identified. Auto-pilot will guide the robot to the target, where it will position the end effector for algae retrieval. First action by drive team will be to pick up the algae and deliver it to the processor.

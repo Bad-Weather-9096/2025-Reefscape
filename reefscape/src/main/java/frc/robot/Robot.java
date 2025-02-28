@@ -44,8 +44,6 @@ public class Robot extends TimedRobot {
     private static final double REVERSE_DISTANCE = 72.0; // inches
     private static final double REVERSE_TIME = 4.0; // seconds
 
-    private static final double LOCATE_TAG_SPEED = Math.PI / 2; // radians/second
-
     private static final double HFOV = 54.0; // degrees
 
     private static final double DRIVE_DEADBAND = 0.05;
@@ -142,37 +140,36 @@ public class Robot extends TimedRobot {
 
             var xSpeed = -(dr / REVERSE_TIME) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
 
-            driveSubsystem.drive(xSpeed, 0.0, 0.0, false);
+            var rot = (Math.PI / REVERSE_TIME) / Constants.DriveConstants.kMaxAngularSpeed;
+
+            driveSubsystem.drive(xSpeed, 0.0, rot, true);
 
             end = now + (long)(REVERSE_TIME * 1000);
         } else {
             switch (autonomousMode) {
                 case REVERSE -> {
                     if (now >= end) {
-                        autonomousMode = AutonomousMode.LOCATE_TAG;
+                        var target = getTarget();
 
-                        var rot = LOCATE_TAG_SPEED / Constants.DriveConstants.kMaxAngularSpeed;
+                        if (target != null && target.getType() == FieldElement.Type.REEF) {
+                            autonomousMode = AutonomousMode.DOCK;
 
-                        driveSubsystem.drive(0.0, 0.0, rot, false);
-                    }
-                }
-                case LOCATE_TAG -> {
-                    var target = getTarget();
+                            dock(target);
 
-                    if (target != null && target.getType() == FieldElement.Type.REEF) {
-                        autonomousMode = AutonomousMode.DOCK;
-
-                        dock(target);
-
-                        if (fiducialID == 7
-                            || fiducialID == 9
-                            || fiducialID == 11
-                            || fiducialID == 18
-                            || fiducialID == 20
-                            || fiducialID == 22) {
-                            elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.UPPER_ALGAE_INTAKE);
+                            if (fiducialID == 7
+                                || fiducialID == 9
+                                || fiducialID == 11
+                                || fiducialID == 18
+                                || fiducialID == 20
+                                || fiducialID == 22) {
+                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.UPPER_ALGAE_INTAKE);
+                            } else {
+                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.LOWER_ALGAE_INTAKE);
+                            }
                         } else {
-                            elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.LOWER_ALGAE_INTAKE);
+                            autonomousMode = AutonomousMode.DONE;
+
+                            stop();
                         }
                     }
                 }
@@ -193,12 +190,14 @@ public class Robot extends TimedRobot {
     private void dock(FieldElement target) {
         var heading = driveSubsystem.getHeading();
 
-        var location = getLocation(target, elevatorSubsystem.getCameraHeight(), tx, ty, heading);
+        var location = getLocation(target, elevatorSubsystem.getCameraHeight(), tx, ty);
 
         var dx = location.getX();
         var dy = location.getY();
 
-        var a = Math.toRadians(target.getAngle().in(Units.Degrees) - heading);
+        var angle = target.getAngle().in(Units.Degrees);
+
+        var a = Math.toRadians(normalizeAngle(angle - heading));
 
         var t = getTime(dx, dy, a);
 
@@ -207,19 +206,20 @@ public class Robot extends TimedRobot {
 
         var rot = a / t;
 
-        driveSubsystem.drive(xSpeed, ySpeed, rot, false);
+        driveSubsystem.drive(xSpeed, ySpeed, rot, true);
 
         end = System.currentTimeMillis() + (long)(t * 1000);
     }
 
-    protected static Point2D getLocation(FieldElement target, double cameraHeight, double tx, double ty, double heading) {
+    private static Point2D getLocation(FieldElement target, double cameraHeight, double tx, double ty) {
         var type = target.getType();
 
         var ht = type.getHeight().in(Units.Meters) + Units.Inches.of(TAG_HEIGHT).in(Units.Meters) / 2;
         var hc = Units.Inches.of(BASE_HEIGHT + cameraHeight).in(Units.Meters);
 
+        // TODO Update dx/dy calculations to use hypoteneuse
         var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
-        var dy = dx * Math.tan(Math.toRadians(tx) + Math.toRadians(heading));
+        var dy = dx * Math.tan(Math.toRadians(tx));
 
         var st = type.getStandoff().in(Units.Meters);
         var ci = Units.Inches.of(CAMERA_INSET).in(Units.Meters);
@@ -236,6 +236,10 @@ public class Robot extends TimedRobot {
         var ta = Math.abs(a) / Constants.DriveConstants.kMaxAngularSpeed;
 
         return Math.max(Math.max(tx, ty), ta) * 2.0;
+    }
+
+    private static double normalizeAngle(double angle) {
+        return (angle + 360.0) % 360.0;
     }
 
     @Override
@@ -279,7 +283,10 @@ public class Robot extends TimedRobot {
                 if (tv) {
                     ySpeed = tx / (HFOV / 2);
 
-                    rot = (target.getAngle().in(Units.Degrees) - driveSubsystem.getHeading()) / (HFOV / 2);
+                    var angle = target.getAngle().in(Units.Degrees);
+                    var heading = driveSubsystem.getHeading();
+
+                    rot = normalizeAngle(angle - heading) / (90 - HFOV / 2);
                 } else {
                     ySpeed = 0.0;
 
