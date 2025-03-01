@@ -68,6 +68,8 @@ public class Robot extends TimedRobot {
     private static final double EXTRACT_ALGAE_DISTANCE = 12.0; // inches
     private static final double EXTRACT_ALGAE_TIME = 4.0; // seconds
 
+    private static final double ROTATION_SPEED = 0.5; // percent
+
     private static final List<FieldElement> fieldElements = List.of(
         new FieldElement(FieldElement.Type.CORAL_STATION, -126.0),
         new FieldElement(FieldElement.Type.CORAL_STATION, 126.0),
@@ -181,7 +183,7 @@ public class Robot extends TimedRobot {
 
             if (now >= end) {
                 if (operation == Operation.ROTATE) {
-                    translate(distance);
+                    translate();
                 } else {
                     stop();
 
@@ -192,13 +194,7 @@ public class Robot extends TimedRobot {
             var target = getTarget();
 
             if (target != null) {
-                var heading = driveSubsystem.getHeading();
-
-                distance = getDistance(target, elevatorSubsystem.getCameraHeight(), tx, ty, heading);
-
-                var angle = target.getAngle().in(Units.Degrees);
-
-                rotate(angle - heading);
+                rotate(target);
             }
         } else {
             var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
@@ -305,17 +301,23 @@ public class Robot extends TimedRobot {
         stop();
     }
 
-    private void rotate(double angle) {
+    private void rotate(FieldElement target) {
         operation = Operation.ROTATE;
 
-        var rot = Constants.DriveConstants.kMaxAngularSpeed / 2;
+        var heading = driveSubsystem.getHeading();
 
-        var t = Math.toRadians(angle) / rot;
+        distance = getDistance(target, elevatorSubsystem.getCameraHeight(), tx, ty, heading);
+
+        driveSubsystem.drive(0.0, 0.0, ROTATION_SPEED, false);
+
+        var d = target.getAngle().in(Units.Radians) - Math.toRadians(heading);
+
+        var t = (Math.abs(d)) / (ROTATION_SPEED * Constants.DriveConstants.kMaxAngularSpeed);
 
         end = System.currentTimeMillis() + (long)(t * 1000);
     }
 
-    private void translate(Point2D distance) {
+    private void translate() {
         operation = Operation.TRANSLATE;
 
         var dx = Units.Inches.of(distance.getX()).in(Units.Meters);
