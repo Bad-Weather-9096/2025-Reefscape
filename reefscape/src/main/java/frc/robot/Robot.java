@@ -36,9 +36,8 @@ public class Robot extends TimedRobot {
     private long end = Long.MIN_VALUE;
 
     private static final String LIMELIGHT_URL = "http://10.90.96.11:5800";
-    private static final String LIMELIGHT_NAME = "";
 
-    private static final double CAMERA_HFOV = 44.0; // degrees
+    private static final double CAMERA_HFOV = 56.0; // degrees
 
     private static final double REVERSE_DISTANCE = 72.0; // inches
     private static final double REVERSE_TIME = 4.0; // seconds
@@ -58,33 +57,29 @@ public class Robot extends TimedRobot {
     private static final double ALGAE_EXTRACTION_TIME = 4.0; // seconds
 
     private static final List<FieldElement> fieldElements = List.of(
-        new FieldElement(FieldElement.Type.CORAL_STATION, -126.0),
-        new FieldElement(FieldElement.Type.CORAL_STATION, 126.0),
-        new FieldElement(FieldElement.Type.PROCESSOR, 90.0),
-        new FieldElement(FieldElement.Type.BARGE, 0.0),
-        new FieldElement(FieldElement.Type.BARGE, 0.0),
-        new FieldElement(FieldElement.Type.REEF, 60.0),
-        new FieldElement(FieldElement.Type.REEF, 0.0),
-        new FieldElement(FieldElement.Type.REEF, -60.0),
-        new FieldElement(FieldElement.Type.REEF, -120.0),
-        new FieldElement(FieldElement.Type.REEF, 180.0),
-        new FieldElement(FieldElement.Type.REEF, 120.0),
-        new FieldElement(FieldElement.Type.CORAL_STATION, 126.0),
-        new FieldElement(FieldElement.Type.CORAL_STATION, -126.0),
-        new FieldElement(FieldElement.Type.BARGE, 0.0),
-        new FieldElement(FieldElement.Type.BARGE, 0.0),
-        new FieldElement(FieldElement.Type.PROCESSOR, 90.0),
-        new FieldElement(FieldElement.Type.REEF, -60.0),
-        new FieldElement(FieldElement.Type.REEF, 0.0),
-        new FieldElement(FieldElement.Type.REEF, 60.0),
-        new FieldElement(FieldElement.Type.REEF, 120.0),
-        new FieldElement(FieldElement.Type.REEF, 180.0),
-        new FieldElement(FieldElement.Type.REEF, -120.0)
+        FieldElement.CORAL_STATION,
+        FieldElement.CORAL_STATION,
+        FieldElement.PROCESSOR,
+        FieldElement.BARGE,
+        FieldElement.BARGE,
+        FieldElement.REEF,
+        FieldElement.REEF,
+        FieldElement.REEF,
+        FieldElement.REEF,
+        FieldElement.REEF,
+        FieldElement.REEF,
+        FieldElement.CORAL_STATION,
+        FieldElement.CORAL_STATION,
+        FieldElement.BARGE,
+        FieldElement.BARGE,
+        FieldElement.PROCESSOR,
+        FieldElement.REEF,
+        FieldElement.REEF,
+        FieldElement.REEF,
+        FieldElement.REEF,
+        FieldElement.REEF,
+        FieldElement.REEF
     );
-
-    private static double normalizeAngle(double angle) {
-        return (angle + 360.0) % 360.0;
-    }
 
     @Override
     public void robotInit() {
@@ -98,25 +93,23 @@ public class Robot extends TimedRobot {
     }
 
     private void readLimelight() {
-        tv = LimelightHelpers.getTV(LIMELIGHT_NAME);
+        tv = LimelightHelpers.getTV(null);
 
         SmartDashboard.putBoolean("tv", tv);
 
-        tx = LimelightHelpers.getTX(LIMELIGHT_NAME);
-        ty = LimelightHelpers.getTY(LIMELIGHT_NAME);
+        tx = LimelightHelpers.getTX(null);
+        ty = LimelightHelpers.getTY(null);
 
         SmartDashboard.putNumber("tx", tx);
         SmartDashboard.putNumber("ty", ty);
 
-        if (tv) {
-            fiducialID = (int)LimelightHelpers.getFiducialID(LIMELIGHT_NAME);
-        }
+        fiducialID = (int)LimelightHelpers.getFiducialID(null);
 
         SmartDashboard.putNumber("fiducial-id", fiducialID);
     }
 
     private FieldElement getTarget() {
-        return (fiducialID == -1) ? null : fieldElements.get(fiducialID - 1);
+        return tv ? null : fieldElements.get(fiducialID - 1);
     }
 
     @Override
@@ -170,20 +163,11 @@ public class Robot extends TimedRobot {
 
             var rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
 
-            var target = getTarget();
-
             boolean fieldRelative;
-            if (driveController.getAButton() && target != null) {
+            if (driveController.getAButton()) {
                 if (tv) {
-                    ySpeed = tx / (CAMERA_HFOV / 2);
-
-                    var angle = target.getAngle().in(Units.Degrees);
-                    var heading = driveSubsystem.getHeading();
-
-                    rot = normalizeAngle(angle - heading) / (90 - CAMERA_HFOV / 2);
+                    rot = -tx / (CAMERA_HFOV / 2);
                 } else {
-                    ySpeed = 0.0;
-
                     rot = 0.0;
                 }
 
@@ -220,14 +204,14 @@ public class Robot extends TimedRobot {
         var target = getTarget();
 
         if (elevatorController.getAButtonPressed() && target != null) {
-            switch (target.getType()) {
+            switch (target) {
                 case CORAL_STATION -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.CORAL_INTAKE);
                 case PROCESSOR -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.ALGAE_RELEASE);
                 case REEF -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.TRANSPORT);
             }
         }
 
-        if (elevatorController.getXButtonPressed() && target != null && target.getType() == FieldElement.Type.REEF) {
+        if (elevatorController.getXButtonPressed() && target == FieldElement.REEF) {
             extractAlgae();
         }
 
@@ -252,7 +236,7 @@ public class Robot extends TimedRobot {
         if (pov != -1 && target != null) {
             var direction = Direction.fromAngle(pov);
 
-            switch (target.getType()) {
+            switch (target) {
                 case CORAL_STATION -> {
                     switch (direction) {
                         case LEFT -> shift(-CORAL_STATION_OFFSET);
