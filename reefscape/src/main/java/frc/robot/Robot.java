@@ -252,58 +252,48 @@ public class Robot extends TimedRobot {
                 case PROCESSOR -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.ALGAE_RELEASE);
                 case REEF -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.TRANSPORT);
             }
-        }
-
-        if (elevatorController.getBButtonPressed() && target != null && target.getType() == FieldElement.Type.REEF) {
+        } else if (elevatorController.getBButtonPressed() && target != null && target.getType() == FieldElement.Type.REEF) {
             extractAlgae();
-        }
-
-        if (elevatorController.getLeftBumperButtonPressed()) {
+        } else if (elevatorController.getLeftBumperButtonPressed()) {
             elevatorSubsystem.receiveCoral();
-        }
-
-        if (elevatorController.getRightBumperButtonPressed()) {
+        } else if (elevatorController.getRightBumperButtonPressed()) {
             elevatorSubsystem.releaseCoral();
-        }
-
-        if (MathUtil.applyDeadband(elevatorController.getLeftTriggerAxis(), ALGAE_INTAKE_DEADBAND) > 0.0) {
+        } else if (MathUtil.applyDeadband(elevatorController.getLeftTriggerAxis(), ALGAE_INTAKE_DEADBAND) > 0.0) {
             elevatorSubsystem.receiveAlgae();
-        }
-
-        if (MathUtil.applyDeadband(elevatorController.getRightTriggerAxis(), ALGAE_INTAKE_DEADBAND) > 0.0) {
+        } else if (MathUtil.applyDeadband(elevatorController.getRightTriggerAxis(), ALGAE_INTAKE_DEADBAND) > 0.0) {
             elevatorSubsystem.releaseAlgae();
-        }
+        } else {
+            var pov = elevatorController.getPOV();
 
-        var pov = elevatorController.getPOV();
+            if (pov != -1 && target != null) {
+                var direction = Direction.fromAngle(pov);
 
-        if (pov != -1 && target != null) {
-            var direction = Direction.fromAngle(pov);
-
-            switch (target.getType()) {
-                case CORAL_STATION -> {
-                    switch (direction) {
-                        case LEFT -> shift(-CORAL_STATION_OFFSET);
-                        case RIGHT -> shift(CORAL_STATION_OFFSET);
+                switch (target.getType()) {
+                    case CORAL_STATION -> {
+                        switch (direction) {
+                            case LEFT -> shift(-CORAL_STATION_OFFSET);
+                            case RIGHT -> shift(CORAL_STATION_OFFSET);
+                        }
                     }
-                }
-                case REEF -> {
-                    switch (direction) {
-                        case UP -> {
-                            if (elevatorSubsystem.hasCoral()) {
-                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.UPPER_CORAL_RELEASE);
-                            } else {
-                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.UPPER_ALGAE_INTAKE);
+                    case REEF -> {
+                        switch (direction) {
+                            case UP -> {
+                                if (elevatorSubsystem.hasCoral()) {
+                                    elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.UPPER_CORAL_RELEASE);
+                                } else {
+                                    elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.UPPER_ALGAE_INTAKE);
+                                }
                             }
-                        }
-                        case DOWN -> {
-                            if (elevatorSubsystem.hasCoral()) {
-                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.LOWER_CORAL_RELEASE);
-                            } else {
-                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.LOWER_ALGAE_INTAKE);
+                            case DOWN -> {
+                                if (elevatorSubsystem.hasCoral()) {
+                                    elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.LOWER_CORAL_RELEASE);
+                                } else {
+                                    elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.LOWER_ALGAE_INTAKE);
+                                }
                             }
+                            case LEFT -> shift(-REEF_OFFSET);
+                            case RIGHT -> shift(REEF_OFFSET);
                         }
-                        case LEFT -> shift(-REEF_OFFSET);
-                        case RIGHT -> shift(REEF_OFFSET);
                     }
                 }
             }
