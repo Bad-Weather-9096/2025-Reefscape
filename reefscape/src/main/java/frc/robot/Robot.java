@@ -18,6 +18,13 @@ import java.util.List;
  * Robot class.
  */
 public class Robot extends TimedRobot {
+    enum Operation {
+        ROTATE,
+        TRANSLATE,
+        SHIFT,
+        EXTRACT_ALGAE
+    }
+
     private XboxController driveController = new XboxController(0);
     private XboxController elevatorController = new XboxController(1);
 
@@ -31,12 +38,17 @@ public class Robot extends TimedRobot {
 
     private int fiducialID = -1;
 
-    private boolean shifting = false;
-    private boolean extractingAlgae = false;
+    private Point2D distance = null;
+
+    private Operation operation = null;
 
     private long end = Long.MIN_VALUE;
 
     private static final String LIMELIGHT_URL = "http://10.90.96.11:5800";
+
+    private static final double TAG_HEIGHT = 6.5; // inches
+    private static final double BASE_HEIGHT = 5.0; // inches
+    private static final double CAMERA_INSET = 2.5; // inches
 
     private static final double CAMERA_HFOV = 56.0; // degrees
 
@@ -52,10 +64,9 @@ public class Robot extends TimedRobot {
 
     private static final double CORAL_STATION_OFFSET = 8.0; // inches
     private static final double REEF_OFFSET = 6.5; // inches
-    private static final double SHIFT_TIME = 1.5; // seconds
 
-    private static final double ALGAE_EXTRACTION_SPEED = 0.05; // percent
-    private static final double ALGAE_EXTRACTION_TIME = 4.0; // seconds
+    private static final double EXTRACT_ALGAE_DISTANCE = 12.0; // inches
+    private static final double EXTRACT_ALGAE_TIME = 4.0; // seconds
 
     private static final List<FieldElement> fieldElements = List.of(
         new FieldElement(FieldElement.Type.CORAL_STATION, -126.0),
@@ -81,6 +92,27 @@ public class Robot extends TimedRobot {
         new FieldElement(FieldElement.Type.REEF, 180.0),
         new FieldElement(FieldElement.Type.REEF, -120.0)
     );
+
+    public static Point2D getDistance(FieldElement target, double cameraHeight, double tx, double ty, double heading) {
+        var type = target.getType();
+
+        var ht = type.getHeight().in(Units.Meters) + Units.Inches.of(TAG_HEIGHT).in(Units.Meters) / 2;
+        var hc = Units.Inches.of(BASE_HEIGHT + cameraHeight).in(Units.Meters);
+
+        var d = (ht - hc) / Math.tan(Math.toRadians(ty));
+
+        var theta = Math.toRadians(heading - tx);
+
+        var dx = d * Math.sin(theta);
+        var dy = d * Math.cos(theta);
+
+        var st = type.getStandoff().in(Units.Meters);
+        var ci = Units.Inches.of(CAMERA_INSET).in(Units.Meters);
+
+        dx -= (st + ci);
+
+        return new Point2D.Double(dx, dy);
+    }
 
     @Override
     public void robotInit() {
@@ -115,9 +147,9 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousInit() {
-        var dr = Units.Inches.of(REVERSE_DISTANCE).in(Units.Meters);
+        var dx = Units.Inches.of(REVERSE_DISTANCE).in(Units.Meters);
 
-        var xSpeed = -(dr / REVERSE_TIME) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
+        var xSpeed = -(dx / REVERSE_TIME) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
 
         var rot = (Math.PI / REVERSE_TIME) / Constants.DriveConstants.kMaxAngularSpeed;
 
@@ -144,22 +176,30 @@ public class Robot extends TimedRobot {
     }
 
     private void navigate() {
-        var now = System.currentTimeMillis();
+        if (operation != null) {
+            var now = System.currentTimeMillis();
 
-        if (shifting) {
             if (now >= end) {
-                stop();
+                if (operation == Operation.ROTATE) {
+                    translate(distance);
+                } else {
+                    stop();
 
-                shifting = false;
+                    operation = null;
+                }
             }
-        } else if (extractingAlgae) {
-            if (now >= end) {
-                stop();
+        } else if (driveController.getAButtonPressed()) {
+            var target = getTarget();
 
-                extractingAlgae = false;
+            if (target != null) {
+                var heading = driveSubsystem.getHeading();
+
+                distance = getDistance(target, elevatorSubsystem.getCameraHeight(), tx, ty, heading);
+
+                var angle = target.getAngle().in(Units.Degrees);
+
+                rotate(angle - heading);
             }
-        } else if (driveController.getBButtonPressed()) {
-
         } else {
             var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
             var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
@@ -167,7 +207,7 @@ public class Robot extends TimedRobot {
             var rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
 
             boolean fieldRelative;
-            if (driveController.getAButton()) {
+            if (driveController.getBButton()) {
                 if (tv) {
                     rot = -tx / (CAMERA_HFOV / 2);
                 } else {
@@ -181,11 +221,6 @@ public class Robot extends TimedRobot {
 
             driveSubsystem.drive(xSpeed, ySpeed, rot, fieldRelative);
         }
-    }
-
-    private static Point2D getLocation(FieldElement target, double tx, double ty, double heading) {
-        // TODO
-        return null;
     }
 
     private void operate() {
@@ -219,7 +254,7 @@ public class Robot extends TimedRobot {
             }
         }
 
-        if (elevatorController.getXButtonPressed() && target != null && target.getType() == FieldElement.Type.REEF) {
+        if (elevatorController.getBButtonPressed() && target != null && target.getType() == FieldElement.Type.REEF) {
             extractAlgae();
         }
 
@@ -280,32 +315,69 @@ public class Robot extends TimedRobot {
         stop();
     }
 
+    private void rotate(double angle) {
+        operation = Operation.ROTATE;
+
+        var rot = Constants.DriveConstants.kMaxAngularSpeed / 2;
+
+        var t = Math.toRadians(angle) / rot;
+
+        end = System.currentTimeMillis() + (long)(t * 1000);
+    }
+
+    private void translate(Point2D distance) {
+        operation = Operation.TRANSLATE;
+
+        var dx = Units.Inches.of(distance.getX()).in(Units.Meters);
+        var dy = Units.Inches.of(distance.getY()).in(Units.Meters);
+
+        var tx = Math.abs(dx) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
+        var ty = Math.abs(dy) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
+
+        var t = Math.max(tx, ty);
+
+        var xSpeed = dx / t;
+        var ySpeed = dy / t;
+
+        driveSubsystem.drive(xSpeed, ySpeed, 0.0, false);
+
+        end = System.currentTimeMillis() + (long)(t * 1000);
+    }
+
     private void shift(double distance) {
-        if (shifting) {
+        if (operation == Operation.SHIFT) {
             return;
         }
 
-        var ySpeed = distance / SHIFT_TIME;
+        operation = Operation.SHIFT;
+
+        var ySpeed = Constants.DriveConstants.kMaxSpeedMetersPerSecond / 2;
 
         driveSubsystem.drive(0.0, ySpeed, 0.0, false);
 
-        shifting = true;
+        var dy = Units.Inches.of(distance).in(Units.Meters);
 
-        end = System.currentTimeMillis() + (long)(SHIFT_TIME * 1000);
+        var t = dy / ySpeed;
+
+        end = System.currentTimeMillis() + (long)(t * 1000);
     }
 
     private void extractAlgae() {
-        if (extractingAlgae) {
+        if (operation == Operation.EXTRACT_ALGAE) {
             return;
         }
 
-        driveSubsystem.drive(ALGAE_EXTRACTION_SPEED, 0.0, 0.0, false);
+        operation = Operation.EXTRACT_ALGAE;
+
+        var dx = Units.Inches.of(EXTRACT_ALGAE_DISTANCE).in(Units.Meters);
+
+        var xSpeed = -(dx / EXTRACT_ALGAE_TIME) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
+
+        driveSubsystem.drive(xSpeed, 0.0, 0.0, false);
 
         elevatorSubsystem.extractAlgae();
 
-        extractingAlgae = true;
-
-        end = System.currentTimeMillis() + (long)(ALGAE_EXTRACTION_TIME * 1000);
+        end = System.currentTimeMillis() + (long)(EXTRACT_ALGAE_TIME * 1000);
     }
 
     private void stop() {
