@@ -11,7 +11,6 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 
-import java.awt.geom.Point2D;
 import java.util.List;
 
 /**
@@ -19,8 +18,6 @@ import java.util.List;
  */
 public class Robot extends TimedRobot {
     enum Operation {
-        ROTATE,
-        TRANSLATE,
         SHIFT,
         EXTRACT_ALGAE
     }
@@ -38,17 +35,11 @@ public class Robot extends TimedRobot {
 
     private int fiducialID = -1;
 
-    private Point2D distance = null;
-
     private Operation operation = null;
 
     private long end = Long.MIN_VALUE;
 
     private static final String LIMELIGHT_URL = "http://10.90.96.11:5800";
-
-    private static final double TAG_HEIGHT = 6.5; // inches
-    private static final double BASE_HEIGHT = 5.0; // inches
-    private static final double CAMERA_INSET = 2.5; // inches
 
     private static final double CAMERA_HFOV = 56.0; // degrees
 
@@ -68,53 +59,30 @@ public class Robot extends TimedRobot {
     private static final double EXTRACT_ALGAE_DISTANCE = 12.0; // inches
     private static final double EXTRACT_ALGAE_TIME = 4.0; // seconds
 
-    private static final double ROTATION_SPEED = 0.5; // percent
-
     private static final List<FieldElement> fieldElements = List.of(
-        new FieldElement(FieldElement.Type.CORAL_STATION, -126.0),
-        new FieldElement(FieldElement.Type.CORAL_STATION, 126.0),
-        new FieldElement(FieldElement.Type.PROCESSOR, 90.0),
-        new FieldElement(FieldElement.Type.BARGE, 0.0),
-        new FieldElement(FieldElement.Type.BARGE, 0.0),
-        new FieldElement(FieldElement.Type.REEF, 60.0),
-        new FieldElement(FieldElement.Type.REEF, 0.0),
-        new FieldElement(FieldElement.Type.REEF, -60.0),
-        new FieldElement(FieldElement.Type.REEF, -120.0),
-        new FieldElement(FieldElement.Type.REEF, 180.0),
-        new FieldElement(FieldElement.Type.REEF, 120.0),
-        new FieldElement(FieldElement.Type.CORAL_STATION, 126.0),
-        new FieldElement(FieldElement.Type.CORAL_STATION, -126.0),
-        new FieldElement(FieldElement.Type.BARGE, 0.0),
-        new FieldElement(FieldElement.Type.BARGE, 0.0),
-        new FieldElement(FieldElement.Type.PROCESSOR, 90.0),
-        new FieldElement(FieldElement.Type.REEF, -60.0),
-        new FieldElement(FieldElement.Type.REEF, 0.0),
-        new FieldElement(FieldElement.Type.REEF, 60.0),
-        new FieldElement(FieldElement.Type.REEF, 120.0),
-        new FieldElement(FieldElement.Type.REEF, 180.0),
-        new FieldElement(FieldElement.Type.REEF, -120.0)
+        FieldElement.CORAL_STATION,
+        FieldElement.CORAL_STATION,
+        FieldElement.PROCESSOR,
+        FieldElement.BARGE,
+        FieldElement.BARGE,
+        FieldElement.REEF,
+        FieldElement.REEF,
+        FieldElement.REEF,
+        FieldElement.REEF,
+        FieldElement.REEF,
+        FieldElement.REEF,
+        FieldElement.CORAL_STATION,
+        FieldElement.CORAL_STATION,
+        FieldElement.BARGE,
+        FieldElement.BARGE,
+        FieldElement.PROCESSOR,
+        FieldElement.REEF,
+        FieldElement.REEF,
+        FieldElement.REEF,
+        FieldElement.REEF,
+        FieldElement.REEF,
+        FieldElement.REEF
     );
-
-    public static Point2D getDistance(FieldElement target, double cameraHeight, double tx, double ty, double heading) {
-        var type = target.getType();
-
-        var ht = type.getHeight().in(Units.Meters) + Units.Inches.of(TAG_HEIGHT).in(Units.Meters) / 2;
-        var hc = Units.Inches.of(BASE_HEIGHT + cameraHeight).in(Units.Meters);
-
-        var d = (ht - hc) / Math.tan(Math.toRadians(ty));
-
-        var theta = Math.toRadians(heading - tx);
-
-        var dx = d * Math.sin(theta);
-        var dy = d * Math.cos(theta);
-
-        var st = type.getStandoff().in(Units.Meters);
-        var ci = Units.Inches.of(CAMERA_INSET).in(Units.Meters);
-
-        dx -= (st + ci);
-
-        return new Point2D.Double(dx, dy);
-    }
 
     @Override
     public void robotInit() {
@@ -182,19 +150,9 @@ public class Robot extends TimedRobot {
             var now = System.currentTimeMillis();
 
             if (now >= end) {
-                if (operation == Operation.ROTATE) {
-                    translate();
-                } else {
-                    stop();
+                stop();
 
-                    operation = null;
-                }
-            }
-        } else if (driveController.getAButtonPressed()) {
-            var target = getTarget();
-
-            if (target != null) {
-                rotate(target);
+                operation = null;
             }
         } else {
             var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
@@ -203,7 +161,7 @@ public class Robot extends TimedRobot {
             var rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
 
             boolean fieldRelative;
-            if (driveController.getBButton()) {
+            if (driveController.getAButton()) {
                 if (tv) {
                     rot = -tx / (CAMERA_HFOV / 2);
                 } else {
@@ -242,14 +200,18 @@ public class Robot extends TimedRobot {
 
         var target = getTarget();
 
-        if (elevatorController.getAButtonPressed() && target != null) {
-            switch (target.getType()) {
-                case CORAL_STATION -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.CORAL_INTAKE);
-                case PROCESSOR -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.ALGAE_RELEASE);
-                case REEF -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.TRANSPORT);
+        if (elevatorController.getAButtonPressed()) {
+            if (target != null) {
+                switch (target) {
+                    case CORAL_STATION -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.CORAL_INTAKE);
+                    case PROCESSOR -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.ALGAE_RELEASE);
+                    case REEF -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.TRANSPORT);
+                }
             }
-        } else if (elevatorController.getBButtonPressed() && target != null && target.getType() == FieldElement.Type.REEF) {
-            extractAlgae();
+        } else if (elevatorController.getBButtonPressed()) {
+            if (target == FieldElement.REEF) {
+                extractAlgae();
+            }
         } else if (elevatorController.getLeftBumperButtonPressed()) {
             elevatorSubsystem.receiveCoral();
         } else if (elevatorController.getRightBumperButtonPressed()) {
@@ -264,7 +226,7 @@ public class Robot extends TimedRobot {
             if (pov != -1 && target != null) {
                 var direction = Direction.fromAngle(pov);
 
-                switch (target.getType()) {
+                switch (target) {
                     case CORAL_STATION -> {
                         switch (direction) {
                             case LEFT -> shift(-CORAL_STATION_OFFSET);
@@ -299,41 +261,6 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopExit() {
         stop();
-    }
-
-    private void rotate(FieldElement target) {
-        operation = Operation.ROTATE;
-
-        var heading = driveSubsystem.getHeading();
-
-        distance = getDistance(target, elevatorSubsystem.getCameraHeight(), tx, ty, heading);
-
-        driveSubsystem.drive(0.0, 0.0, ROTATION_SPEED, false);
-
-        var d = target.getAngle().in(Units.Radians) - Math.toRadians(heading);
-
-        var t = (Math.abs(d)) / (ROTATION_SPEED * Constants.DriveConstants.kMaxAngularSpeed);
-
-        end = System.currentTimeMillis() + (long)(t * 1000);
-    }
-
-    private void translate() {
-        operation = Operation.TRANSLATE;
-
-        var dx = Units.Inches.of(distance.getX()).in(Units.Meters);
-        var dy = Units.Inches.of(distance.getY()).in(Units.Meters);
-
-        var tx = Math.abs(dx) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
-        var ty = Math.abs(dy) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
-
-        var t = Math.max(tx, ty);
-
-        var xSpeed = dx / t;
-        var ySpeed = dy / t;
-
-        driveSubsystem.drive(xSpeed, ySpeed, 0.0, false);
-
-        end = System.currentTimeMillis() + (long)(t * 1000);
     }
 
     private void shift(double distance) {

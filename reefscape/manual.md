@@ -8,7 +8,6 @@
 * Right stick
   * left/right - spin
 * A-button - align to target
-* B-button - limit steering
 
 ## Auxilliary Controller
 * Left stick
@@ -19,6 +18,6 @@
   * up/down - select level (reef)
   * left/right - select slot (reef/coral station)
 * A-button - adjust position
-* B-button - extract algae
+* X-button - extract algae
 * Left/right bumper - pick up/drop coral 
 * Left/right trigger - pick up/drop algae
