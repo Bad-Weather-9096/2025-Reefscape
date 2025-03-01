@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 
+import java.awt.geom.Point2D;
 import java.util.List;
 
 /**
@@ -57,28 +58,28 @@ public class Robot extends TimedRobot {
     private static final double ALGAE_EXTRACTION_TIME = 4.0; // seconds
 
     private static final List<FieldElement> fieldElements = List.of(
-        FieldElement.CORAL_STATION,
-        FieldElement.CORAL_STATION,
-        FieldElement.PROCESSOR,
-        FieldElement.BARGE,
-        FieldElement.BARGE,
-        FieldElement.REEF,
-        FieldElement.REEF,
-        FieldElement.REEF,
-        FieldElement.REEF,
-        FieldElement.REEF,
-        FieldElement.REEF,
-        FieldElement.CORAL_STATION,
-        FieldElement.CORAL_STATION,
-        FieldElement.BARGE,
-        FieldElement.BARGE,
-        FieldElement.PROCESSOR,
-        FieldElement.REEF,
-        FieldElement.REEF,
-        FieldElement.REEF,
-        FieldElement.REEF,
-        FieldElement.REEF,
-        FieldElement.REEF
+        new FieldElement(FieldElement.Type.CORAL_STATION, -126.0),
+        new FieldElement(FieldElement.Type.CORAL_STATION, 126.0),
+        new FieldElement(FieldElement.Type.PROCESSOR, 90.0),
+        new FieldElement(FieldElement.Type.BARGE, 0.0),
+        new FieldElement(FieldElement.Type.BARGE, 0.0),
+        new FieldElement(FieldElement.Type.REEF, 60.0),
+        new FieldElement(FieldElement.Type.REEF, 0.0),
+        new FieldElement(FieldElement.Type.REEF, -60.0),
+        new FieldElement(FieldElement.Type.REEF, -120.0),
+        new FieldElement(FieldElement.Type.REEF, 180.0),
+        new FieldElement(FieldElement.Type.REEF, 120.0),
+        new FieldElement(FieldElement.Type.CORAL_STATION, 126.0),
+        new FieldElement(FieldElement.Type.CORAL_STATION, -126.0),
+        new FieldElement(FieldElement.Type.BARGE, 0.0),
+        new FieldElement(FieldElement.Type.BARGE, 0.0),
+        new FieldElement(FieldElement.Type.PROCESSOR, 90.0),
+        new FieldElement(FieldElement.Type.REEF, -60.0),
+        new FieldElement(FieldElement.Type.REEF, 0.0),
+        new FieldElement(FieldElement.Type.REEF, 60.0),
+        new FieldElement(FieldElement.Type.REEF, 120.0),
+        new FieldElement(FieldElement.Type.REEF, 180.0),
+        new FieldElement(FieldElement.Type.REEF, -120.0)
     );
 
     @Override
@@ -157,6 +158,8 @@ public class Robot extends TimedRobot {
 
                 extractingAlgae = false;
             }
+        } else if (driveController.getBButtonPressed()) {
+
         } else {
             var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
             var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
@@ -178,6 +181,11 @@ public class Robot extends TimedRobot {
 
             driveSubsystem.drive(xSpeed, ySpeed, rot, fieldRelative);
         }
+    }
+
+    private static Point2D getLocation(FieldElement target, double tx, double ty, double heading) {
+        // TODO
+        return null;
     }
 
     private void operate() {
@@ -204,14 +212,14 @@ public class Robot extends TimedRobot {
         var target = getTarget();
 
         if (elevatorController.getAButtonPressed() && target != null) {
-            switch (target) {
+            switch (target.getType()) {
                 case CORAL_STATION -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.CORAL_INTAKE);
                 case PROCESSOR -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.ALGAE_RELEASE);
                 case REEF -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.TRANSPORT);
             }
         }
 
-        if (elevatorController.getXButtonPressed() && target == FieldElement.REEF) {
+        if (elevatorController.getXButtonPressed() && target != null && target.getType() == FieldElement.Type.REEF) {
             extractAlgae();
         }
 
@@ -236,7 +244,7 @@ public class Robot extends TimedRobot {
         if (pov != -1 && target != null) {
             var direction = Direction.fromAngle(pov);
 
-            switch (target) {
+            switch (target.getType()) {
                 case CORAL_STATION -> {
                     switch (direction) {
                         case LEFT -> shift(-CORAL_STATION_OFFSET);
