@@ -112,7 +112,7 @@ public class Robot extends TimedRobot {
     }
 
     private FieldElement getTarget() {
-        return tv ? null : fieldElements.get(fiducialID - 1);
+        return tv ? fieldElements.get(fiducialID - 1) : null;
     }
 
     @Override
