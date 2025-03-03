@@ -1,5 +1,6 @@
 package frc.robot;
 
+import edu.wpi.first.units.Units;
 import org.junit.jupiter.api.Test;
 
 public class RobotTest {
@@ -35,6 +36,16 @@ public class RobotTest {
     }
 
     private void logAlignmentParameters(FieldElement target, double cameraHeight, double heading, double tx, double ty) {
-        System.out.println(Robot.getAlignmentParameters(target, cameraHeight, CAMERA_OFFSET, heading, tx, ty));
+        var alignmentParameters = Robot.getAlignmentParameters(target, cameraHeight, CAMERA_OFFSET, heading, tx, ty);
+
+        System.out.printf("angle = %.2f degrees, heading = %.2f degrees, tx = %.2f degrees\n",
+            Robot.normalizeAngle(target.getAngle().in(Units.Degrees)),
+            Robot.normalizeAngle(heading),
+            tx);
+
+        var a = Math.toDegrees(alignmentParameters.a());
+        var dy = Units.Meters.of(alignmentParameters.dy()).in(Units.Inches);
+
+        System.out.printf("a = %.2f degrees, dy = %.2f inches\n", a, dy);
     }
 }
