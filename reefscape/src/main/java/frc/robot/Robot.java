@@ -106,7 +106,7 @@ public class Robot extends TimedRobot {
         var ht = type.getHeight().in(Units.Meters) + Units.Inches.of(TAG_HEIGHT).in(Units.Meters) / 2;
         var hc = Units.Inches.of(BASE_HEIGHT + cameraHeight).in(Units.Meters);
 
-        var a = Math.toRadians(target.getAngle().in(Units.Degrees) - heading);
+        var a = Math.toRadians(normalizeAngle(target.getAngle().in(Units.Degrees)) - normalizeAngle(heading));
 
         var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
 
@@ -114,6 +114,10 @@ public class Robot extends TimedRobot {
         var dy2 = Units.Inches.of(cameraOffset).in(Units.Meters) * Math.sin(a);
 
         return new AlignmentParameters(a, -(dy1 + dy2));
+    }
+
+    public static double normalizeAngle(double angle) {
+        return (angle + 180.0) % 360.0 - 180.0;
     }
 
     @Override

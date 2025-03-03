@@ -17,8 +17,8 @@ public class RobotTest {
         logAlignmentParameters(getTarget(1), -135.0, 10.0, 7.5);
         logAlignmentParameters(getTarget(2), 135.0, -10.0, 7.5);
 
-        logAlignmentParameters(getTarget(7), 30.0, -12.5, -7.5);
-        logAlignmentParameters(getTarget(7), -30.0, 12.5, -7.5);
+        logAlignmentParameters(getTarget(7), 30.0, -10.5, -8.2);
+        logAlignmentParameters(getTarget(7), -30.0, 10.5, -8.2);
 
         logAlignmentParameters(getTarget(1), -180.0, 5.5, 12.5);
         logAlignmentParameters(getTarget(1), 180.0, 5.5, 12.5);
