@@ -3,54 +3,35 @@ package frc.robot;
 import org.junit.jupiter.api.Test;
 
 public class RobotTest {
+    private static final double CORAL_STATION_CAMERA_HEIGHT = 40.5; // inches
     private static final double REEF_CAMERA_HEIGHT = 15.5; // inches
 
-    private static final double CENTER_CAMERA_OFFSET = 0.0; // inches
-    private static final double FRONT_CAMERA_OFFSET = 13.5; // inches
-    private static final double REAR_CAMERA_OFFSET = -5.5; // inches
+    private static final double CAMERA_OFFSET = 13.5; // inches
+
+    private static FieldElement getTarget(int id) {
+        return Robot.fieldElements.get(id - 1);
+    }
 
     @Test
     public void testAlignmentParameters() {
-        logAlignmentParameters(new FieldElement(FieldElement.Type.REEF, 0.0),
-            REEF_CAMERA_HEIGHT, CENTER_CAMERA_OFFSET,
-            0.0, 0.0, -7.5);
+        logAlignmentParameters(getTarget(1), -135.0, 10.0, 7.5);
+        logAlignmentParameters(getTarget(2), 135.0, -10.0, 7.5);
 
-        logAlignmentParameters(new FieldElement(FieldElement.Type.REEF, 0.0),
-            REEF_CAMERA_HEIGHT, CENTER_CAMERA_OFFSET,
-            30.0, -15.0, -7.5);
-
-        logAlignmentParameters(new FieldElement(FieldElement.Type.REEF, 0.0),
-            REEF_CAMERA_HEIGHT, CENTER_CAMERA_OFFSET,
-            -30.0, 15.0, -7.5);
-
-        logAlignmentParameters(new FieldElement(FieldElement.Type.REEF, 0.0),
-            REEF_CAMERA_HEIGHT, FRONT_CAMERA_OFFSET,
-            0.0, 0.0, -7.5);
-
-        logAlignmentParameters(new FieldElement(FieldElement.Type.REEF, 0.0),
-            REEF_CAMERA_HEIGHT, FRONT_CAMERA_OFFSET,
-            30.0, -15.0, -7.5);
-
-        logAlignmentParameters(new FieldElement(FieldElement.Type.REEF, 0.0),
-            REEF_CAMERA_HEIGHT, FRONT_CAMERA_OFFSET,
-            -30.0, 15.0, -7.5);
-
-        logAlignmentParameters(new FieldElement(FieldElement.Type.REEF, 0.0),
-            REEF_CAMERA_HEIGHT, REAR_CAMERA_OFFSET,
-            0.0, 0.0, -7.5);
-
-        logAlignmentParameters(new FieldElement(FieldElement.Type.REEF, 0.0),
-            REEF_CAMERA_HEIGHT, REAR_CAMERA_OFFSET,
-            30.0, -15.0, -7.5);
-
-        logAlignmentParameters(new FieldElement(FieldElement.Type.REEF, 0.0),
-            REEF_CAMERA_HEIGHT, REAR_CAMERA_OFFSET,
-            -30.0, 15.0, -7.5);
+        logAlignmentParameters(getTarget(7), 30.0, -12.5, -7.5);
+        logAlignmentParameters(getTarget(7), -30.0, 12.5, -7.5);
     }
 
-    private void logAlignmentParameters(FieldElement target,
-        double cameraHeight, double cameraOffset,
-        double heading, double tx, double ty) {
-        System.out.println(Robot.getAlignmentParameters(target, cameraHeight, cameraOffset, heading, tx, ty));
+    private void logAlignmentParameters(FieldElement target, double heading, double tx, double ty) {
+        var cameraHeight = switch (target.getType()) {
+            case CORAL_STATION -> CORAL_STATION_CAMERA_HEIGHT;
+            case REEF -> REEF_CAMERA_HEIGHT;
+            default -> throw new UnsupportedOperationException();
+        };
+
+        logAlignmentParameters(target, cameraHeight, heading, tx, ty);
+    }
+
+    private void logAlignmentParameters(FieldElement target, double cameraHeight, double heading, double tx, double ty) {
+        System.out.println(Robot.getAlignmentParameters(target, cameraHeight, CAMERA_OFFSET, heading, tx, ty));
     }
 }

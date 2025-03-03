@@ -53,7 +53,7 @@ public class Robot extends TimedRobot {
 
     private static final double TAG_HEIGHT = 6.5; // inches
     private static final double BASE_HEIGHT = 5.0; // inches
-    private static final double CAMERA_OFFSET = -5.5; // inches
+    private static final double CAMERA_OFFSET = 13.5; // inches
 
     private static final double CAMERA_HFOV = 54.0; // degrees
 
@@ -73,7 +73,7 @@ public class Robot extends TimedRobot {
     private static final double EXTRACT_ALGAE_DISTANCE = 12.0; // inches
     private static final double EXTRACT_ALGAE_TIME = 4.0; // seconds
 
-    private static final List<FieldElement> fieldElements = List.of(
+    public static final List<FieldElement> fieldElements = List.of(
         new FieldElement(FieldElement.Type.CORAL_STATION, -126.0),
         new FieldElement(FieldElement.Type.CORAL_STATION, 126.0),
         new FieldElement(FieldElement.Type.PROCESSOR, 90.0),
@@ -106,7 +106,7 @@ public class Robot extends TimedRobot {
         var ht = type.getHeight().in(Units.Meters) + Units.Inches.of(TAG_HEIGHT).in(Units.Meters) / 2;
         var hc = Units.Inches.of(BASE_HEIGHT + cameraHeight).in(Units.Meters);
 
-        var a = Math.toRadians(heading) - target.getAngle().in(Units.Radians);
+        var a = target.getAngle().in(Units.Radians) - Math.toRadians(heading);
 
         var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
         var dy = dx * Math.tan(a + Math.toRadians(tx)) + Units.Inches.of(cameraOffset).in(Units.Meters) * Math.sin(a);
