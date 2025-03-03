@@ -1,5 +1,6 @@
 package frc.robot;
 
+import edu.wpi.first.units.Units;
 import org.junit.jupiter.api.Test;
 
 public class RobotTest {
@@ -15,6 +16,9 @@ public class RobotTest {
     @Test
     public void testAlignmentParameters() {
         logAlignmentParameters(getTarget(1), -135.0, 10.0, 7.5);
+        logAlignmentParameters(getTarget(1), -180.0, 5.5, 12.5);
+        logAlignmentParameters(getTarget(1), 180.0, 5.5, 12.5);
+
         logAlignmentParameters(getTarget(2), 135.0, -10.0, 7.5);
 
         logAlignmentParameters(getTarget(7), 30.0, -12.5, -7.5);
@@ -32,6 +36,10 @@ public class RobotTest {
     }
 
     private void logAlignmentParameters(FieldElement target, double cameraHeight, double heading, double tx, double ty) {
-        System.out.println(Robot.getAlignmentParameters(target, cameraHeight, CAMERA_OFFSET, heading, tx, ty));
+        var alignmentParameters = Robot.getAlignmentParameters(target, cameraHeight, CAMERA_OFFSET, heading, tx, ty);
+
+        System.out.printf("a = %.2f, ty = %.2f\n",
+            Math.toDegrees(alignmentParameters.a()),
+            Units.Meters.of(alignmentParameters.dy()).in(Units.Inches));
     }
 }
