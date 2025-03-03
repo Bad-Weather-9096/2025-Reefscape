@@ -47,6 +47,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private static final int ALGAE_INTAKE_CAN_ID = 11;
 
+    private static final double CAMERA_OFFSET = 15.5; // inches
+
     private static final double ELEVATOR_DISTANCE_PER_ROTATION = 4.0; // inches
 
     private static final double ELEVATOR_SPEED = 0.05; // percent
@@ -100,8 +102,12 @@ public class ElevatorSubsystem extends SubsystemBase {
         coralIntakeServo = new Servo(0);
     }
 
+    public double getCameraHeight() {
+        return getElevatorExtension() + CAMERA_OFFSET;
+    }
+
     public double getElevatorExtension() {
-        var position = elevatorController.getEncoder().getPosition();
+        var position = 0.0; // TODO elevatorController.getEncoder().getPosition();
 
         SmartDashboard.putNumber("elevator-position", position);
 
@@ -127,7 +133,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public double getEndEffectorAngle() {
-        var position = endEffectorController.getEncoder().getPosition();
+        var position = 0.0; // TODO endEffectorController.getEncoder().getPosition();
 
         SmartDashboard.putNumber("end-effector-position", position);
 
