@@ -98,7 +98,9 @@ public class Robot extends TimedRobot {
         new FieldElement(FieldElement.Type.REEF, -120.0)
     );
 
-    public static AlignmentParameters getAlignmentParameters(FieldElement target, double heading, double cameraHeight, double tx, double ty) {
+    public static AlignmentParameters getAlignmentParameters(FieldElement target,
+        double cameraHeight, double cameraOffset,
+        double heading, double tx, double ty) {
         var type = target.getType();
 
         var ht = type.getHeight().in(Units.Meters) + Units.Inches.of(TAG_HEIGHT).in(Units.Meters) / 2;
@@ -107,7 +109,7 @@ public class Robot extends TimedRobot {
         var a = Math.toRadians(heading) - target.getAngle().in(Units.Radians);
 
         var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
-        var dy = dx * Math.tan(a + Math.toRadians(tx)) + CAMERA_OFFSET * Math.sin(a);
+        var dy = dx * Math.tan(a + Math.toRadians(tx)) + cameraOffset * Math.sin(a);
 
         return new AlignmentParameters(a, dy);
     }
@@ -191,9 +193,8 @@ public class Robot extends TimedRobot {
 
             if (target != null) {
                 alignmentParameters = getAlignmentParameters(target,
-                    driveSubsystem.getHeading(),
-                    elevatorSubsystem.getCameraHeight(),
-                    tx, ty);
+                    elevatorSubsystem.getCameraHeight(), CAMERA_OFFSET,
+                    driveSubsystem.getHeading(), tx, ty);
 
                 rotate();
             }
