@@ -8,6 +8,7 @@
 * Right stick
   * left/right - spin
 * A-button - align to target
+* B-button - limit steering
 
 ## Auxilliary Controller
 * Left stick

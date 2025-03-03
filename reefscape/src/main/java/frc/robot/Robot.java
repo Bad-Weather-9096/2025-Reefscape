@@ -18,6 +18,8 @@ import java.util.List;
  */
 public class Robot extends TimedRobot {
     enum Operation {
+        ROTATE,
+        TRANSLATE,
         SHIFT,
         EXTRACT_ALGAE
     }
@@ -150,9 +152,20 @@ public class Robot extends TimedRobot {
             var now = System.currentTimeMillis();
 
             if (now >= end) {
-                stop();
 
-                operation = null;
+                switch (operation) {
+                    case ROTATE -> {
+                        operation = Operation.TRANSLATE;
+
+                        // TODO Set ySpeed
+                        // TODO Set end
+                    }
+                    default -> {
+                        stop();
+
+                        operation = null;
+                    }
+                }
             }
         } else {
             var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
@@ -161,7 +174,7 @@ public class Robot extends TimedRobot {
             var rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
 
             boolean fieldRelative;
-            if (driveController.getAButton()) {
+            if (driveController.getBButton()) {
                 if (tv) {
                     rot = -tx / (CAMERA_HFOV / 2);
                 } else {
