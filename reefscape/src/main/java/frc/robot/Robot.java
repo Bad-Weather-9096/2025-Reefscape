@@ -17,7 +17,13 @@ import java.util.List;
  * Robot class.
  */
 public class Robot extends TimedRobot {
-    enum Operation {
+    public record AlignmentParameters(
+        double a, // radians
+        double dy // meters
+    ) {
+    }
+
+    private enum Operation {
         ROTATE,
         TRANSLATE,
         SHIFT,
@@ -37,9 +43,9 @@ public class Robot extends TimedRobot {
 
     private int fiducialID = -1;
 
-    private Operation operation = null;
+    private AlignmentParameters alignmentParameters = null;
 
-    private double dy = 0.0;
+    private Operation operation = null;
 
     private long end = Long.MIN_VALUE;
 
@@ -49,7 +55,7 @@ public class Robot extends TimedRobot {
     private static final double BASE_HEIGHT = 5.0; // inches
     private static final double CAMERA_OFFSET = -5.5; // inches
 
-    private static final double CAMERA_HFOV = 56.0; // degrees
+    private static final double CAMERA_HFOV = 54.0; // degrees
 
     private static final double REVERSE_DISTANCE = 72.0; // inches
     private static final double REVERSE_TIME = 4.0; // seconds
@@ -91,6 +97,20 @@ public class Robot extends TimedRobot {
         new FieldElement(FieldElement.Type.REEF, 180.0),
         new FieldElement(FieldElement.Type.REEF, -120.0)
     );
+
+    public static AlignmentParameters getAlignmentParameters(FieldElement target, double heading, double cameraHeight, double tx, double ty) {
+        var type = target.getType();
+
+        var ht = type.getHeight().in(Units.Meters) + Units.Inches.of(TAG_HEIGHT).in(Units.Meters) / 2;
+        var hc = Units.Inches.of(BASE_HEIGHT + cameraHeight).in(Units.Meters);
+
+        var a = Math.toRadians(heading) - target.getAngle().in(Units.Radians);
+
+        var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
+        var dy = dx * Math.tan(a + Math.toRadians(tx)) + CAMERA_OFFSET * Math.sin(a);
+
+        return new AlignmentParameters(a, dy);
+    }
 
     @Override
     public void robotInit() {
@@ -170,7 +190,12 @@ public class Robot extends TimedRobot {
             var target = getTarget();
 
             if (target != null) {
-                rotate(target);
+                alignmentParameters = getAlignmentParameters(target,
+                    driveSubsystem.getHeading(),
+                    elevatorSubsystem.getCameraHeight(),
+                    tx, ty);
+
+                rotate();
             }
         } else {
             var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
@@ -281,29 +306,16 @@ public class Robot extends TimedRobot {
         stop();
     }
 
-    private void rotate(FieldElement target) {
+    private void rotate() {
         operation = Operation.ROTATE;
-
-        var heading = driveSubsystem.getHeading();
-
-        var a = Math.toRadians(heading) - target.getAngle().in(Units.Radians);
 
         var rot = Constants.DriveConstants.kMaxAngularSpeed / 2;
 
         driveSubsystem.drive(0.0, 0.0, rot, false);
 
-        var t = Math.abs(a) / rot;
+        var t = Math.abs(alignmentParameters.a()) / rot;
 
         end = System.currentTimeMillis() + (long)(t * 1000);
-
-        var type = target.getType();
-
-        var ht = type.getHeight().in(Units.Meters) + Units.Inches.of(TAG_HEIGHT).in(Units.Meters) / 2;
-        var hc = Units.Inches.of(BASE_HEIGHT + elevatorSubsystem.getCameraHeight()).in(Units.Meters);
-
-        var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
-
-        dy = dx * Math.tan(a + Math.toRadians(tx)) * CAMERA_OFFSET * Math.sin(a);
     }
 
     private void translate() {
@@ -313,7 +325,7 @@ public class Robot extends TimedRobot {
 
         driveSubsystem.drive(0.0, ySpeed, 0.0, false);
 
-        var t = Math.abs(dy) / ySpeed;
+        var t = Math.abs(alignmentParameters.dy()) / ySpeed;
 
         end = System.currentTimeMillis() + (long)(t * 1000);
     }
