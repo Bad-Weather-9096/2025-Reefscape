@@ -211,7 +211,7 @@ public class Robot extends TimedRobot {
             var rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
 
             boolean fieldRelative;
-            if (driveController.getBButton()) {
+            if (driveController.getAButton()) {
                 if (tv) {
                     rot = -tx / (CAMERA_HFOV / 2);
                 } else {
@@ -350,7 +350,7 @@ public class Robot extends TimedRobot {
 
         var dy = Units.Inches.of(distance).in(Units.Meters);
 
-        var t = dy / ySpeed;
+        var t = Math.abs(dy) / ySpeed;
 
         end = System.currentTimeMillis() + (long)(t * 1000);
     }
