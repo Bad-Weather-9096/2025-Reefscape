@@ -109,7 +109,7 @@ public class Robot extends TimedRobot {
         var a = Math.toRadians(heading) - target.getAngle().in(Units.Radians);
 
         var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
-        var dy = dx * Math.tan(a + Math.toRadians(tx)) + cameraOffset * Math.sin(a);
+        var dy = dx * Math.tan(a + Math.toRadians(tx)) + Units.Inches.of(cameraOffset).in(Units.Meters) * Math.sin(a);
 
         return new AlignmentParameters(a, dy);
     }
