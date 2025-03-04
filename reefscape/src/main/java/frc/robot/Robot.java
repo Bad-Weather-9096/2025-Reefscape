@@ -68,6 +68,10 @@ public class Robot extends TimedRobot {
     private static final double CORAL_STATION_OFFSET = 8.0; // inches
     private static final double REEF_OFFSET = 6.75; // inches
 
+    private static final double ROTATE_SPEED = 0.25; // percent
+    private static final double TRANSLATE_SPEED = 0.25; // percent
+    private static final double SHIFT_SPEED = 0.25; // percent
+
     private static final double EXTRACT_ALGAE_DISTANCE = 12.0; // inches
     private static final double EXTRACT_ALGAE_TIME = 4.0; // seconds
 
@@ -266,13 +270,13 @@ public class Robot extends TimedRobot {
                 }
             } else if (elevatorController.getLeftBumperButtonPressed()) {
                 switch (target.getType()) {
-                    case CORAL_STATION -> shift(CORAL_STATION_OFFSET);
-                    case REEF -> shift(REEF_OFFSET);
+                    case CORAL_STATION -> shift(-CORAL_STATION_OFFSET);
+                    case REEF -> shift(-REEF_OFFSET);
                 }
             } else if (elevatorController.getRightBumperButtonPressed()) {
                 switch (target.getType()) {
-                    case CORAL_STATION -> shift(-CORAL_STATION_OFFSET);
-                    case REEF -> shift(-REEF_OFFSET);
+                    case CORAL_STATION -> shift(CORAL_STATION_OFFSET);
+                    case REEF -> shift(REEF_OFFSET);
                 }
             } else {
                 // TODO
@@ -290,11 +294,9 @@ public class Robot extends TimedRobot {
 
         var a = alignmentParameters.a();
 
-        var rot = Constants.DriveConstants.kMaxAngularSpeed / 4;
+        driveSubsystem.drive(0.0, 0.0, -Math.signum(a) * ROTATE_SPEED, false);
 
-        driveSubsystem.drive(0.0, 0.0, -Math.signum(a) * rot, false);
-
-        var t = Math.abs(a) / rot;
+        var t = Math.abs(a) / (ROTATE_SPEED * Constants.DriveConstants.kMaxAngularSpeed);
 
         end = System.currentTimeMillis() + (long)(t * 1000);
     }
@@ -304,11 +306,9 @@ public class Robot extends TimedRobot {
 
         var dy = alignmentParameters.dy();
 
-        var ySpeed = Constants.DriveConstants.kMaxSpeedMetersPerSecond / 4;
+        driveSubsystem.drive(0.0, -Math.signum(dy) * TRANSLATE_SPEED, 0.0, false);
 
-        driveSubsystem.drive(0.0, Math.signum(dy) * ySpeed, 0.0, false);
-
-        var t = Math.abs(dy) / ySpeed;
+        var t = Math.abs(dy) / (TRANSLATE_SPEED * Constants.DriveConstants.kMaxSpeedMetersPerSecond);
 
         end = System.currentTimeMillis() + (long)(t * 1000);
     }
@@ -320,13 +320,11 @@ public class Robot extends TimedRobot {
 
         operation = Operation.SHIFT;
 
-        var ySpeed = Constants.DriveConstants.kMaxSpeedMetersPerSecond / 4;
-
-        driveSubsystem.drive(0.0, Math.signum(distance) * ySpeed, 0.0, false);
+        driveSubsystem.drive(0.0, -Math.signum(distance) * SHIFT_SPEED, 0.0, false);
 
         var dy = Units.Inches.of(distance).in(Units.Meters);
 
-        var t = Math.abs(dy) / ySpeed;
+        var t = Math.abs(dy) / (SHIFT_SPEED * Constants.DriveConstants.kMaxSpeedMetersPerSecond);
 
         end = System.currentTimeMillis() + (long)(t * 1000);
     }
