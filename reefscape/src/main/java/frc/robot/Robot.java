@@ -174,27 +174,26 @@ public class Robot extends TimedRobot {
                 var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
                 var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
 
-                double rot;
+                var rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
+
                 boolean fieldRelative;
                 if (driveController.getAButton()) {
                     if (target != null) {
                         var a = normalizeAngle(target.getAngle().in(Units.Degrees)) - normalizeAngle(driveSubsystem.getHeading());
 
                         if (Math.abs(a) > ALIGNMENT_THRESHOLD) {
+                            ySpeed = 0.0;
+
                             rot = -Math.signum(a) * ALIGNMENT_SPEED;
                         } else {
                             rot = 0.0;
                         }
-
-                        // TODO Limit ySpeed
                     } else {
                         rot = 0.0;
                     }
 
                     fieldRelative = false;
                 } else {
-                    rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
-
                     fieldRelative = true;
                 }
 
