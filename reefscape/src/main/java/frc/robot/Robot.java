@@ -157,12 +157,12 @@ public class Robot extends TimedRobot {
         } else {
             var target = getTarget();
 
-            if (elevatorController.getLeftBumperButtonPressed() && target != null) {
+            if (driveController.getLeftBumperButtonPressed() && target != null) {
                 switch (target.getType()) {
                     case CORAL_STATION -> shift(-CORAL_STATION_OFFSET);
                     case REEF -> shift(-REEF_OFFSET);
                 }
-            } else if (elevatorController.getRightBumperButtonPressed() && target != null) {
+            } else if (driveController.getRightBumperButtonPressed() && target != null) {
                 switch (target.getType()) {
                     case CORAL_STATION -> shift(CORAL_STATION_OFFSET);
                     case REEF -> shift(REEF_OFFSET);
@@ -179,6 +179,10 @@ public class Robot extends TimedRobot {
                         var offset = normalizeAngle(target.getAngle().in(Units.Degrees)) - normalizeAngle(driveSubsystem.getHeading());
 
                         rot = -offset / 15.0; // TODO Constant
+
+                        if (tv) {
+                            ySpeed *= (Math.abs(tx) / 30.0); // TODO Constant
+                        }
                     } else {
                         rot = 0.0;
                     }
