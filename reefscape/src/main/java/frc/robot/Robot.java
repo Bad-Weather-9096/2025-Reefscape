@@ -51,9 +51,6 @@ public class Robot extends TimedRobot {
     private static final double CORAL_STATION_OFFSET = 8.0; // inches
     private static final double REEF_OFFSET = 6.75; // inches
 
-    private static final double ALIGNMENT_THRESHOLD = 2.5; // degrees
-    private static final double ALIGNMENT_SPEED = 0.5; // percent
-
     private static final double SHIFT_SPEED = 0.25; // percent
 
     public static final List<FieldElement> fieldElements = List.of(
@@ -179,15 +176,9 @@ public class Robot extends TimedRobot {
                 boolean fieldRelative;
                 if (driveController.getAButton()) {
                     if (target != null) {
-                        var a = normalizeAngle(target.getAngle().in(Units.Degrees)) - normalizeAngle(driveSubsystem.getHeading());
+                        var offset = normalizeAngle(target.getAngle().in(Units.Degrees)) - normalizeAngle(driveSubsystem.getHeading());
 
-                        if (Math.abs(a) > ALIGNMENT_THRESHOLD) {
-                            ySpeed = 0.0;
-
-                            rot = -Math.signum(a) * ALIGNMENT_SPEED;
-                        } else {
-                            rot = 0.0;
-                        }
+                        rot = -offset / 15.0; // TODO Constant
                     } else {
                         rot = 0.0;
                     }
