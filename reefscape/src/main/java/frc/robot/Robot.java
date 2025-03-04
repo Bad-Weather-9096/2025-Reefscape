@@ -17,17 +17,8 @@ import java.util.List;
  * Robot class.
  */
 public class Robot extends TimedRobot {
-    public record AlignmentParameters(
-        double a, // radians
-        double dy // meters
-    ) {
-    }
-
     private enum Operation {
-        ROTATE,
-        TRANSLATE,
-        SHIFT,
-        EXTRACT_ALGAE
+        SHIFT
     }
 
     private XboxController driveController = new XboxController(0);
@@ -43,19 +34,11 @@ public class Robot extends TimedRobot {
 
     private int fiducialID = -1;
 
-    private AlignmentParameters alignmentParameters = null;
-
     private Operation operation = null;
 
     private long end = Long.MIN_VALUE;
 
     private static final String LIMELIGHT_URL = "http://10.90.96.11:5800";
-
-    private static final double TAG_HEIGHT = 6.5; // inches
-    private static final double BASE_HEIGHT = 5.0; // inches
-    private static final double CAMERA_OFFSET = 13.5; // inches
-
-    private static final double CAMERA_HFOV = 54.0; // degrees
 
     private static final double REVERSE_DISTANCE = 72.0; // inches
     private static final double REVERSE_TIME = 4.0; // seconds
@@ -68,12 +51,10 @@ public class Robot extends TimedRobot {
     private static final double CORAL_STATION_OFFSET = 8.0; // inches
     private static final double REEF_OFFSET = 6.75; // inches
 
-    private static final double ROTATE_SPEED = 0.25; // percent
-    private static final double TRANSLATE_SPEED = 0.25; // percent
-    private static final double SHIFT_SPEED = 0.25; // percent
+    private static final double ALIGNMENT_THRESHOLD = 2.5; // degrees
+    private static final double ALIGNMENT_SPEED = 0.5; // percent
 
-    private static final double EXTRACT_ALGAE_DISTANCE = 12.0; // inches
-    private static final double EXTRACT_ALGAE_TIME = 4.0; // seconds
+    private static final double SHIFT_SPEED = 0.25; // percent
 
     public static final List<FieldElement> fieldElements = List.of(
         new FieldElement(FieldElement.Type.CORAL_STATION, -126.0),
@@ -99,24 +80,6 @@ public class Robot extends TimedRobot {
         new FieldElement(FieldElement.Type.REEF, 180.0),
         new FieldElement(FieldElement.Type.REEF, -120.0)
     );
-
-    public static AlignmentParameters getAlignmentParameters(FieldElement target,
-        double cameraHeight, double cameraOffset,
-        double heading, double tx, double ty) {
-        var type = target.getType();
-
-        var ht = type.getHeight().in(Units.Meters) + Units.Inches.of(TAG_HEIGHT).in(Units.Meters) / 2;
-        var hc = Units.Inches.of(BASE_HEIGHT + cameraHeight).in(Units.Meters);
-
-        var a = Math.toRadians(normalizeAngle(target.getAngle().in(Units.Degrees)) - normalizeAngle(heading));
-
-        var dx = (ht - hc) / Math.tan(Math.toRadians(ty));
-
-        var dy1 = dx * Math.tan(a + Math.toRadians(tx));
-        var dy2 = Units.Inches.of(cameraOffset).in(Units.Meters) * Math.sin(a);
-
-        return new AlignmentParameters(a, -(dy1 + dy2));
-    }
 
     public static double normalizeAngle(double angle) {
         return (angle + 180.0) % 360.0 - 180.0;
@@ -190,47 +153,53 @@ public class Robot extends TimedRobot {
             var now = System.currentTimeMillis();
 
             if (now >= end) {
-                if (operation == Operation.ROTATE) {
-                    translate();
-                } else {
-                    stop();
+                stop();
 
-                    operation = null;
-                }
-            }
-        } else if (driveController.getAButtonPressed()) {
-            var target = getTarget();
-
-            if (target != null) {
-                alignmentParameters = getAlignmentParameters(target,
-                    elevatorSubsystem.getCameraHeight(), CAMERA_OFFSET,
-                    driveSubsystem.getHeading(), tx, ty);
-
-                SmartDashboard.putNumber("alignment-a", alignmentParameters.a());
-                SmartDashboard.putNumber("alignment-dy", alignmentParameters.dy());
-
-                rotate();
+                operation = null;
             }
         } else {
-            var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
-            var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
+            var target = getTarget();
 
-            var rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
+            if (elevatorController.getLeftBumperButtonPressed() && target != null) {
+                switch (target.getType()) {
+                    case CORAL_STATION -> shift(-CORAL_STATION_OFFSET);
+                    case REEF -> shift(-REEF_OFFSET);
+                }
+            } else if (elevatorController.getRightBumperButtonPressed() && target != null) {
+                switch (target.getType()) {
+                    case CORAL_STATION -> shift(CORAL_STATION_OFFSET);
+                    case REEF -> shift(REEF_OFFSET);
+                }
+            } else {
+                var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
+                var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
 
-            boolean fieldRelative;
-            if (driveController.getBButton()) {
-                if (tv) {
-                    rot = -tx / (CAMERA_HFOV / 2);
+                double rot;
+                boolean fieldRelative;
+                if (driveController.getAButton()) {
+                    if (target != null) {
+                        var a = normalizeAngle(target.getAngle().in(Units.Degrees)) - normalizeAngle(driveSubsystem.getHeading());
+
+                        if (Math.abs(a) > ALIGNMENT_THRESHOLD) {
+                            rot = -Math.signum(a) * ALIGNMENT_SPEED;
+                        } else {
+                            rot = 0.0;
+                        }
+
+                        // TODO Limit ySpeed
+                    } else {
+                        rot = 0.0;
+                    }
+
+                    fieldRelative = false;
                 } else {
-                    rot = 0.0;
+                    rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
+
+                    fieldRelative = true;
                 }
 
-                fieldRelative = false;
-            } else {
-                fieldRelative = true;
+                driveSubsystem.drive(xSpeed, ySpeed, rot, fieldRelative);
             }
-
-            driveSubsystem.drive(xSpeed, ySpeed, rot, fieldRelative);
         }
     }
 
@@ -254,63 +223,11 @@ public class Robot extends TimedRobot {
         } else {
             elevatorSubsystem.stopEndEffector();
         }
-
-        var target = getTarget();
-
-        if (target != null) {
-            if (elevatorController.getAButtonPressed()) {
-                switch (target.getType()) {
-                    case CORAL_STATION -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.CORAL_INTAKE);
-                    case PROCESSOR -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.ALGAE_RELEASE);
-                    case REEF -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.TRANSPORT);
-                }
-            } else if (elevatorController.getBButtonPressed()) {
-                if (target.getType() == FieldElement.Type.REEF) {
-                    extractAlgae();
-                }
-            } else if (elevatorController.getLeftBumperButtonPressed()) {
-                switch (target.getType()) {
-                    case CORAL_STATION -> shift(-CORAL_STATION_OFFSET);
-                    case REEF -> shift(-REEF_OFFSET);
-                }
-            } else if (elevatorController.getRightBumperButtonPressed()) {
-                switch (target.getType()) {
-                    case CORAL_STATION -> shift(CORAL_STATION_OFFSET);
-                    case REEF -> shift(REEF_OFFSET);
-                }
-            } else {
-                // TODO
-            }
-        }
     }
 
     @Override
     public void teleopExit() {
         stop();
-    }
-
-    private void rotate() {
-        operation = Operation.ROTATE;
-
-        var a = alignmentParameters.a();
-
-        driveSubsystem.drive(0.0, 0.0, -Math.signum(a) * ROTATE_SPEED, false);
-
-        var t = Math.abs(a) / (ROTATE_SPEED * Constants.DriveConstants.kMaxAngularSpeed);
-
-        end = System.currentTimeMillis() + (long)(t * 1000);
-    }
-
-    private void translate() {
-        operation = Operation.TRANSLATE;
-
-        var dy = alignmentParameters.dy();
-
-        driveSubsystem.drive(0.0, -Math.signum(dy) * TRANSLATE_SPEED, 0.0, false);
-
-        var t = Math.abs(dy) / (TRANSLATE_SPEED * Constants.DriveConstants.kMaxSpeedMetersPerSecond);
-
-        end = System.currentTimeMillis() + (long)(t * 1000);
     }
 
     private void shift(double distance) {
@@ -327,24 +244,6 @@ public class Robot extends TimedRobot {
         var t = Math.abs(dy) / (SHIFT_SPEED * Constants.DriveConstants.kMaxSpeedMetersPerSecond);
 
         end = System.currentTimeMillis() + (long)(t * 1000);
-    }
-
-    private void extractAlgae() {
-        if (operation == Operation.EXTRACT_ALGAE) {
-            return;
-        }
-
-        operation = Operation.EXTRACT_ALGAE;
-
-        var dx = Units.Inches.of(EXTRACT_ALGAE_DISTANCE).in(Units.Meters);
-
-        var xSpeed = -(dx / EXTRACT_ALGAE_TIME) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
-
-        driveSubsystem.drive(xSpeed, 0.0, 0.0, false);
-
-        elevatorSubsystem.extractAlgae();
-
-        end = System.currentTimeMillis() + (long)(EXTRACT_ALGAE_TIME * 1000);
     }
 
     private void stop() {

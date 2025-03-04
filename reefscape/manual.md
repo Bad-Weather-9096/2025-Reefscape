@@ -8,16 +8,10 @@
 * Right stick
   * left/right - spin
 * A-button - align to target (robot-relative)
+* Left/right bumper - select slot (reef/coral station)
 
 ## Auxilliary Controller
 * Left stick
   * up/down - raise/lower elevator
 * Right stick
   * up/down - raise/lower end effector
-* D-pad
-  * up/down - select level (reef)
-  * left/right - select slot (reef/coral station)
-* A-button - adjust position
-* B-button - extract algae
-* Left/right bumper - pick up/drop coral 
-* Left/right trigger - pick up/drop algae

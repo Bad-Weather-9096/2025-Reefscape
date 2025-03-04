@@ -2,24 +2,13 @@ package frc.robot;
 
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
-import edu.wpi.first.units.measure.Distance;
 
 public final class FieldElement {
     public enum Type {
-        CORAL_STATION(55.25),
-        PROCESSOR(47.88),
-        BARGE(70.73),
-        REEF(8.75);
-
-        private final Distance height;
-
-        Type(double height) {
-            this.height = Units.Inches.of(height);
-        }
-
-        public Distance getHeight() {
-            return height;
-        }
+        CORAL_STATION,
+        PROCESSOR,
+        BARGE,
+        REEF
     }
 
     private Type type;
