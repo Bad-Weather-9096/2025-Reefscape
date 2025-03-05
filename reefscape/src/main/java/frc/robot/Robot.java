@@ -105,7 +105,7 @@ public class Robot extends TimedRobot {
         SmartDashboard.putNumber("ty", ty);
 
         if (tv) {
-            fiducialID = (int) LimelightHelpers.getFiducialID(null);
+            fiducialID = (int)LimelightHelpers.getFiducialID(null);
         }
 
         SmartDashboard.putNumber("fiducial-id", fiducialID);
@@ -181,7 +181,7 @@ public class Robot extends TimedRobot {
                         rot = -offset / 15.0; // TODO Constant
 
                         if (tv) {
-                            ySpeed *= (Math.abs(tx) / 30.0); // TODO Constant
+                            ySpeed *= Math.max(1.0 - Math.abs(rot), 0.0) * (Math.abs(tx) / 30.0); // TODO Constant
                         }
                     } else {
                         rot = 0.0;
