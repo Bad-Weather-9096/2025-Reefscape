@@ -175,6 +175,8 @@ public class Robot extends TimedRobot {
 
                 boolean fieldRelative;
                 if (driveController.getAButton()) {
+                    xSpeed *= 0.6; // TODO Constant
+
                     if (target != null) {
                         var offset = normalizeAngle(target.getAngle().in(Units.Degrees)) - normalizeAngle(driveSubsystem.getHeading());
 
