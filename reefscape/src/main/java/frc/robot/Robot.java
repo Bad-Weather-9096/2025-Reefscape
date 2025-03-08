@@ -27,10 +27,7 @@ public class Robot extends TimedRobot {
     private DriveSubsystem driveSubsystem = new DriveSubsystem();
     private ElevatorSubsystem elevatorSubsystem = new ElevatorSubsystem();
 
-    private boolean tv = false;
-
     private double tx = 0.0;
-    private double ty = 0.0;
 
     private int fiducialID = -1;
 
@@ -94,20 +91,16 @@ public class Robot extends TimedRobot {
     }
 
     private void readLimelight() {
-        tv = LimelightHelpers.getTV(null);
+        var tv = LimelightHelpers.getTV(null);
 
         SmartDashboard.putBoolean("tv", tv);
 
-        tx = LimelightHelpers.getTX(null);
-        ty = LimelightHelpers.getTY(null);
-
-        SmartDashboard.putNumber("tx", tx);
-        SmartDashboard.putNumber("ty", ty);
-
         if (tv) {
+            tx = LimelightHelpers.getTX(null);
             fiducialID = (int)LimelightHelpers.getFiducialID(null);
         }
 
+        SmartDashboard.putNumber("tx", tx);
         SmartDashboard.putNumber("fiducial-id", fiducialID);
     }
 
@@ -175,22 +168,25 @@ public class Robot extends TimedRobot {
 
                 boolean fieldRelative;
                 if (driveController.getAButton()) {
-                    xSpeed *= 0.6; // TODO Constant
+                    xSpeed *= 0.5;
 
-                    if (target != null) {
+                    if (target == null) {
+                        ySpeed *= 0.5;
+
+                        rot = 0.0;
+                    } else {
                         var offset = normalizeAngle(target.getAngle().in(Units.Degrees)) - normalizeAngle(driveSubsystem.getHeading());
 
-                        rot = -offset / 15.0; // TODO Constant
+                        rot = -offset / 15.0;
 
-                        if (tv) {
-                            ySpeed *= Math.max(1.0 - Math.abs(rot), 0.0) * (Math.abs(tx) / 30.0); // TODO Constant
-                        }
-                    } else {
-                        rot = 0.0;
+                        ySpeed *= Math.max(1.0 - Math.abs(rot), 0.0) * (Math.abs(tx) / 30.0);
                     }
 
                     fieldRelative = false;
                 } else {
+                    tx = 0.0;
+                    fiducialID = -1;
+
                     fieldRelative = true;
                 }
 
