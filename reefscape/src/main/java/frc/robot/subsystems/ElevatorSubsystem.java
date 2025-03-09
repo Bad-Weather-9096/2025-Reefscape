@@ -14,13 +14,14 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class ElevatorSubsystem extends SubsystemBase {
     public enum Position {
-        TRANSPORT(32.0, 0.0),
-        ALGAE_RELEASE(20.0, 215.0),
-        CORAL_INTAKE(24.0, 45.0),
-        LOWER_ALGAE_INTAKE(32.0, 90.0),
-        UPPER_ALGAE_INTAKE(48.0, 90.0),
-        LOWER_CORAL_RELEASE(40.0, 125.0),
-        UPPER_CORAL_RELEASE(56.0, 125.0);
+        TARGET_UPPER_TAGS(20.0, 0.0),
+        TARGET_LOWER_TAGS(10.0, 0.0),
+        RECEIVE_CORAL(24.0, 45.0),
+        RECEIVE_LOWER_ALGAE(32.0, 90.0),
+        RECEIVE_UPPER_ALGAE(48.0, 90.0),
+        RELEASE_ALGAE(10.0, 135.0),
+        RELEASE_LOWER_CORAL(40.0, 125.0),
+        RELEASE_UPPER_CORAL(56.0, 125.0);
 
         private final double elevatorHeight; // inches
         private final double endEffectorAngle; // degrees

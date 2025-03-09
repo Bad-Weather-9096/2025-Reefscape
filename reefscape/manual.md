@@ -15,3 +15,12 @@
   * up/down - raise/lower elevator
 * Right stick
   * up/down - raise/lower end effector
+* A-button - target upper tags (coral station)
+* B-button - target lower tags (processor/reef)
+* D-pad
+  * up - select upper branch
+  * down - select lower branch
+* Left bumper - recieve coral
+* Right bumper - release coral
+* Left trigger - receive algae
+* Right trigger - release algae

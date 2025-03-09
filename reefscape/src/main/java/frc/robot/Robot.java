@@ -181,6 +181,11 @@ public class Robot extends TimedRobot {
                         rot = -offset / 15.0;
 
                         ySpeed *= Math.max(1.0 - Math.abs(rot), 0.0) * (Math.abs(tx) / 30.0);
+
+                        switch (target.getType()) {
+                            case CORAL_STATION -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_CORAL);
+                            case PROCESSOR -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_ALGAE);
+                        }
                     }
 
                     fieldRelative = false;
@@ -210,6 +215,31 @@ public class Robot extends TimedRobot {
         var rightTrigger = MathUtil.applyDeadband(elevatorController.getRightTriggerAxis(), INTAKE_DEADBAND);
 
         elevatorSubsystem.setIntakeSpeed(leftTrigger - rightTrigger);
+
+        if (elevatorController.getAButtonPressed()) {
+            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_UPPER_TAGS);
+        }
+
+        if (elevatorController.getBButtonPressed()) {
+            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_LOWER_TAGS);
+        }
+
+        var target = getTarget();
+
+        if (target != null) {
+            var pov = elevatorController.getPOV();
+
+            if (pov != -1) {
+                switch (pov) {
+                    case 0 -> {
+                        // TODO Select upper branch (based on cargo)
+                    }
+                    case 180 -> {
+                        // TODO Select lower branch (based on cargo)
+                    }
+                }
+            }
+        }
     }
 
     @Override
