@@ -96,8 +96,6 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public void setIntakeSpeed(double speed) {
-        speed *= 0.5;
-
         SmartDashboard.putNumber("intake-speed", speed);
 
         intakeSparkMax.set(speed);
