@@ -27,13 +27,15 @@ public class ElevatorSubsystem extends SubsystemBase {
         }
     }
 
-    private SparkMax elevatorController;
-    private SparkMax endEffectorController;
+    private SparkMax elevatorSparkMax;
+    private SparkMax endEffectorSparkMax;
+    private SparkMax intakeSparkMax;
 
     private Position position = null;
 
     private static final int ELEVATOR_CAN_ID = 9;
     private static final int END_EFFECTOR_CAN_ID = 10;
+    private static final int INTAKE_CAN_ID = 11;
 
     private static final double ELEVATOR_DISTANCE_PER_ROTATION = 4.0; // inches
 
@@ -44,81 +46,67 @@ public class ElevatorSubsystem extends SubsystemBase {
     private static final double MAXIMUM_END_EFFECTOR_ROTATION = 225.0; // degrees
 
     public ElevatorSubsystem() {
-        elevatorController = new SparkMax(ELEVATOR_CAN_ID, SparkLowLevel.MotorType.kBrushless);
+        elevatorSparkMax = new SparkMax(ELEVATOR_CAN_ID, SparkLowLevel.MotorType.kBrushless);
 
         var elevatorConfig = new SparkMaxConfig();
 
         elevatorConfig.idleMode(SparkBaseConfig.IdleMode.kBrake).smartCurrentLimit(40);
 
-        elevatorController.configure(elevatorConfig,
+        elevatorSparkMax.configure(elevatorConfig,
             SparkBase.ResetMode.kResetSafeParameters,
             SparkBase.PersistMode.kPersistParameters);
 
-        elevatorController.getEncoder().setPosition(0.0);
+        elevatorSparkMax.getEncoder().setPosition(0.0);
 
-        endEffectorController = new SparkMax(END_EFFECTOR_CAN_ID, SparkLowLevel.MotorType.kBrushless);
+        endEffectorSparkMax = new SparkMax(END_EFFECTOR_CAN_ID, SparkLowLevel.MotorType.kBrushless);
 
         var endEffectorConfig = new SparkMaxConfig();
 
         endEffectorConfig.idleMode(SparkBaseConfig.IdleMode.kBrake).smartCurrentLimit(40);
 
-        endEffectorController.configure(endEffectorConfig,
+        endEffectorSparkMax.configure(endEffectorConfig,
             SparkBase.ResetMode.kResetSafeParameters,
             SparkBase.PersistMode.kPersistParameters);
 
-        endEffectorController.getEncoder().setPosition(0.0);
+        endEffectorSparkMax.getEncoder().setPosition(0.0);
+
+        intakeSparkMax = new SparkMax(INTAKE_CAN_ID, SparkLowLevel.MotorType.kBrushless);
+
+        var intakeConfig = new SparkMaxConfig();
+
+        intakeConfig.idleMode(SparkBaseConfig.IdleMode.kBrake).smartCurrentLimit(30);
+
+        intakeSparkMax.configure(endEffectorConfig,
+                SparkBase.ResetMode.kResetSafeParameters,
+                SparkBase.PersistMode.kPersistParameters);
+    }
+
+    public void setElevatorSpeed(double speed) {
+        speed *= -0.5;
+
+        SmartDashboard.putNumber("elevator-speed", speed);
+
+        elevatorSparkMax.set(speed);
     }
 
     public double getElevatorExtension() {
-        var position = elevatorController.getEncoder().getPosition();
-
-        SmartDashboard.putNumber("elevator-position", position);
+        var position = elevatorSparkMax.getEncoder().getPosition();
 
         return position * ELEVATOR_DISTANCE_PER_ROTATION;
     }
 
-    public void raiseElevator() {
-        adjustPosition(null);
+    public void setIntakeSpeed(double speed) {
+        speed *= 0.5;
 
-        elevatorController.set(getElevatorExtension() < MAXIMUM_ELEVATOR_EXTENSION ? ELEVATOR_SPEED : 0.0);
-    }
+        SmartDashboard.putNumber("intake-speed", speed);
 
-    public void lowerElevator() {
-        adjustPosition(null);
-
-        elevatorController.set(getElevatorExtension() > 0 ? -ELEVATOR_SPEED : 0.0);
-    }
-
-    public void stopElevator() {
-        if (position == null) {
-            elevatorController.set(0.0);
-        }
+        intakeSparkMax.set(speed);
     }
 
     public double getEndEffectorAngle() {
-        var position = endEffectorController.getEncoder().getPosition();
-
-        SmartDashboard.putNumber("end-effector-position", position);
+        var position = endEffectorSparkMax.getEncoder().getPosition();
 
         return position * 360.0;
-    }
-
-    public void raiseEndEffector() {
-        adjustPosition(null);
-
-        endEffectorController.set(getEndEffectorAngle() > 0 ? -END_EFFECTOR_SPEED : 0.0);
-    }
-
-    public void lowerEndEffector() {
-        adjustPosition(null);
-
-        endEffectorController.set(getEndEffectorAngle() < MAXIMUM_END_EFFECTOR_ROTATION ? END_EFFECTOR_SPEED : 0.0);
-    }
-
-    public void stopEndEffector() {
-        if (position == null) {
-            endEffectorController.set(0.0);
-        }
     }
 
     public void adjustPosition(Position position) {
@@ -127,26 +115,6 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        var elevatorExtension = getElevatorExtension();
-
-        if (position != null) {
-            var elevatorExtensionDelta = position.elevatorExtension - elevatorExtension;
-            var elevatorSpeed = Math.signum(elevatorExtensionDelta) * ELEVATOR_SPEED;
-
-            endEffectorController.set(elevatorSpeed);
-        }
-
-        SmartDashboard.putNumber("elevator-extension", elevatorExtension);
-
-        var endEffectorAngle = getEndEffectorAngle();
-
-        if (position != null) {
-            var endEffectorAngleDelta = position.endEffectorAngle - endEffectorAngle;
-            var endEffectorSpeed = Math.signum(endEffectorAngleDelta) * END_EFFECTOR_SPEED;
-
-            endEffectorController.set(endEffectorSpeed);
-        }
-
-        SmartDashboard.putNumber("end-effector-angle", endEffectorAngle);
+        // TODO
     }
 }

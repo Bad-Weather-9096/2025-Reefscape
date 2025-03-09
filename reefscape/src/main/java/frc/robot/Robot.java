@@ -185,6 +185,7 @@ public class Robot extends TimedRobot {
                     fieldRelative = false;
                 } else {
                     tx = 0.0;
+
                     fiducialID = -1;
 
                     fieldRelative = true;
@@ -198,23 +199,10 @@ public class Robot extends TimedRobot {
     private void operate() {
         var leftY = -MathUtil.applyDeadband(elevatorController.getLeftY(), ELEVATOR_DEADBAND);
 
-        if (leftY < 0.0) {
-            elevatorSubsystem.raiseElevator();
-        } else if (leftY > 0.0) {
-            elevatorSubsystem.lowerElevator();
-        } else {
-            elevatorSubsystem.stopElevator();
-        }
+        elevatorSubsystem.setElevatorSpeed(leftY);
 
-        var rightY = -MathUtil.applyDeadband(elevatorController.getLeftY(), END_EFFECTOR_DEADBAND);
+        var rightY = -MathUtil.applyDeadband(elevatorController.getRightY(), END_EFFECTOR_DEADBAND);
 
-        if (rightY < 0.0) {
-            elevatorSubsystem.raiseEndEffector();
-        } else if (rightY > 0.0) {
-            elevatorSubsystem.lowerEndEffector();
-        } else {
-            elevatorSubsystem.stopEndEffector();
-        }
     }
 
     @Override
