@@ -44,6 +44,7 @@ public class Robot extends TimedRobot {
 
     private static final double ELEVATOR_DEADBAND = 0.02;
     private static final double END_EFFECTOR_DEADBAND = 0.02;
+    private static final double INTAKE_DEADBAND = 0.02;
 
     private static final double CORAL_STATION_OFFSET = 8.0; // inches
     private static final double REEF_OFFSET = 6.75; // inches
@@ -203,7 +204,12 @@ public class Robot extends TimedRobot {
 
         var rightY = -MathUtil.applyDeadband(elevatorController.getRightY(), END_EFFECTOR_DEADBAND);
 
-        elevatorSubsystem.setIntakeSpeed(rightY);
+        elevatorSubsystem.setEndEffectorSpeed(rightY);
+
+        var leftTrigger = MathUtil.applyDeadband(elevatorController.getLeftTriggerAxis(), INTAKE_DEADBAND);
+        var rightTrigger = MathUtil.applyDeadband(elevatorController.getRightTriggerAxis(), INTAKE_DEADBAND);
+
+        elevatorSubsystem.setIntakeSpeed(leftTrigger - rightTrigger);
     }
 
     @Override
