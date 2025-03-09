@@ -92,6 +92,14 @@ public class ElevatorSubsystem extends SubsystemBase {
         intakeSparkMax.set(speed);
     }
 
+    public void receiveCoral() {
+        // TODO
+    }
+
+    public void releaseCoral() {
+        // TODO
+    }
+
     public void setPosition(Position position) {
         var elevatorPosition = position.elevatorHeight / ELEVATOR_DISTANCE_PER_ROTATION;
 

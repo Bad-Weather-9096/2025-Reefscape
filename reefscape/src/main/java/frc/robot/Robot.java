@@ -211,11 +211,6 @@ public class Robot extends TimedRobot {
 
         elevatorSubsystem.setEndEffectorSpeed(rightY);
 
-        var leftTrigger = MathUtil.applyDeadband(elevatorController.getLeftTriggerAxis(), INTAKE_DEADBAND);
-        var rightTrigger = MathUtil.applyDeadband(elevatorController.getRightTriggerAxis(), INTAKE_DEADBAND);
-
-        elevatorSubsystem.setIntakeSpeed(leftTrigger - rightTrigger);
-
         if (elevatorController.getAButtonPressed()) {
             elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_UPPER_TAGS);
         }
@@ -223,6 +218,19 @@ public class Robot extends TimedRobot {
         if (elevatorController.getBButtonPressed()) {
             elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_LOWER_TAGS);
         }
+
+        if (elevatorController.getLeftBumperButtonPressed()) {
+            elevatorSubsystem.receiveCoral();
+        }
+
+        if (elevatorController.getRightBumperButtonPressed()) {
+            elevatorSubsystem.releaseCoral();
+        }
+
+        var leftTrigger = MathUtil.applyDeadband(elevatorController.getLeftTriggerAxis(), INTAKE_DEADBAND);
+        var rightTrigger = MathUtil.applyDeadband(elevatorController.getRightTriggerAxis(), INTAKE_DEADBAND);
+
+        elevatorSubsystem.setIntakeSpeed(leftTrigger - rightTrigger);
 
         var target = getTarget();
 
