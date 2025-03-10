@@ -40,7 +40,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     private Servo intakeServo = new Servo(0);
 
     private ElevatorFeedforward elevatorFeedForward = new ElevatorFeedforward(0.2, 0.81, 3.07, 0.10);
-    private ArmFeedforward endEffectorFeedForward = new ArmFeedforward(0.2, 1.16, 0.94, 0.07); // TODO Assumes 48:1 reduction
+    private ArmFeedforward endEffectorFeedForward = new ArmFeedforward(0.2, 1.8, 0.06, 0.03);
 
     private Position position = null;
 
@@ -160,5 +160,10 @@ public class ElevatorSubsystem extends SubsystemBase {
         intakeServo.set(CORAL_INTAKE_POSITION);
 
         hasCoral = false;
+    }
+
+    @Override
+    public void periodic() {
+        SmartDashboard.putBoolean("has-coral", hasCoral);
     }
 }
