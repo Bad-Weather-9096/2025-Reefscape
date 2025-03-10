@@ -8,6 +8,7 @@ import com.revrobotics.spark.config.SparkBaseConfig;
 import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.controller.ArmFeedforward;
 import edu.wpi.first.math.controller.ElevatorFeedforward;
+import edu.wpi.first.units.Units;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -39,12 +40,17 @@ public class ElevatorSubsystem extends SubsystemBase {
     private Servo intakeServo = new Servo(0);
 
     private ElevatorFeedforward elevatorFeedForward = new ElevatorFeedforward(0.2, 0.81, 3.07, 0.10);
-    private ArmFeedforward endEffectorFeedForward = new ArmFeedforward(0.2, 0.56, 1.95, 0.04);
+
+    // TODO Assumes 48:1 reduction
+    private ArmFeedforward endEffectorFeedForward = new ArmFeedforward(0.2, 1.16, 0.94, 0.07);
 
     private boolean hasCoral = false;
 
     // TODO
     private static final double ELEVATOR_DISTANCE_PER_ROTATION = 0.5; // inches
+    private static final double ELEVATOR_VELOCITY = 2.0; // inches/second
+
+    private static final double END_EFFECTOR_VELOCITY = Math.PI / 2; // radians/second
 
     // TODO
     private static final double CORAL_INTAKE_POSITION = 0.5;
@@ -116,23 +122,20 @@ public class ElevatorSubsystem extends SubsystemBase {
     public void setPosition(Position position) {
         var elevatorPosition = position.elevatorHeight / ELEVATOR_DISTANCE_PER_ROTATION;
 
-        SmartDashboard.putNumber("elevator-position", elevatorPosition);
+        SmartDashboard.putNumber("elevator-height", position.elevatorHeight);
 
-        // TODO Velocity setpoint is rotations/second
         elevatorSparkMax.getClosedLoopController().setReference(elevatorPosition,
             SparkBase.ControlType.kPosition,
             ClosedLoopSlot.kSlot0,
-            elevatorFeedForward.calculate(0.0));
+            elevatorFeedForward.calculate(Units.InchesPerSecond.of(ELEVATOR_VELOCITY).in(Units.MetersPerSecond)));
 
-        var endEffectorPosition = position.endEffectorAngle;
+        SmartDashboard.putNumber("end-effector-angle", position.endEffectorAngle);
 
-        SmartDashboard.putNumber("end-effector-position", endEffectorPosition);
+        var endEffectorPosition = Math.toRadians(position.endEffectorAngle - 90);
 
-        // TODO positionRadians is angle relative to zero-horizontal
-        // TODO Velocity setpoint is rotations/second
         endEffectorSparkMax.getClosedLoopController().setReference(endEffectorPosition,
             SparkBase.ControlType.kPosition,
             ClosedLoopSlot.kSlot0,
-            endEffectorFeedForward.calculate(0.0, 0.0));
+            endEffectorFeedForward.calculate(endEffectorPosition, END_EFFECTOR_VELOCITY));
     }
 }
