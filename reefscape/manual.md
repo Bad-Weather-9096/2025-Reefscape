@@ -17,6 +17,7 @@
   * up/down - raise/lower end effector
 * A-button - target lower tags (processor/reef)
 * B-button - target upper tags (coral station)
+* X-button - extract algae
 * D-pad
   * up - select upper branch
   * down - select lower branch

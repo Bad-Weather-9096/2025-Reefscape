@@ -18,7 +18,8 @@ import java.util.List;
  */
 public class Robot extends TimedRobot {
     private enum Operation {
-        SHIFT
+        SHIFT,
+        EXTRACT_ALGAE
     }
 
     private XboxController driveController = new XboxController(0);
@@ -50,6 +51,9 @@ public class Robot extends TimedRobot {
     private static final double REEF_OFFSET = 6.75; // inches
 
     private static final double SHIFT_SPEED = 0.25; // percent
+
+    private static final double ALGAE_EXTRACTION_DISTANCE = 12.0; // inches
+    private static final double ALGAE_EXTRACTION_TIME = 4.0; // seconds
 
     public static final List<FieldElement> fieldElements = List.of(
         new FieldElement(FieldElement.Type.CORAL_STATION, -126.0),
@@ -211,46 +215,42 @@ public class Robot extends TimedRobot {
 
         elevatorSubsystem.setEndEffectorSpeed(rightY);
 
-        if (elevatorController.getAButtonPressed()) {
-            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_LOWER_TAGS);
-        }
-
-        if (elevatorController.getBButtonPressed()) {
-            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_UPPER_TAGS);
-        }
-
-        if (elevatorController.getLeftBumperButtonPressed()) {
-            elevatorSubsystem.receiveCoral();
-        }
-
-        if (elevatorController.getRightBumperButtonPressed()) {
-            elevatorSubsystem.releaseCoral();
-        }
-
         var leftTrigger = MathUtil.applyDeadband(elevatorController.getLeftTriggerAxis(), INTAKE_DEADBAND);
         var rightTrigger = MathUtil.applyDeadband(elevatorController.getRightTriggerAxis(), INTAKE_DEADBAND);
 
         elevatorSubsystem.setIntakeSpeed(leftTrigger - rightTrigger);
 
-        var target = getTarget();
+        if (elevatorController.getAButtonPressed()) {
+            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_LOWER_TAGS);
+        } else if (elevatorController.getBButtonPressed()) {
+            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_UPPER_TAGS);
+        } else if (elevatorController.getXButtonPressed() && extractAlgae()) {
+            elevatorSubsystem.extractAlgae(ALGAE_EXTRACTION_TIME);
+        } else if (elevatorController.getLeftBumperButtonPressed()) {
+            elevatorSubsystem.receiveCoral();
+        } else if (elevatorController.getRightBumperButtonPressed()) {
+            elevatorSubsystem.releaseCoral();
+        } else {
+            var target = getTarget();
 
-        if (target != null) {
-            var pov = elevatorController.getPOV();
+            if (target != null) {
+                var pov = elevatorController.getPOV();
 
-            if (pov != -1) {
-                switch (pov) {
-                    case 0 -> {
-                        if (elevatorSubsystem.hasCoral()) {
-                            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_UPPER_CORAL);
-                        } else {
-                            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_UPPER_ALGAE);
+                if (pov != -1) {
+                    switch (pov) {
+                        case 0 -> {
+                            if (elevatorSubsystem.hasCoral()) {
+                                elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_UPPER_CORAL);
+                            } else {
+                                elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_UPPER_ALGAE);
+                            }
                         }
-                    }
-                    case 180 -> {
-                        if (elevatorSubsystem.hasCoral()) {
-                            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_LOWER_CORAL);
-                        } else {
-                            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_LOWER_ALGAE);
+                        case 180 -> {
+                            if (elevatorSubsystem.hasCoral()) {
+                                elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_LOWER_CORAL);
+                            } else {
+                                elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_LOWER_ALGAE);
+                            }
                         }
                     }
                 }
@@ -277,6 +277,24 @@ public class Robot extends TimedRobot {
         var t = Math.abs(dy) / (SHIFT_SPEED * Constants.DriveConstants.kMaxSpeedMetersPerSecond);
 
         end = System.currentTimeMillis() + (long)(t * 1000);
+    }
+
+    private boolean extractAlgae() {
+        if (operation == Operation.EXTRACT_ALGAE) {
+            return false;
+        }
+
+        operation = Operation.EXTRACT_ALGAE;
+
+        var vx = Units.InchesPerSecond.of(ALGAE_EXTRACTION_DISTANCE / ALGAE_EXTRACTION_TIME).in(Units.MetersPerSecond);
+
+        var xSpeed = -vx / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
+
+        driveSubsystem.drive(xSpeed, 0.0, 0.0, false);
+
+        end = System.currentTimeMillis() + (long)(ALGAE_EXTRACTION_TIME * 1000);
+
+        return true;
     }
 
     private void stop() {

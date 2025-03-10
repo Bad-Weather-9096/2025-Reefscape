@@ -40,9 +40,9 @@ public class ElevatorSubsystem extends SubsystemBase {
     private Servo intakeServo = new Servo(0);
 
     private ElevatorFeedforward elevatorFeedForward = new ElevatorFeedforward(0.2, 0.81, 3.07, 0.10);
+    private ArmFeedforward endEffectorFeedForward = new ArmFeedforward(0.2, 1.16, 0.94, 0.07); // TODO Assumes 48:1 reduction
 
-    // TODO Assumes 48:1 reduction
-    private ArmFeedforward endEffectorFeedForward = new ArmFeedforward(0.2, 1.16, 0.94, 0.07);
+    private Position position = null;
 
     private boolean hasCoral = false;
 
@@ -51,6 +51,8 @@ public class ElevatorSubsystem extends SubsystemBase {
     private static final double ELEVATOR_VELOCITY = 2.0; // inches/second
 
     private static final double END_EFFECTOR_VELOCITY = Math.PI / 2; // radians/second
+
+    private static final double ALGAE_EXTRACTION_ANGLE = 35.0; // degrees
 
     private static final double CORAL_INTAKE_POSITION = 0.5;
 
@@ -112,19 +114,9 @@ public class ElevatorSubsystem extends SubsystemBase {
         intakeSparkMax.set(speed);
     }
 
-    public void receiveCoral() {
-        intakeServo.set(CORAL_INTAKE_POSITION);
-
-        hasCoral = true;
-    }
-
-    public void releaseCoral() {
-        intakeServo.set(-CORAL_INTAKE_POSITION);
-
-        hasCoral = false;
-    }
-
     public void setPosition(Position position) {
+        this.position = position;
+
         var elevatorPosition = position.elevatorHeight / ELEVATOR_DISTANCE_PER_ROTATION;
 
         SmartDashboard.putNumber("elevator-height", position.elevatorHeight);
@@ -142,5 +134,31 @@ public class ElevatorSubsystem extends SubsystemBase {
             SparkBase.ControlType.kPosition,
             ClosedLoopSlot.kSlot0,
             endEffectorFeedForward.calculate(endEffectorPosition, END_EFFECTOR_VELOCITY));
+    }
+
+    public void extractAlgae(double time) {
+        if (position == null) {
+            return;
+        }
+
+        var endEffectorPosition = Math.toRadians(position.endEffectorAngle - 90 - ALGAE_EXTRACTION_ANGLE);
+        var endEffectorVelocity = Units.DegreesPerSecond.of(ALGAE_EXTRACTION_ANGLE / time).in(Units.RadiansPerSecond);
+
+        endEffectorSparkMax.getClosedLoopController().setReference(endEffectorPosition,
+            SparkBase.ControlType.kPosition,
+            ClosedLoopSlot.kSlot0,
+            endEffectorFeedForward.calculate(endEffectorPosition, endEffectorVelocity));
+    }
+
+    public void receiveCoral() {
+        intakeServo.set(CORAL_INTAKE_POSITION);
+
+        hasCoral = true;
+    }
+
+    public void releaseCoral() {
+        intakeServo.set(-CORAL_INTAKE_POSITION);
+
+        hasCoral = false;
     }
 }
