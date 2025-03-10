@@ -54,7 +54,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private static final double ALGAE_EXTRACTION_ANGLE = 35.0; // degrees
 
-    private static final double CORAL_INTAKE_POSITION = 0.5;
+    private static final double CORAL_INTAKE_POSITION = 1.0;
 
     public ElevatorSubsystem() {
         var elevatorConfig = new SparkMaxConfig();
@@ -151,13 +151,13 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public void receiveCoral() {
-        intakeServo.set(CORAL_INTAKE_POSITION);
+        intakeServo.set(-CORAL_INTAKE_POSITION);
 
         hasCoral = true;
     }
 
     public void releaseCoral() {
-        intakeServo.set(-CORAL_INTAKE_POSITION);
+        intakeServo.set(CORAL_INTAKE_POSITION);
 
         hasCoral = false;
     }
