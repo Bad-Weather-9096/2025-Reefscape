@@ -240,10 +240,18 @@ public class Robot extends TimedRobot {
             if (pov != -1) {
                 switch (pov) {
                     case 0 -> {
-                        // TODO Select upper branch (based on cargo)
+                        if (elevatorSubsystem.hasCoral()) {
+                            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_UPPER_CORAL);
+                        } else {
+                            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_UPPER_ALGAE);
+                        }
                     }
                     case 180 -> {
-                        // TODO Select lower branch (based on cargo)
+                        if (elevatorSubsystem.hasCoral()) {
+                            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_LOWER_CORAL);
+                        } else {
+                            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_LOWER_ALGAE);
+                        }
                     }
                 }
             }

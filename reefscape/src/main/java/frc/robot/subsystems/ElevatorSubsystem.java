@@ -38,11 +38,16 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private Servo intakeServo = new Servo(0);
 
-    private ElevatorFeedforward elevatorFeedForward = new ElevatorFeedforward(0.2, 1.40, 3.07, 0.18);
+    private ElevatorFeedforward elevatorFeedForward = new ElevatorFeedforward(0.2, 0.81, 3.07, 0.10);
     private ArmFeedforward endEffectorFeedForward = new ArmFeedforward(0.2, 0.56, 1.95, 0.04);
 
+    private boolean hasCoral = false;
+
     // TODO
-    private static final double ELEVATOR_DISTANCE_PER_ROTATION = 1.0; // inches
+    private static final double ELEVATOR_DISTANCE_PER_ROTATION = 0.5; // inches
+
+    // TODO
+    private static final double CORAL_INTAKE_POSITION = 0.5;
 
     public ElevatorSubsystem() {
         var elevatorConfig = new SparkMaxConfig();
@@ -74,6 +79,10 @@ public class ElevatorSubsystem extends SubsystemBase {
             SparkBase.PersistMode.kPersistParameters);
     }
 
+    public boolean hasCoral() {
+        return hasCoral;
+    }
+
     public void setElevatorSpeed(double speed) {
         SmartDashboard.putNumber("elevator-speed", speed);
 
@@ -93,11 +102,15 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public void receiveCoral() {
-        // TODO
+        intakeServo.set(CORAL_INTAKE_POSITION);
+
+        hasCoral = true;
     }
 
     public void releaseCoral() {
-        // TODO
+        intakeServo.set(-CORAL_INTAKE_POSITION);
+
+        hasCoral = false;
     }
 
     public void setPosition(Position position) {
