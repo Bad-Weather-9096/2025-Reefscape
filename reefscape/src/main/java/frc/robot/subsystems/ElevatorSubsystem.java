@@ -15,8 +15,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class ElevatorSubsystem extends SubsystemBase {
     public enum Position {
-        TARGET_UPPER_TAGS(20.0, 0.0),
         TARGET_LOWER_TAGS(10.0, 0.0),
+        TARGET_UPPER_TAGS(20.0, 0.0),
         RECEIVE_CORAL(24.0, 45.0),
         RECEIVE_LOWER_ALGAE(32.0, 90.0),
         RECEIVE_UPPER_ALGAE(48.0, 90.0),
@@ -46,13 +46,12 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private boolean hasCoral = false;
 
-    // TODO
+    // TODO Adjust values
     private static final double ELEVATOR_DISTANCE_PER_ROTATION = 0.5; // inches
     private static final double ELEVATOR_VELOCITY = 2.0; // inches/second
 
     private static final double END_EFFECTOR_VELOCITY = Math.PI / 2; // radians/second
 
-    // TODO
     private static final double CORAL_INTAKE_POSITION = 0.5;
 
     public ElevatorSubsystem() {
@@ -90,18 +89,24 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public void setElevatorSpeed(double speed) {
+        speed *= 0.5;
+
         SmartDashboard.putNumber("elevator-speed", speed);
 
         elevatorSparkMax.set(speed);
     }
 
     public void setEndEffectorSpeed(double speed) {
+        speed *= 0.5;
+
         SmartDashboard.putNumber("end-effector-speed", speed);
 
         endEffectorSparkMax.set(speed);
     }
 
     public void setIntakeSpeed(double speed) {
+        speed *= 0.75;
+
         SmartDashboard.putNumber("intake-speed", speed);
 
         intakeSparkMax.set(speed);

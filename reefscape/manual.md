@@ -15,8 +15,8 @@
   * up/down - raise/lower elevator
 * Right stick
   * up/down - raise/lower end effector
-* A-button - target upper tags (coral station)
-* B-button - target lower tags (processor/reef)
+* A-button - target lower tags (processor/reef)
+* B-button - target upper tags (coral station)
 * D-pad
   * up - select upper branch
   * down - select lower branch

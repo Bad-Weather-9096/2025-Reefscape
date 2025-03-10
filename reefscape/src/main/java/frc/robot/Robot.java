@@ -212,11 +212,11 @@ public class Robot extends TimedRobot {
         elevatorSubsystem.setEndEffectorSpeed(rightY);
 
         if (elevatorController.getAButtonPressed()) {
-            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_UPPER_TAGS);
+            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_LOWER_TAGS);
         }
 
         if (elevatorController.getBButtonPressed()) {
-            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_LOWER_TAGS);
+            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_UPPER_TAGS);
         }
 
         if (elevatorController.getLeftBumperButtonPressed()) {
