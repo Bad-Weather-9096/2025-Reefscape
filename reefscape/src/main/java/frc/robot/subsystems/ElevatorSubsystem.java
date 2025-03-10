@@ -99,15 +99,13 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public void setEndEffectorSpeed(double speed) {
-        speed *= 0.5;
-
         SmartDashboard.putNumber("end-effector-speed", speed);
 
         endEffectorSparkMax.set(speed);
     }
 
     public void setIntakeSpeed(double speed) {
-        speed *= 0.75;
+        speed *= -0.5;
 
         SmartDashboard.putNumber("intake-speed", speed);
 

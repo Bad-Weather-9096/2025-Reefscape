@@ -211,7 +211,7 @@ public class Robot extends TimedRobot {
 
         elevatorSubsystem.setElevatorSpeed(leftY);
 
-        var rightY = -MathUtil.applyDeadband(elevatorController.getRightY(), END_EFFECTOR_DEADBAND);
+        var rightY = MathUtil.applyDeadband(elevatorController.getRightY(), END_EFFECTOR_DEADBAND);
 
         elevatorSubsystem.setEndEffectorSpeed(rightY);
 
