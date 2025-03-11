@@ -162,6 +162,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        SmartDashboard.putNumber("elevator-position", elevatorSparkMax.getEncoder().getPosition());
+
         SmartDashboard.putBoolean("has-coral", hasCoral);
     }
 }
