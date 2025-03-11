@@ -18,11 +18,11 @@ public class ElevatorSubsystem extends SubsystemBase {
         TARGET_LOWER_TAGS(10.0, 0.0),
         TARGET_UPPER_TAGS(20.0, 0.0),
         RECEIVE_CORAL(24.0, 45.0),
-        RECEIVE_LOWER_ALGAE(32.0, 90.0),
-        RECEIVE_UPPER_ALGAE(48.0, 90.0),
+        RECEIVE_LOWER_ALGAE(24.0, 90.0),
+        RECEIVE_UPPER_ALGAE(36.0, 90.0),
         RELEASE_ALGAE(10.0, 135.0),
-        RELEASE_LOWER_CORAL(40.0, 125.0),
-        RELEASE_UPPER_CORAL(56.0, 125.0);
+        RELEASE_LOWER_CORAL(20.0, 125.0),
+        RELEASE_UPPER_CORAL(32.0, 125.0);
 
         private final double elevatorHeight; // inches
         private final double endEffectorAngle; // degrees
@@ -40,15 +40,14 @@ public class ElevatorSubsystem extends SubsystemBase {
     private Servo intakeServo = new Servo(0);
 
     private ElevatorFeedforward elevatorFeedForward = new ElevatorFeedforward(0.2, 0.81, 3.07, 0.10);
-    private ArmFeedforward endEffectorFeedForward = new ArmFeedforward(0.2, 1.8, 0.06, 0.03);
+    private ArmFeedforward endEffectorFeedForward = new ArmFeedforward(0.2, 0.75, 0.20, 0.01);
 
     private Position position = null;
 
     private boolean hasCoral = false;
 
-    // TODO Adjust values
-    private static final double ELEVATOR_DISTANCE_PER_ROTATION = 0.5; // inches
-    private static final double ELEVATOR_VELOCITY = 2.0; // inches/second
+    private static final double ELEVATOR_DISTANCE_PER_ROTATION = 1.426; // inches
+    private static final double ELEVATOR_VELOCITY = 6.0; // inches/second
 
     private static final double END_EFFECTOR_VELOCITY = Math.PI / 2; // radians/second
 
