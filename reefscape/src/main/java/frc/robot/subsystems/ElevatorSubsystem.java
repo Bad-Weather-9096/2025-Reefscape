@@ -123,7 +123,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
         var elevatorFF = elevatorFeedForward.calculate(elevatorVelocity);
 
-        System.out.printf("Elevator position = %.2f, velocity = %.2f, FF = %.2f\n",
+        System.out.printf("Elevator position = %.2f, velocity = %.2f m/s, FF = %.2f m/s\n",
             elevatorPosition,
             elevatorVelocity,
             elevatorFF);
@@ -138,7 +138,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
         var endEffectorFF = endEffectorFeedForward.calculate(endEffectorPosition, endEffectorVelocity);
 
-        System.out.printf("End effector position = %.2f, velocity = %.2f, FF = %.2f\n",
+        System.out.printf("End effector position = %.2f, velocity = %.2f rad/s, FF = %.2f rad/s\n",
             endEffectorPosition,
             endEffectorVelocity,
             endEffectorFF);
@@ -159,7 +159,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
         var elevatorFF = elevatorFeedForward.calculate(elevatorVelocity);
 
-        System.out.printf("Elevator position = %.2f, velocity = %.2f, FF = %.2f\n",
+        System.out.printf("Elevator position = %.2f, velocity = %.2f m/s, FF = %.2f m/s\n",
             elevatorPosition,
             elevatorVelocity,
             elevatorFF);
@@ -174,7 +174,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
         var endEffectorFF = endEffectorFeedForward.calculate(endEffectorPosition, endEffectorVelocity);
 
-        System.out.printf("End effector position = %.2f, velocity = %.2f, FF = %.2f\n",
+        System.out.printf("End effector position = %.2f, velocity = %.2f rad/s, FF = %.2f rad/s\n",
             endEffectorPosition,
             endEffectorVelocity,
             endEffectorFF);
