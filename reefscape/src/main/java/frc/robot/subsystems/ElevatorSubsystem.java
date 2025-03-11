@@ -17,7 +17,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     public enum Position {
         TARGET_LOWER_TAGS(10.0, 0.0),
         TARGET_UPPER_TAGS(20.0, 0.0),
-        RECEIVE_CORAL(24.0, 45.0),
+        RECEIVE_CORAL(24.0, 35.0),
         RECEIVE_LOWER_ALGAE(24.0, 90.0),
         RECEIVE_UPPER_ALGAE(36.0, 90.0),
         RELEASE_ALGAE(10.0, 135.0),
@@ -39,21 +39,25 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private Servo intakeServo = new Servo(0);
 
-    private ElevatorFeedforward elevatorFeedForward = new ElevatorFeedforward(0.2, 0.81, 3.07, 0.10);
-    private ArmFeedforward endEffectorFeedForward = new ArmFeedforward(0.2, 0.75, 0.20, 0.01);
+    private ElevatorFeedforward elevatorFeedForward = new ElevatorFeedforward(0.22, 0.81, 3.07, 0.10);
+    private ArmFeedforward endEffectorFeedForward = new ArmFeedforward(0.22, 0.75, 0.20, 0.01);
 
     private Position position = null;
 
     private boolean hasCoral = false;
 
+    // TODO
+    private static final double INITIAL_END_EFFECTOR_ANGLE = -35.0; // degrees
+
     private static final double ELEVATOR_DISTANCE_PER_ROTATION = 1.426; // inches
     private static final double ELEVATOR_VELOCITY = 6.0; // inches/second
 
-    private static final double END_EFFECTOR_VELOCITY = Math.PI / 2; // radians/second
+    private static final double END_EFFECTOR_VELOCITY = 90.0; // degrees/second
 
-    private static final double ALGAE_EXTRACTION_ANGLE = 35.0; // degrees
+    private static final double ALGAE_EXTRACTION_HEIGHT = 12.0; // inches
+    private static final double ALGAE_EXTRACTION_ANGLE = 7.5; // degrees
 
-    private static final double CORAL_INTAKE_POSITION = 0.75;
+    private static final double CORAL_INTAKE_POSITION = 0.75; // percent
 
     public ElevatorSubsystem() {
         var elevatorConfig = new SparkMaxConfig();
@@ -74,7 +78,7 @@ public class ElevatorSubsystem extends SubsystemBase {
             SparkBase.ResetMode.kResetSafeParameters,
             SparkBase.PersistMode.kPersistParameters);
 
-        endEffectorSparkMax.getEncoder().setPosition(0.0);
+        endEffectorSparkMax.getEncoder().setPosition(INITIAL_END_EFFECTOR_ANGLE);
 
         var intakeConfig = new SparkMaxConfig();
 
@@ -115,22 +119,34 @@ public class ElevatorSubsystem extends SubsystemBase {
         this.position = position;
 
         var elevatorPosition = position.elevatorHeight / ELEVATOR_DISTANCE_PER_ROTATION;
+        var elevatorVelocity = Units.InchesPerSecond.of(ELEVATOR_VELOCITY).in(Units.MetersPerSecond);
 
-        SmartDashboard.putNumber("elevator-height", position.elevatorHeight);
+        var elevatorFF = elevatorFeedForward.calculate(elevatorVelocity);
+
+        System.out.printf("Elevator position = %.2f, velocity = %.2f, FF = %.2f\n",
+            elevatorPosition,
+            elevatorVelocity,
+            elevatorFF);
 
         elevatorSparkMax.getClosedLoopController().setReference(elevatorPosition,
             SparkBase.ControlType.kPosition,
             ClosedLoopSlot.kSlot0,
-            elevatorFeedForward.calculate(Units.InchesPerSecond.of(ELEVATOR_VELOCITY).in(Units.MetersPerSecond)));
-
-        SmartDashboard.putNumber("end-effector-angle", position.endEffectorAngle);
+            elevatorFF);
 
         var endEffectorPosition = Math.toRadians(position.endEffectorAngle - 90);
+        var endEffectorVelocity = Units.DegreesPerSecond.of(END_EFFECTOR_VELOCITY).in(Units.RadiansPerSecond);
+
+        var endEffectorFF = endEffectorFeedForward.calculate(endEffectorPosition, endEffectorVelocity);
+
+        System.out.printf("End effector position = %.2f, velocity = %.2f, FF = %.2f\n",
+            endEffectorPosition,
+            endEffectorVelocity,
+            endEffectorFF);
 
         endEffectorSparkMax.getClosedLoopController().setReference(endEffectorPosition,
             SparkBase.ControlType.kPosition,
             ClosedLoopSlot.kSlot0,
-            endEffectorFeedForward.calculate(endEffectorPosition, END_EFFECTOR_VELOCITY));
+            endEffectorFF);
     }
 
     public void extractAlgae(double time) {
@@ -138,13 +154,35 @@ public class ElevatorSubsystem extends SubsystemBase {
             return;
         }
 
+        var elevatorPosition = (position.elevatorHeight + ALGAE_EXTRACTION_HEIGHT) / ELEVATOR_DISTANCE_PER_ROTATION;
+        var elevatorVelocity = Units.InchesPerSecond.of(ALGAE_EXTRACTION_HEIGHT / time).in(Units.MetersPerSecond);
+
+        var elevatorFF = elevatorFeedForward.calculate(elevatorVelocity);
+
+        System.out.printf("Elevator position = %.2f, velocity = %.2f, FF = %.2f\n",
+            elevatorPosition,
+            elevatorVelocity,
+            elevatorFF);
+
+        elevatorSparkMax.getClosedLoopController().setReference(elevatorPosition,
+            SparkBase.ControlType.kPosition,
+            ClosedLoopSlot.kSlot0,
+            elevatorFF);
+
         var endEffectorPosition = Math.toRadians(position.endEffectorAngle - 90 - ALGAE_EXTRACTION_ANGLE);
-        var endEffectorVelocity = Units.DegreesPerSecond.of(ALGAE_EXTRACTION_ANGLE / time).in(Units.RadiansPerSecond);
+        var endEffectorVelocity = Units.DegreesPerSecond.of(ALGAE_EXTRACTION_ANGLE / (time / 4)).in(Units.RadiansPerSecond);
+
+        var endEffectorFF = endEffectorFeedForward.calculate(endEffectorPosition, endEffectorVelocity);
+
+        System.out.printf("End effector position = %.2f, velocity = %.2f, FF = %.2f\n",
+            endEffectorPosition,
+            endEffectorVelocity,
+            endEffectorFF);
 
         endEffectorSparkMax.getClosedLoopController().setReference(endEffectorPosition,
             SparkBase.ControlType.kPosition,
             ClosedLoopSlot.kSlot0,
-            endEffectorFeedForward.calculate(endEffectorPosition, endEffectorVelocity));
+            endEffectorFF);
     }
 
     public void receiveCoral() {
@@ -162,6 +200,9 @@ public class ElevatorSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         SmartDashboard.putNumber("elevator-position", elevatorSparkMax.getEncoder().getPosition());
+        SmartDashboard.putNumber("end-effector-position", endEffectorSparkMax.getEncoder().getPosition());
+
+        SmartDashboard.putString("position", (position == null) ? "" : position.toString());
 
         SmartDashboard.putBoolean("has-coral", hasCoral);
     }
