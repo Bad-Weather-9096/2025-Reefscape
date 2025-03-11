@@ -54,7 +54,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private static final double ALGAE_EXTRACTION_ANGLE = 35.0; // degrees
 
-    private static final double CORAL_INTAKE_POSITION = 1.0;
+    private static final double CORAL_INTAKE_POSITION = 0.75;
 
     public ElevatorSubsystem() {
         var elevatorConfig = new SparkMaxConfig();
