@@ -38,7 +38,7 @@ public class Robot extends TimedRobot {
 
     private static final String LIMELIGHT_URL = "http://10.90.96.11:5800";
 
-    private static final double REVERSE_DISTANCE = 72.0; // inches
+    private static final double REVERSE_DISTANCE = 36.0; // inches
     private static final double REVERSE_TIME = 4.0; // seconds
 
     private static final double DRIVE_DEADBAND = 0.05;

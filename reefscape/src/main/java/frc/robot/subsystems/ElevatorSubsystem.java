@@ -49,9 +49,10 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private static final double INITIAL_END_EFFECTOR_ANGLE = -42.5; // degrees
 
-    private static final double ELEVATOR_DISTANCE_PER_ROTATION = 1.426; // inches
+    private static final double ELEVATOR_DISTANCE_PER_ROTATION = 1.5; // inches
     private static final double ELEVATOR_VELOCITY = 3.0; // inches/second
 
+    private static final double END_EFFECTOR_DISTANCE_PER_ROTATION = 12.0; // degrees
     private static final double END_EFFECTOR_VELOCITY = 45.0; // degrees/second
 
     private static final double ALGAE_EXTRACTION_HEIGHT = 12.0; // inches
@@ -78,7 +79,7 @@ public class ElevatorSubsystem extends SubsystemBase {
             SparkBase.ResetMode.kResetSafeParameters,
             SparkBase.PersistMode.kPersistParameters);
 
-        endEffectorSparkMax.getEncoder().setPosition(INITIAL_END_EFFECTOR_ANGLE / 360);
+        endEffectorSparkMax.getEncoder().setPosition(INITIAL_END_EFFECTOR_ANGLE / END_EFFECTOR_DISTANCE_PER_ROTATION);
 
         var intakeConfig = new SparkMaxConfig();
 
@@ -118,12 +119,14 @@ public class ElevatorSubsystem extends SubsystemBase {
     public void setPosition(Position position) {
         this.position = position;
 
-        var elevatorPosition = position.elevatorHeight / ELEVATOR_DISTANCE_PER_ROTATION;
+        var elevatorHeight = position.elevatorHeight;
+        var elevatorPosition = elevatorHeight / ELEVATOR_DISTANCE_PER_ROTATION;
         var elevatorVelocity = Units.InchesPerSecond.of(ELEVATOR_VELOCITY).in(Units.MetersPerSecond);
 
         var elevatorFF = elevatorFeedForward.calculate(elevatorVelocity);
 
-        System.out.printf("Elevator position = %.2f, velocity = %.2f m/s, FF = %.2f m/s\n",
+        System.out.printf("Elevator height = %.2f inches, position = %.2f rotations, velocity = %.2f m/s, FF = %.2f V\n",
+            elevatorHeight,
             elevatorPosition,
             elevatorVelocity,
             elevatorFF);
@@ -133,13 +136,14 @@ public class ElevatorSubsystem extends SubsystemBase {
             ClosedLoopSlot.kSlot0,
             elevatorFF);
 
-        // TODO Rotations must take gear ratio into account
-        var endEffectorPosition = position.endEffectorAngle / 360; // rotations
+        var endEffectorAngle = position.endEffectorAngle;
+        var endEffectorPosition = endEffectorAngle / END_EFFECTOR_DISTANCE_PER_ROTATION;
         var endEffectorVelocity = Units.DegreesPerSecond.of(END_EFFECTOR_VELOCITY).in(Units.RadiansPerSecond);
 
-        var endEffectorFF = endEffectorFeedForward.calculate(Math.toRadians(position.endEffectorAngle - 90), endEffectorVelocity);
+        var endEffectorFF = endEffectorFeedForward.calculate(Math.toRadians(endEffectorAngle - 90), endEffectorVelocity);
 
-        System.out.printf("End effector position = %.2f rotations, velocity = %.2f rad/s, FF = %.2f rad/s\n",
+        System.out.printf("End effector angle = %.2f degrees, position = %.2f rotations, velocity = %.2f rad/s, FF = %.2f V\n",
+            endEffectorAngle,
             endEffectorPosition,
             endEffectorVelocity,
             endEffectorFF);
@@ -155,12 +159,14 @@ public class ElevatorSubsystem extends SubsystemBase {
             return;
         }
 
-        var elevatorPosition = (position.elevatorHeight + ALGAE_EXTRACTION_HEIGHT) / ELEVATOR_DISTANCE_PER_ROTATION;
+        var elevatorHeight = position.elevatorHeight + ALGAE_EXTRACTION_HEIGHT;
+        var elevatorPosition = elevatorHeight / ELEVATOR_DISTANCE_PER_ROTATION;
         var elevatorVelocity = Units.InchesPerSecond.of(ALGAE_EXTRACTION_HEIGHT / time).in(Units.MetersPerSecond);
 
         var elevatorFF = elevatorFeedForward.calculate(elevatorVelocity);
 
-        System.out.printf("Elevator position = %.2f, velocity = %.2f m/s, FF = %.2f m/s\n",
+        System.out.printf("Elevator height = %.2f inches, position = %.2f, velocity = %.2f m/s, FF = %.2f V\n",
+            elevatorHeight,
             elevatorPosition,
             elevatorVelocity,
             elevatorFF);
@@ -170,12 +176,14 @@ public class ElevatorSubsystem extends SubsystemBase {
             ClosedLoopSlot.kSlot0,
             elevatorFF);
 
-        var endEffectorPosition = Math.toRadians(position.endEffectorAngle - ALGAE_EXTRACTION_ANGLE);
-        var endEffectorVelocity = Units.DegreesPerSecond.of(ALGAE_EXTRACTION_ANGLE / (time / 4)).in(Units.RadiansPerSecond);
+        var endEffectorAngle = position.endEffectorAngle - ALGAE_EXTRACTION_ANGLE;
+        var endEffectorPosition = endEffectorAngle / END_EFFECTOR_DISTANCE_PER_ROTATION;
+        var endEffectorVelocity = Units.DegreesPerSecond.of(ALGAE_EXTRACTION_ANGLE / (time / 2)).in(Units.RadiansPerSecond);
 
-        var endEffectorFF = endEffectorFeedForward.calculate(endEffectorPosition - Math.PI / 2, endEffectorVelocity);
+        var endEffectorFF = endEffectorFeedForward.calculate(Math.toRadians(endEffectorAngle - 90), endEffectorVelocity);
 
-        System.out.printf("End effector position = %.2f, velocity = %.2f rad/s, FF = %.2f rad/s\n",
+        System.out.printf("End effector angle = %.2f degrees, position = %.2f, velocity = %.2f rad/s, FF = %.2f V\n",
+            endEffectorAngle,
             endEffectorPosition,
             endEffectorVelocity,
             endEffectorFF);
