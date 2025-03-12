@@ -47,11 +47,10 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private boolean hasCoral = false;
 
-    // TODO
     private static final double INITIAL_END_EFFECTOR_ANGLE = -42.5; // degrees
 
     private static final double ELEVATOR_DISTANCE_PER_ROTATION = 1.426; // inches
-    private static final double ELEVATOR_VELOCITY = 6.0; // inches/second
+    private static final double ELEVATOR_VELOCITY = 3.0; // inches/second
 
     private static final double END_EFFECTOR_VELOCITY = 45.0; // degrees/second
 
