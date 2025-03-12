@@ -8,7 +8,7 @@
 * Right stick
   * left/right - spin
 * A-button - align to target (robot-relative)
-* Left/right bumper - select slot (reef/coral station)
+* Left/right bumper - select reef branch or coral station slot
 
 ## Auxilliary Controller
 * Left stick
@@ -18,6 +18,7 @@
 * A-button - target lower tags (processor/reef)
 * B-button - target upper tags (coral station)
 * X-button - extract algae
+* Y-button - engage transport mode
 * D-pad
   * up - select upper branch
   * down - select lower branch

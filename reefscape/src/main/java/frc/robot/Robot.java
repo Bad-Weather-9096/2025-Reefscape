@@ -125,7 +125,7 @@ public class Robot extends TimedRobot {
 
         end = System.currentTimeMillis() + (long)(REVERSE_TIME * 1000);
 
-        elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TRANSPORT);
+        elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.TRANSPORT);
     }
 
     @Override
@@ -153,7 +153,7 @@ public class Robot extends TimedRobot {
                 stop();
 
                 if (operation == Operation.EXTRACT_ALGAE) {
-                    elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TRANSPORT);
+                    elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.TRANSPORT);
                 }
 
                 operation = null;
@@ -193,8 +193,8 @@ public class Robot extends TimedRobot {
                         ySpeed *= Math.max(1.0 - Math.abs(rot), 0.0) * (Math.abs(tx) / 30.0);
 
                         switch (target.getType()) {
-                            case CORAL_STATION -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_CORAL);
-                            case PROCESSOR -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_ALGAE);
+                            case CORAL_STATION -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.RECEIVE_CORAL);
+                            case PROCESSOR -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.RELEASE_ALGAE);
                         }
                     }
 
@@ -227,13 +227,13 @@ public class Robot extends TimedRobot {
         elevatorSubsystem.setIntakeSpeed(leftTrigger - rightTrigger);
 
         if (elevatorController.getAButtonPressed()) {
-            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_LOWER_TAGS);
+            elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.TARGET_LOWER_TAGS);
         } else if (elevatorController.getBButtonPressed()) {
-            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_UPPER_TAGS);
-        } else if (elevatorController.getYButtonPressed()) {
-            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TRANSPORT);
+            elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.TARGET_UPPER_TAGS);
         } else if (elevatorController.getXButtonPressed() && extractAlgae()) {
             elevatorSubsystem.extractAlgae(ALGAE_EXTRACTION_TIME);
+        } else if (elevatorController.getYButtonPressed()) {
+            elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.TRANSPORT);
         } else if (elevatorController.getLeftBumperButtonPressed()) {
             elevatorSubsystem.receiveCoral();
         } else if (elevatorController.getRightBumperButtonPressed()) {
@@ -248,16 +248,16 @@ public class Robot extends TimedRobot {
                     switch (pov) {
                         case 0 -> {
                             if (elevatorSubsystem.hasCoral()) {
-                                elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_UPPER_CORAL);
+                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.RELEASE_UPPER_CORAL);
                             } else {
-                                elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_UPPER_ALGAE);
+                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.RECEIVE_UPPER_ALGAE);
                             }
                         }
                         case 180 -> {
                             if (elevatorSubsystem.hasCoral()) {
-                                elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_LOWER_CORAL);
+                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.RELEASE_LOWER_CORAL);
                             } else {
-                                elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_LOWER_ALGAE);
+                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.RECEIVE_LOWER_ALGAE);
                             }
                         }
                     }
