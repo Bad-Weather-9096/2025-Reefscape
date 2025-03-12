@@ -52,7 +52,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     private static final double ELEVATOR_DISTANCE_PER_ROTATION = 1.5; // inches
     private static final double ELEVATOR_VELOCITY = 3.0; // inches/second
 
-    private static final double END_EFFECTOR_DISTANCE_PER_ROTATION = 12.0; // degrees
+    private static final double END_EFFECTOR_DISTANCE_PER_ROTATION = 20.0; // degrees
     private static final double END_EFFECTOR_VELOCITY = 45.0; // degrees/second
 
     private static final double ALGAE_EXTRACTION_HEIGHT = 12.0; // inches
@@ -190,6 +190,9 @@ public class ElevatorSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         SmartDashboard.putString("position", (position == null) ? "" : position.toString());
+
+        SmartDashboard.putNumber("elevator-position", elevatorSparkMax.getEncoder().getPosition());
+        SmartDashboard.putNumber("end-effector-position", endEffectorSparkMax.getEncoder().getPosition());
 
         SmartDashboard.putBoolean("has-coral", hasCoral);
     }
