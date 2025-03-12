@@ -15,6 +15,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class ElevatorSubsystem extends SubsystemBase {
     public enum Position {
+        TEST(0.0, 90.0),
         TARGET_LOWER_TAGS(10.0, 0.0),
         TARGET_UPPER_TAGS(20.0, 0.0),
         RECEIVE_CORAL(24.0, 35.0),
@@ -47,12 +48,12 @@ public class ElevatorSubsystem extends SubsystemBase {
     private boolean hasCoral = false;
 
     // TODO
-    private static final double INITIAL_END_EFFECTOR_ANGLE = -35.0; // degrees
+    private static final double INITIAL_END_EFFECTOR_ANGLE = -42.5; // degrees
 
     private static final double ELEVATOR_DISTANCE_PER_ROTATION = 1.426; // inches
     private static final double ELEVATOR_VELOCITY = 6.0; // inches/second
 
-    private static final double END_EFFECTOR_VELOCITY = 90.0; // degrees/second
+    private static final double END_EFFECTOR_VELOCITY = 45.0; // degrees/second
 
     private static final double ALGAE_EXTRACTION_HEIGHT = 12.0; // inches
     private static final double ALGAE_EXTRACTION_ANGLE = 7.5; // degrees
@@ -78,7 +79,7 @@ public class ElevatorSubsystem extends SubsystemBase {
             SparkBase.ResetMode.kResetSafeParameters,
             SparkBase.PersistMode.kPersistParameters);
 
-        endEffectorSparkMax.getEncoder().setPosition(INITIAL_END_EFFECTOR_ANGLE);
+        endEffectorSparkMax.getEncoder().setPosition(INITIAL_END_EFFECTOR_ANGLE / 360);
 
         var intakeConfig = new SparkMaxConfig();
 
@@ -94,14 +95,14 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public void setElevatorSpeed(double speed) {
-        speed *= 0.5;
-
         SmartDashboard.putNumber("elevator-speed", speed);
 
         elevatorSparkMax.set(speed);
     }
 
     public void setEndEffectorSpeed(double speed) {
+        speed *= 0.25;
+
         SmartDashboard.putNumber("end-effector-speed", speed);
 
         endEffectorSparkMax.set(speed);
@@ -133,12 +134,13 @@ public class ElevatorSubsystem extends SubsystemBase {
             ClosedLoopSlot.kSlot0,
             elevatorFF);
 
-        var endEffectorPosition = Math.toRadians(position.endEffectorAngle - 90);
+        // TODO Rotations must take gear ratio into account
+        var endEffectorPosition = position.endEffectorAngle / 360; // rotations
         var endEffectorVelocity = Units.DegreesPerSecond.of(END_EFFECTOR_VELOCITY).in(Units.RadiansPerSecond);
 
-        var endEffectorFF = endEffectorFeedForward.calculate(endEffectorPosition, endEffectorVelocity);
+        var endEffectorFF = endEffectorFeedForward.calculate(Math.toRadians(position.endEffectorAngle - 90), endEffectorVelocity);
 
-        System.out.printf("End effector position = %.2f, velocity = %.2f rad/s, FF = %.2f rad/s\n",
+        System.out.printf("End effector position = %.2f rotations, velocity = %.2f rad/s, FF = %.2f rad/s\n",
             endEffectorPosition,
             endEffectorVelocity,
             endEffectorFF);
@@ -169,10 +171,10 @@ public class ElevatorSubsystem extends SubsystemBase {
             ClosedLoopSlot.kSlot0,
             elevatorFF);
 
-        var endEffectorPosition = Math.toRadians(position.endEffectorAngle - 90 - ALGAE_EXTRACTION_ANGLE);
+        var endEffectorPosition = Math.toRadians(position.endEffectorAngle - ALGAE_EXTRACTION_ANGLE);
         var endEffectorVelocity = Units.DegreesPerSecond.of(ALGAE_EXTRACTION_ANGLE / (time / 4)).in(Units.RadiansPerSecond);
 
-        var endEffectorFF = endEffectorFeedForward.calculate(endEffectorPosition, endEffectorVelocity);
+        var endEffectorFF = endEffectorFeedForward.calculate(endEffectorPosition - Math.PI / 2, endEffectorVelocity);
 
         System.out.printf("End effector position = %.2f, velocity = %.2f rad/s, FF = %.2f rad/s\n",
             endEffectorPosition,

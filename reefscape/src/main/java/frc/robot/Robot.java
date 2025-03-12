@@ -224,6 +224,8 @@ public class Robot extends TimedRobot {
             elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_LOWER_TAGS);
         } else if (elevatorController.getBButtonPressed()) {
             elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_UPPER_TAGS);
+        } else if (elevatorController.getYButtonPressed()) {
+            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TEST);
         } else if (elevatorController.getXButtonPressed() && extractAlgae()) {
             elevatorSubsystem.extractAlgae(ALGAE_EXTRACTION_TIME);
         } else if (elevatorController.getLeftBumperButtonPressed()) {
