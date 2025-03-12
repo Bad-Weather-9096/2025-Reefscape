@@ -124,6 +124,8 @@ public class Robot extends TimedRobot {
         driveSubsystem.drive(xSpeed, 0.0, rot, false);
 
         end = System.currentTimeMillis() + (long)(REVERSE_TIME * 1000);
+
+        elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TRANSPORT);
     }
 
     @Override
@@ -149,6 +151,10 @@ public class Robot extends TimedRobot {
 
             if (now >= end) {
                 stop();
+
+                if (operation == Operation.EXTRACT_ALGAE) {
+                    elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TRANSPORT);
+                }
 
                 operation = null;
             }
@@ -225,7 +231,7 @@ public class Robot extends TimedRobot {
         } else if (elevatorController.getBButtonPressed()) {
             elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_UPPER_TAGS);
         } else if (elevatorController.getYButtonPressed()) {
-            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TEST);
+            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TRANSPORT);
         } else if (elevatorController.getXButtonPressed() && extractAlgae()) {
             elevatorSubsystem.extractAlgae(ALGAE_EXTRACTION_TIME);
         } else if (elevatorController.getLeftBumperButtonPressed()) {
