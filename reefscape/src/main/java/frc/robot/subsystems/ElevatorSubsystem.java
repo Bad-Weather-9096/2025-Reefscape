@@ -1,5 +1,6 @@
 package frc.robot.subsystems;
 
+import com.revrobotics.spark.ClosedLoopSlot;
 import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkLowLevel;
 import com.revrobotics.spark.SparkMax;
@@ -51,13 +52,9 @@ public class ElevatorSubsystem extends SubsystemBase {
         // Elevator
         var elevatorConfig = new SparkMaxConfig();
 
-        elevatorConfig.encoder
-            .positionConversionFactor(1)
-            .velocityConversionFactor(1);
-
         elevatorConfig.closedLoop
             .feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
-            .p(0.30)
+            .p(0.18)
             .i(0)
             .d(0)
             .outputRange(0, 250);
@@ -72,10 +69,6 @@ public class ElevatorSubsystem extends SubsystemBase {
         var endEffectorConfig = new SparkMaxConfig();
 
         endEffectorConfig.inverted(true);
-
-        endEffectorConfig.encoder
-            .positionConversionFactor(1)
-            .velocityConversionFactor(1);
 
         endEffectorConfig.closedLoop
             .feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
@@ -129,8 +122,13 @@ public class ElevatorSubsystem extends SubsystemBase {
 
         this.position = position;
 
-        elevatorSparkMax.getClosedLoopController().setReference(position.elevatorHeight / ELEVATOR_RATIO, SparkBase.ControlType.kPosition);
-        endEffectorSparkMax.getClosedLoopController().setReference(position.endEffectorAngle / END_EFFECTOR_RATIO, SparkBase.ControlType.kPosition);
+        elevatorSparkMax.getClosedLoopController().setReference(position.elevatorHeight / ELEVATOR_RATIO,
+            SparkBase.ControlType.kPosition);
+
+        endEffectorSparkMax.getClosedLoopController().setReference(position.endEffectorAngle / END_EFFECTOR_RATIO,
+            SparkBase.ControlType.kPosition,
+            ClosedLoopSlot.kSlot0,
+            1.5);
     }
 
     public void receiveCoral() {
@@ -150,6 +148,8 @@ public class ElevatorSubsystem extends SubsystemBase {
         SmartDashboard.putString("position", (position == null) ? "" : position.toString());
 
         SmartDashboard.putNumber("elevator-position", elevatorSparkMax.getEncoder().getPosition());
+        SmartDashboard.putNumber("elevator-voltage", elevatorSparkMax.getBusVoltage() * elevatorSparkMax.getAppliedOutput());
+
         SmartDashboard.putNumber("end-effector-position", endEffectorSparkMax.getEncoder().getPosition());
 
         SmartDashboard.putBoolean("has-coral", hasCoral);
