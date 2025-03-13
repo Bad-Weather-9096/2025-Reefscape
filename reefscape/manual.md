@@ -11,10 +11,6 @@
 * Left/right bumper - select reef branch or coral station slot
 
 ## Auxilliary Controller
-* Left stick
-  * up/down - raise/lower elevator
-* Right stick
-  * up/down - raise/lower end effector
 * A-button - target lower tags (processor/reef)
 * B-button - target upper tags (coral station)
 * X-button - extract algae

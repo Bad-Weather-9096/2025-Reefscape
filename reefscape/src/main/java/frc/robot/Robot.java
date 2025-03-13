@@ -210,14 +210,6 @@ public class Robot extends TimedRobot {
     }
 
     private void operate() {
-        elevatorSubsystem.setElevatorSpeed(elevatorController.getLeftY());
-        elevatorSubsystem.setEndEffectorPosition(elevatorController.getRightY());
-
-        var leftTrigger = MathUtil.applyDeadband(elevatorController.getLeftTriggerAxis(), INTAKE_DEADBAND);
-        var rightTrigger = MathUtil.applyDeadband(elevatorController.getRightTriggerAxis(), INTAKE_DEADBAND);
-
-        elevatorSubsystem.setIntakeSpeed(leftTrigger - rightTrigger);
-
         if (elevatorController.getAButtonPressed()) {
             elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_LOWER_TAGS);
         } else if (elevatorController.getBButtonPressed()) {
@@ -256,6 +248,11 @@ public class Robot extends TimedRobot {
                 }
             }
         }
+
+        var leftTrigger = MathUtil.applyDeadband(elevatorController.getLeftTriggerAxis(), INTAKE_DEADBAND);
+        var rightTrigger = MathUtil.applyDeadband(elevatorController.getRightTriggerAxis(), INTAKE_DEADBAND);
+
+        elevatorSubsystem.setIntakeSpeed(leftTrigger - rightTrigger);
     }
 
     @Override
