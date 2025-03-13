@@ -38,9 +38,9 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private Servo intakeServo = new Servo(0);
 
-    private boolean hasCoral = false;
+    private Position position = null;
 
-    private static final double INITIAL_END_EFFECTOR_ANGLE = -42.5; // degrees
+    private boolean hasCoral = false;
 
     private static final double CORAL_INTAKE_POSITION = 0.75; // percent
 
@@ -103,10 +103,6 @@ public class ElevatorSubsystem extends SubsystemBase {
         elevatorSparkMax.set(power);
     }
 
-    public void setElevatorPosition(double position) {
-        elevatorSparkMax.getClosedLoopController().setReference(position, SparkBase.ControlType.kPosition);
-    }
-
     public void setEndEffectorPosition(double position) {
         endEffectorSparkMax.getClosedLoopController().setReference(position * 4, SparkBase.ControlType.kPosition);
     }
@@ -117,6 +113,20 @@ public class ElevatorSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("intake-speed", speed);
 
         intakeSparkMax.set(speed);
+    }
+
+    public void setPosition(Position position) {
+        if (position == null) {
+            throw new IllegalArgumentException();
+        }
+
+        this.position = position;
+
+        // TODO
+    }
+
+    public void extractAlgae() {
+        // TODO
     }
 
     public void receiveCoral() {
@@ -133,6 +143,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
+        SmartDashboard.putString("position", position.toString());
+
         SmartDashboard.putBoolean("has-coral", hasCoral);
     }
 }

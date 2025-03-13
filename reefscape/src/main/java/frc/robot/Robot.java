@@ -184,12 +184,8 @@ public class Robot extends TimedRobot {
                         ySpeed *= Math.max(1.0 - Math.abs(rot), 0.0) * (Math.abs(tx) / 30.0);
 
                         switch (target.getType()) {
-                            case CORAL_STATION -> {
-                                // TODO Receive coral
-                            }
-                            case PROCESSOR -> {
-                                // TODO Release algae
-                            }
+                            case CORAL_STATION -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_CORAL);
+                            case PROCESSOR -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_ALGAE);
                         }
                     }
 
@@ -217,13 +213,15 @@ public class Robot extends TimedRobot {
         elevatorSubsystem.setIntakeSpeed(leftTrigger - rightTrigger);
 
         if (elevatorController.getAButtonPressed()) {
-            // TODO Target lower tags
+            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_LOWER_TAGS);
         } else if (elevatorController.getBButtonPressed()) {
-            // TODO Target upper tags
-        } else if (elevatorController.getXButtonPressed() && extractAlgae()) {
-            // TODO Extract algae
+            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_UPPER_TAGS);
+        } else if (elevatorController.getXButtonPressed()) {
+            if (extractAlgae()) {
+                elevatorSubsystem.extractAlgae();
+            }
         } else if (elevatorController.getYButtonPressed()) {
-            // TODO Engage transport mode
+            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TRANSPORT);
         } else if (elevatorController.getLeftBumperButtonPressed()) {
             elevatorSubsystem.receiveCoral();
         } else if (elevatorController.getRightBumperButtonPressed()) {
@@ -238,16 +236,16 @@ public class Robot extends TimedRobot {
                     switch (pov) {
                         case 0 -> {
                             if (elevatorSubsystem.hasCoral()) {
-                                // TODO Release upper coral
+                                elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_UPPER_CORAL);
                             } else {
-                                // TODO Receive upper algae
+                                elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_UPPER_ALGAE);
                             }
                         }
                         case 180 -> {
                             if (elevatorSubsystem.hasCoral()) {
-                                // TODO Release lower coral
+                                elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_LOWER_CORAL);
                             } else {
-                                // TODO Receive lower algae
+                                elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_LOWER_ALGAE);
                             }
                         }
                     }
