@@ -83,7 +83,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void robotInit() {
-        // TODO Move to transport position
+        elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TRANSPORT);
 
         CameraServer.startAutomaticCapture(new HttpCamera("limelight", LIMELIGHT_URL, HttpCameraKind.kMJPGStreamer));
     }

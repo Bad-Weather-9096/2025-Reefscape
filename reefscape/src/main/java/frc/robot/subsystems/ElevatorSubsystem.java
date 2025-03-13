@@ -13,7 +13,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class ElevatorSubsystem extends SubsystemBase {
     public enum Position {
         TRANSPORT(0.0, 0.0),
-        TARGET_LOWER_TAGS(10.0, 0.0),
+        TARGET_LOWER_TAGS(8.0, 0.0),
         TARGET_UPPER_TAGS(20.0, 0.0),
         RECEIVE_CORAL(24.0, 35.0),
         RECEIVE_LOWER_ALGAE(24.0, 90.0),
@@ -42,7 +42,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private boolean hasCoral = false;
 
-    private static final double ELEVATOR_RATIO = 0.235; // inches/rotation
+    private static final double ELEVATOR_RATIO = 0.10; // inches/rotation
     private static final double END_EFFECTOR_RATIO = 22.5; // degrees/rotation
 
     private static final double CORAL_INTAKE_POSITION = 0.75; // percent
@@ -57,7 +57,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
         elevatorConfig.closedLoop
             .feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
-            .p(0.20)
+            .p(0.30)
             .i(0)
             .d(0)
             .outputRange(0, 250);
