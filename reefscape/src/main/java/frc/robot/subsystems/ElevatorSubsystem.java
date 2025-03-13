@@ -44,7 +44,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     // TODO Ratios
     private static final double ELEVATOR_RATIO = 1.0; // inches/rotation
-    private static final double END_EFFECTOR_RATIO = 1.0; // degrees/rotation
+    private static final double END_EFFECTOR_RATIO = 22.5; // degrees/rotation
 
     private static final double CORAL_INTAKE_POSITION = 0.75; // percent
 
@@ -107,7 +107,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public void setElevatorSpeed(double speed) {
-        elevatorSparkMax.set(speed);
+        elevatorSparkMax.set(-speed);
     }
 
     public void setEndEffectorPosition(double value) {
