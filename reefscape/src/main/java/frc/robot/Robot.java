@@ -149,6 +149,10 @@ public class Robot extends TimedRobot {
             if (now >= end) {
                 stop();
 
+                if (operation == Operation.EXTRACT_ALGAE) {
+                    elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TRANSPORT);
+                }
+
                 operation = null;
             }
         } else {
@@ -219,9 +223,7 @@ public class Robot extends TimedRobot {
         } else if (elevatorController.getBButtonPressed()) {
             elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_UPPER_TAGS);
         } else if (elevatorController.getXButtonPressed()) {
-            if (extractAlgae()) {
-                elevatorSubsystem.extractAlgae(ALGAE_EXTRACTION_TIME);
-            }
+            extractAlgae();
         } else if (elevatorController.getYButtonPressed()) {
             elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TRANSPORT);
         } else if (elevatorController.getLeftBumperButtonPressed()) {
@@ -277,9 +279,9 @@ public class Robot extends TimedRobot {
         end = System.currentTimeMillis() + (long)(t * 1000);
     }
 
-    private boolean extractAlgae() {
+    private void extractAlgae() {
         if (operation == Operation.EXTRACT_ALGAE) {
-            return false;
+            return;
         }
 
         operation = Operation.EXTRACT_ALGAE;
@@ -290,9 +292,11 @@ public class Robot extends TimedRobot {
 
         driveSubsystem.drive(xSpeed, 0.0, 0.0, false);
 
-        end = System.currentTimeMillis() + (long)(ALGAE_EXTRACTION_TIME * 1000);
+        // TODO
+        elevatorSubsystem.setElevatorSpeed(0.05);
+        elevatorSubsystem.setEndEffectorPosition(-0.25);
 
-        return true;
+        end = System.currentTimeMillis() + (long)(ALGAE_EXTRACTION_TIME * 1000);
     }
 
     private void stop() {

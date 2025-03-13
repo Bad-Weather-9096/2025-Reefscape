@@ -135,12 +135,6 @@ public class ElevatorSubsystem extends SubsystemBase {
         endEffectorSparkMax.getClosedLoopController().setReference(position.endEffectorAngle / END_EFFECTOR_RATIO, SparkBase.ControlType.kPosition);
     }
 
-    public void extractAlgae(double time) {
-        if (position == Position.RECEIVE_LOWER_ALGAE || position == Position.RECEIVE_UPPER_ALGAE) {
-            // TODO
-        }
-    }
-
     public void receiveCoral() {
         intakeServo.set(-CORAL_INTAKE_POSITION);
 
