@@ -33,59 +33,64 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private SparkMax elevatorSparkMax = new SparkMax(9, SparkLowLevel.MotorType.kBrushless);
     private SparkMax endEffectorSparkMax = new SparkMax(10, SparkLowLevel.MotorType.kBrushless);
+
     private SparkMax intakeSparkMax = new SparkMax(11, SparkLowLevel.MotorType.kBrushless);
 
     private Servo intakeServo = new Servo(0);
-
-    private Position position = null;
 
     private boolean hasCoral = false;
 
     private static final double INITIAL_END_EFFECTOR_ANGLE = -42.5; // degrees
 
-    private static final double ELEVATOR_DISTANCE_PER_ROTATION = 1.5; // inches
-    private static final double END_EFFECTOR_DISTANCE_PER_ROTATION = 40.0; // degrees
-
-    private static final double ALGAE_EXTRACTION_HEIGHT = 12.0; // inches
-    private static final double ALGAE_EXTRACTION_ANGLE = 7.5; // degrees
-
     private static final double CORAL_INTAKE_POSITION = 0.75; // percent
 
     public ElevatorSubsystem() {
+        // Elevator
         var elevatorConfig = new SparkMaxConfig();
 
-        elevatorConfig.idleMode(SparkBaseConfig.IdleMode.kBrake).smartCurrentLimit(40);
+        elevatorConfig.encoder
+            .positionConversionFactor(1)
+            .velocityConversionFactor(1);
+
+        elevatorConfig.closedLoop
+            .feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
+            .p(0.20)
+            .i(0)
+            .d(0)
+            .outputRange(-1, 1);
 
         elevatorSparkMax.configure(elevatorConfig,
             SparkBase.ResetMode.kResetSafeParameters,
             SparkBase.PersistMode.kPersistParameters);
 
-        elevatorSparkMax.getEncoder().setPosition(0.0);
+        elevatorSparkMax.getEncoder().setPosition(0);
 
+        // End effector
         var endEffectorConfig = new SparkMaxConfig();
 
-        endEffectorConfig.idleMode(SparkBaseConfig.IdleMode.kBrake)
-            .smartCurrentLimit(40)
-            .inverted(true);
+        endEffectorConfig.encoder
+            .positionConversionFactor(1)
+            .velocityConversionFactor(1);
 
         endEffectorConfig.closedLoop
             .feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
             .p(0.18)
             .i(0)
             .d(0)
-            .outputRange(-100, 100);
+            .outputRange(-1, 1);
 
         endEffectorSparkMax.configure(endEffectorConfig,
             SparkBase.ResetMode.kResetSafeParameters,
             SparkBase.PersistMode.kPersistParameters);
 
-        endEffectorSparkMax.getEncoder().setPosition(INITIAL_END_EFFECTOR_ANGLE / END_EFFECTOR_DISTANCE_PER_ROTATION);
+        endEffectorSparkMax.getEncoder().setPosition(0);
 
+        // Intake
         var intakeConfig = new SparkMaxConfig();
 
         intakeConfig.idleMode(SparkBaseConfig.IdleMode.kBrake).smartCurrentLimit(30);
 
-        intakeSparkMax.configure(endEffectorConfig,
+        intakeSparkMax.configure(intakeConfig,
             SparkBase.ResetMode.kResetSafeParameters,
             SparkBase.PersistMode.kPersistParameters);
     }
@@ -94,18 +99,12 @@ public class ElevatorSubsystem extends SubsystemBase {
         return hasCoral;
     }
 
-    public void setElevatorSpeed(double speed) {
-        SmartDashboard.putNumber("elevator-speed", speed);
-
-        elevatorSparkMax.set(speed);
+    public void setElevatorPosition(double position) {
+        elevatorSparkMax.getClosedLoopController().setReference(position, SparkBase.ControlType.kPosition);
     }
 
-    public void setEndEffectorSpeed(double speed) {
-        speed *= -0.25;
-
-        SmartDashboard.putNumber("end-effector-speed", speed);
-
-        endEffectorSparkMax.set(speed);
+    public void setEndEffectorPosition(double position) {
+        endEffectorSparkMax.getClosedLoopController().setReference(position, SparkBase.ControlType.kPosition);
     }
 
     public void setIntakeSpeed(double speed) {
@@ -114,30 +113,6 @@ public class ElevatorSubsystem extends SubsystemBase {
         SmartDashboard.putNumber("intake-speed", speed);
 
         intakeSparkMax.set(speed);
-    }
-
-    public void adjustPosition(Position position) {
-        this.position = position;
-
-        setReference(position.elevatorHeight, position.endEffectorAngle);
-    }
-
-    public void extractAlgae(double time) {
-        if (position != null) {
-            // TODO
-        }
-    }
-
-    private void setReference(double elevatorHeight, double endEffectorAngle) {
-        var elevatorPosition = elevatorHeight / ELEVATOR_DISTANCE_PER_ROTATION;
-
-        elevatorSparkMax.getClosedLoopController().setReference(elevatorPosition, SparkBase.ControlType.kPosition);
-
-        var endEffectorPosition = endEffectorAngle / END_EFFECTOR_DISTANCE_PER_ROTATION;
-
-        System.out.printf("endEffectorPosition = %.2f\n", endEffectorPosition);
-
-        endEffectorSparkMax.getClosedLoopController().setReference(endEffectorPosition, SparkBase.ControlType.kPosition);
     }
 
     public void receiveCoral() {
@@ -154,11 +129,6 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        SmartDashboard.putString("position", (position == null) ? "" : position.toString());
-
-        SmartDashboard.putNumber("elevator-position", elevatorSparkMax.getEncoder().getPosition());
-        SmartDashboard.putNumber("end-effector-position", endEffectorSparkMax.getEncoder().getPosition());
-
         SmartDashboard.putBoolean("has-coral", hasCoral);
     }
 }

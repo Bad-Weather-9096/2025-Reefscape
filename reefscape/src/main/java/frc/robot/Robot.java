@@ -42,9 +42,6 @@ public class Robot extends TimedRobot {
     private static final double REVERSE_TIME = 4.0; // seconds
 
     private static final double DRIVE_DEADBAND = 0.05;
-
-    private static final double ELEVATOR_DEADBAND = 0.02;
-    private static final double END_EFFECTOR_DEADBAND = 0.02;
     private static final double INTAKE_DEADBAND = 0.02;
 
     private static final double CORAL_STATION_OFFSET = 8.0; // inches
@@ -124,8 +121,6 @@ public class Robot extends TimedRobot {
         driveSubsystem.drive(xSpeed, 0.0, rot, false);
 
         end = System.currentTimeMillis() + (long)(REVERSE_TIME * 1000);
-
-        elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.TRANSPORT);
     }
 
     @Override
@@ -151,10 +146,6 @@ public class Robot extends TimedRobot {
 
             if (now >= end) {
                 stop();
-
-                if (operation == Operation.EXTRACT_ALGAE) {
-                    elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.TRANSPORT);
-                }
 
                 operation = null;
             }
@@ -193,8 +184,12 @@ public class Robot extends TimedRobot {
                         ySpeed *= Math.max(1.0 - Math.abs(rot), 0.0) * (Math.abs(tx) / 30.0);
 
                         switch (target.getType()) {
-                            case CORAL_STATION -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.RECEIVE_CORAL);
-                            case PROCESSOR -> elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.RELEASE_ALGAE);
+                            case CORAL_STATION -> {
+                                // TODO Receive coral
+                            }
+                            case PROCESSOR -> {
+                                // TODO Release algae
+                            }
                         }
                     }
 
@@ -213,13 +208,8 @@ public class Robot extends TimedRobot {
     }
 
     private void operate() {
-        var leftY = -MathUtil.applyDeadband(elevatorController.getLeftY(), ELEVATOR_DEADBAND);
-
-        elevatorSubsystem.setElevatorSpeed(leftY);
-
-        var rightY = MathUtil.applyDeadband(elevatorController.getRightY(), END_EFFECTOR_DEADBAND);
-
-        elevatorSubsystem.setEndEffectorSpeed(rightY);
+        elevatorSubsystem.setElevatorPosition(elevatorController.getLeftY());
+        elevatorSubsystem.setEndEffectorPosition(elevatorController.getRightY());
 
         var leftTrigger = MathUtil.applyDeadband(elevatorController.getLeftTriggerAxis(), INTAKE_DEADBAND);
         var rightTrigger = MathUtil.applyDeadband(elevatorController.getRightTriggerAxis(), INTAKE_DEADBAND);
@@ -227,13 +217,13 @@ public class Robot extends TimedRobot {
         elevatorSubsystem.setIntakeSpeed(leftTrigger - rightTrigger);
 
         if (elevatorController.getAButtonPressed()) {
-            elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.TARGET_LOWER_TAGS);
+            // TODO Target lower tags
         } else if (elevatorController.getBButtonPressed()) {
-            elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.TARGET_UPPER_TAGS);
+            // TODO Target upper tags
         } else if (elevatorController.getXButtonPressed() && extractAlgae()) {
-            elevatorSubsystem.extractAlgae(ALGAE_EXTRACTION_TIME);
+            // TODO Extract algae
         } else if (elevatorController.getYButtonPressed()) {
-            elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.TRANSPORT);
+            // TODO Engage transport mode
         } else if (elevatorController.getLeftBumperButtonPressed()) {
             elevatorSubsystem.receiveCoral();
         } else if (elevatorController.getRightBumperButtonPressed()) {
@@ -248,16 +238,16 @@ public class Robot extends TimedRobot {
                     switch (pov) {
                         case 0 -> {
                             if (elevatorSubsystem.hasCoral()) {
-                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.RELEASE_UPPER_CORAL);
+                                // TODO Release upper coral
                             } else {
-                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.RECEIVE_UPPER_ALGAE);
+                                // TODO Receive upper algae
                             }
                         }
                         case 180 -> {
                             if (elevatorSubsystem.hasCoral()) {
-                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.RELEASE_LOWER_CORAL);
+                                // TODO Release lower coral
                             } else {
-                                elevatorSubsystem.adjustPosition(ElevatorSubsystem.Position.RECEIVE_LOWER_ALGAE);
+                                // TODO Receive lower algae
                             }
                         }
                     }
