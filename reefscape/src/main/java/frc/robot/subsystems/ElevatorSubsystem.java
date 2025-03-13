@@ -56,7 +56,7 @@ public class ElevatorSubsystem extends SubsystemBase {
             .positionConversionFactor(1)
             .velocityConversionFactor(1);
 
-        // TODO Range
+        // TODO P-value, range
         elevatorConfig.closedLoop
             .feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
             .p(0.20)
@@ -107,22 +107,19 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public void setElevatorSpeed(double speed) {
-        position = null;
-
         elevatorSparkMax.set(speed);
     }
 
     public void setEndEffectorPosition(double value) {
-        position = null;
+        if (position != null) {
+            var endEffectorPosition = (position.endEffectorAngle + (15.0 * value)) / END_EFFECTOR_RATIO;
 
-        // TODO Use range?
-        endEffectorSparkMax.getClosedLoopController().setReference(value * 4, SparkBase.ControlType.kPosition);
+            endEffectorSparkMax.getClosedLoopController().setReference(endEffectorPosition, SparkBase.ControlType.kPosition);
+        }
     }
 
     public void setIntakeSpeed(double speed) {
         speed *= -0.5;
-
-        SmartDashboard.putNumber("intake-speed", speed);
 
         intakeSparkMax.set(speed);
     }
@@ -158,7 +155,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     @Override
     public void periodic() {
-        SmartDashboard.putString("position", position.toString());
+        SmartDashboard.putString("position", (position == null) ? "" : position.toString());
 
         SmartDashboard.putNumber("elevator-position", elevatorSparkMax.getEncoder().getPosition());
         SmartDashboard.putNumber("end-effector-position", endEffectorSparkMax.getEncoder().getPosition());
