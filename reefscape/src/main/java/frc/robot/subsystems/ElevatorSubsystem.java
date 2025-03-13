@@ -42,8 +42,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private boolean hasCoral = false;
 
-    // TODO Ratios
-    private static final double ELEVATOR_RATIO = 1.0; // inches/rotation
+    private static final double ELEVATOR_RATIO = 0.235; // inches/rotation
     private static final double END_EFFECTOR_RATIO = 22.5; // degrees/rotation
 
     private static final double CORAL_INTAKE_POSITION = 0.75; // percent
@@ -56,13 +55,12 @@ public class ElevatorSubsystem extends SubsystemBase {
             .positionConversionFactor(1)
             .velocityConversionFactor(1);
 
-        // TODO P-value, range
         elevatorConfig.closedLoop
             .feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
             .p(0.20)
             .i(0)
             .d(0)
-            .outputRange(-1, 1);
+            .outputRange(0, 250);
 
         elevatorSparkMax.configure(elevatorConfig,
             SparkBase.ResetMode.kResetSafeParameters,
@@ -73,24 +71,24 @@ public class ElevatorSubsystem extends SubsystemBase {
         // End effector
         var endEffectorConfig = new SparkMaxConfig();
 
+        endEffectorConfig.inverted(true);
+
         endEffectorConfig.encoder
             .positionConversionFactor(1)
             .velocityConversionFactor(1);
 
-        // TODO Range
         endEffectorConfig.closedLoop
             .feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
             .p(0.18)
             .i(0)
             .d(0)
-            .outputRange(-4, 4);
+            .outputRange(-1.3, 6.0);
 
         endEffectorSparkMax.configure(endEffectorConfig,
             SparkBase.ResetMode.kResetSafeParameters,
             SparkBase.PersistMode.kPersistParameters);
 
-        // TODO Initial position
-        endEffectorSparkMax.getEncoder().setPosition(0);
+        endEffectorSparkMax.getEncoder().setPosition(-1.3);
 
         // Intake
         var intakeConfig = new SparkMaxConfig();
