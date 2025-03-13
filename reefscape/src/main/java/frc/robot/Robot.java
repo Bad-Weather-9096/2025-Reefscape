@@ -208,7 +208,7 @@ public class Robot extends TimedRobot {
     }
 
     private void operate() {
-        elevatorSubsystem.setElevatorPosition(elevatorController.getLeftY());
+        elevatorSubsystem.setElevatorPower(elevatorController.getLeftY());
         elevatorSubsystem.setEndEffectorPosition(elevatorController.getRightY());
 
         var leftTrigger = MathUtil.applyDeadband(elevatorController.getLeftTriggerAxis(), INTAKE_DEADBAND);

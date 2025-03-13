@@ -77,7 +77,7 @@ public class ElevatorSubsystem extends SubsystemBase {
             .p(0.18)
             .i(0)
             .d(0)
-            .outputRange(-1, 1);
+            .outputRange(-4, 4);
 
         endEffectorSparkMax.configure(endEffectorConfig,
             SparkBase.ResetMode.kResetSafeParameters,
@@ -99,12 +99,16 @@ public class ElevatorSubsystem extends SubsystemBase {
         return hasCoral;
     }
 
+    public void setElevatorPower(double power) {
+        elevatorSparkMax.set(power);
+    }
+
     public void setElevatorPosition(double position) {
         elevatorSparkMax.getClosedLoopController().setReference(position, SparkBase.ControlType.kPosition);
     }
 
     public void setEndEffectorPosition(double position) {
-        endEffectorSparkMax.getClosedLoopController().setReference(position, SparkBase.ControlType.kPosition);
+        endEffectorSparkMax.getClosedLoopController().setReference(position * 4, SparkBase.ControlType.kPosition);
     }
 
     public void setIntakeSpeed(double speed) {
