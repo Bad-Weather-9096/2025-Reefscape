@@ -204,7 +204,7 @@ public class Robot extends TimedRobot {
     }
 
     private void operate() {
-        elevatorSubsystem.setElevatorPower(elevatorController.getLeftY());
+        elevatorSubsystem.setElevatorSpeed(elevatorController.getLeftY());
         elevatorSubsystem.setEndEffectorPosition(elevatorController.getRightY());
 
         var leftTrigger = MathUtil.applyDeadband(elevatorController.getLeftTriggerAxis(), INTAKE_DEADBAND);
@@ -218,7 +218,7 @@ public class Robot extends TimedRobot {
             elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_UPPER_TAGS);
         } else if (elevatorController.getXButtonPressed()) {
             if (extractAlgae()) {
-                elevatorSubsystem.extractAlgae();
+                elevatorSubsystem.extractAlgae(ALGAE_EXTRACTION_TIME);
             }
         } else if (elevatorController.getYButtonPressed()) {
             elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TRANSPORT);

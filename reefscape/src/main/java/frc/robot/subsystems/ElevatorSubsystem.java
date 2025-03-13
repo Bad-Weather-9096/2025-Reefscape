@@ -42,6 +42,10 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private boolean hasCoral = false;
 
+    // TODO Ratios
+    private static final double ELEVATOR_RATIO = 1.0; // inches/rotation
+    private static final double END_EFFECTOR_RATIO = 1.0; // degrees/rotation
+
     private static final double CORAL_INTAKE_POSITION = 0.75; // percent
 
     public ElevatorSubsystem() {
@@ -52,6 +56,7 @@ public class ElevatorSubsystem extends SubsystemBase {
             .positionConversionFactor(1)
             .velocityConversionFactor(1);
 
+        // TODO Range
         elevatorConfig.closedLoop
             .feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
             .p(0.20)
@@ -72,6 +77,7 @@ public class ElevatorSubsystem extends SubsystemBase {
             .positionConversionFactor(1)
             .velocityConversionFactor(1);
 
+        // TODO Range
         endEffectorConfig.closedLoop
             .feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
             .p(0.18)
@@ -83,6 +89,7 @@ public class ElevatorSubsystem extends SubsystemBase {
             SparkBase.ResetMode.kResetSafeParameters,
             SparkBase.PersistMode.kPersistParameters);
 
+        // TODO Initial position
         endEffectorSparkMax.getEncoder().setPosition(0);
 
         // Intake
@@ -99,12 +106,17 @@ public class ElevatorSubsystem extends SubsystemBase {
         return hasCoral;
     }
 
-    public void setElevatorPower(double power) {
-        elevatorSparkMax.set(power);
+    public void setElevatorSpeed(double speed) {
+        position = null;
+
+        elevatorSparkMax.set(speed);
     }
 
-    public void setEndEffectorPosition(double position) {
-        endEffectorSparkMax.getClosedLoopController().setReference(position * 4, SparkBase.ControlType.kPosition);
+    public void setEndEffectorPosition(double value) {
+        position = null;
+
+        // TODO Use range?
+        endEffectorSparkMax.getClosedLoopController().setReference(value * 4, SparkBase.ControlType.kPosition);
     }
 
     public void setIntakeSpeed(double speed) {
@@ -122,11 +134,14 @@ public class ElevatorSubsystem extends SubsystemBase {
 
         this.position = position;
 
-        // TODO
+        elevatorSparkMax.getClosedLoopController().setReference(position.elevatorHeight / ELEVATOR_RATIO, SparkBase.ControlType.kPosition);
+        endEffectorSparkMax.getClosedLoopController().setReference(position.endEffectorAngle / END_EFFECTOR_RATIO, SparkBase.ControlType.kPosition);
     }
 
-    public void extractAlgae() {
-        // TODO
+    public void extractAlgae(double time) {
+        if (position == Position.RECEIVE_LOWER_ALGAE || position == Position.RECEIVE_UPPER_ALGAE) {
+            // TODO
+        }
     }
 
     public void receiveCoral() {
@@ -144,6 +159,9 @@ public class ElevatorSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         SmartDashboard.putString("position", position.toString());
+
+        SmartDashboard.putNumber("elevator-position", elevatorSparkMax.getEncoder().getPosition());
+        SmartDashboard.putNumber("end-effector-position", endEffectorSparkMax.getEncoder().getPosition());
 
         SmartDashboard.putBoolean("has-coral", hasCoral);
     }
