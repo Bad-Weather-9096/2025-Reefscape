@@ -14,7 +14,6 @@
 * A-button - target lower tags (processor/reef)
 * B-button - target upper tags (coral station)
 * X-button - extract algae
-* Y-button - engage transport mode
 * D-pad
   * up - select upper branch
   * down - select lower branch
@@ -22,3 +21,9 @@
 * Right bumper - release coral
 * Left trigger - receive algae
 * Right trigger - release algae
+
+## Test Mode
+* Left stick
+  * up/down - raise/lower elevator
+* Right stick
+  * up/down - raise/lower end effector

@@ -83,7 +83,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void robotInit() {
-        elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TRANSPORT);
+        elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_LOWER_TAGS);
 
         CameraServer.startAutomaticCapture(new HttpCamera("limelight", LIMELIGHT_URL, HttpCameraKind.kMJPGStreamer));
     }
@@ -150,7 +150,7 @@ public class Robot extends TimedRobot {
                 stop();
 
                 if (operation == Operation.EXTRACT_ALGAE) {
-                    elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TRANSPORT);
+                    elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_LOWER_TAGS);
                 }
 
                 operation = null;
@@ -188,11 +188,6 @@ public class Robot extends TimedRobot {
                         rot = -offset / 15.0;
 
                         ySpeed *= Math.max(1.0 - Math.abs(rot), 0.0) * (Math.abs(tx) / 30.0);
-
-                        switch (target.getType()) {
-                            case CORAL_STATION -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_CORAL);
-                            case PROCESSOR -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_ALGAE);
-                        }
                     }
 
                     fieldRelative = false;
@@ -215,10 +210,7 @@ public class Robot extends TimedRobot {
         } else if (elevatorController.getBButtonPressed()) {
             elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_UPPER_TAGS);
         } else if (elevatorController.getXButtonPressed()) {
-            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_CORAL);
-        } else if (elevatorController.getYButton()) {
-            // TODO
-            elevatorSubsystem.setElevatorSpeed(elevatorController.getLeftY());
+            extractAlgae();
         } else if (elevatorController.getLeftBumperButtonPressed()) {
             elevatorSubsystem.receiveCoral();
         } else if (elevatorController.getRightBumperButtonPressed()) {
@@ -229,6 +221,7 @@ public class Robot extends TimedRobot {
             if (target != null) {
                 var pov = elevatorController.getPOV();
 
+                // TODO Receive coral/release algae heights
                 if (pov != -1) {
                     switch (pov) {
                         case 0 -> {
@@ -259,6 +252,8 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopExit() {
         stop();
+
+        elevatorSubsystem.setPosition(ElevatorSubsystem.Position.BASE);
     }
 
     private void shift(double distance) {
