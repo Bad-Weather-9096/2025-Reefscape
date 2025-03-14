@@ -306,7 +306,7 @@ public class Robot extends TimedRobot {
 
         driveSubsystem.drive(xSpeed, 0.0, 0.0, false);
 
-        // TODO
+        // TODO Adjust for reverse speed/time
         elevatorSubsystem.setElevatorSpeed(0.05);
 
         end = System.currentTimeMillis() + (long)(t * 1000);
@@ -319,12 +319,14 @@ public class Robot extends TimedRobot {
     @Override
     public void testInit() {
         elevatorSubsystem.setElevatorSpeed(0);
+        elevatorSubsystem.setEndEffectorPosition(0);
+        elevatorSubsystem.setIntakeSpeed(0);
     }
 
     @Override
     public void testPeriodic() {
-        elevatorSubsystem.setElevatorSpeed(elevatorController.getLeftY());
-        elevatorSubsystem.setEndEffectorPosition(elevatorController.getRightY());
+        elevatorSubsystem.setElevatorSpeed(-elevatorController.getLeftY());
+        elevatorSubsystem.setEndEffectorPosition(-elevatorController.getRightY());
 
         var leftTrigger = MathUtil.applyDeadband(elevatorController.getLeftTriggerAxis(), INTAKE_DEADBAND);
         var rightTrigger = MathUtil.applyDeadband(elevatorController.getRightTriggerAxis(), INTAKE_DEADBAND);

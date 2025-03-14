@@ -34,9 +34,9 @@ public class ElevatorSubsystem extends SubsystemBase {
     private SparkMax elevatorSparkMax = new SparkMax(9, SparkLowLevel.MotorType.kBrushless);
     private SparkMax endEffectorSparkMax = new SparkMax(10, SparkLowLevel.MotorType.kBrushless);
 
-    private Servo intakeServo = new Servo(0);
+    private Servo coralIntakeServo = new Servo(0);
 
-    private SparkMax intakeSparkMax = new SparkMax(11, SparkLowLevel.MotorType.kBrushless);
+    private SparkMax algaeIntakeSparkMax = new SparkMax(11, SparkLowLevel.MotorType.kBrushless);
 
     private Position position = null;
 
@@ -84,7 +84,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
         intakeConfig.idleMode(SparkBaseConfig.IdleMode.kBrake).smartCurrentLimit(30);
 
-        intakeSparkMax.configure(intakeConfig,
+        algaeIntakeSparkMax.configure(intakeConfig,
             SparkBase.ResetMode.kResetSafeParameters,
             SparkBase.PersistMode.kPersistParameters);
     }
@@ -94,15 +94,15 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public void setElevatorSpeed(double speed) {
-        elevatorSparkMax.set(-speed);
+        elevatorSparkMax.set(speed);
     }
 
     public void setEndEffectorPosition(double position) {
-        endEffectorSparkMax.getClosedLoopController().setReference(-position * 45.0, SparkBase.ControlType.kPosition);
+        endEffectorSparkMax.getClosedLoopController().setReference(position * 45.0, SparkBase.ControlType.kPosition);
     }
 
     public void setIntakeSpeed(double speed) {
-        intakeSparkMax.set(-0.5 * speed);
+        algaeIntakeSparkMax.set(0.5 * speed);
     }
 
     public void setPosition(Position position) {
@@ -117,23 +117,23 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public void receiveCoral() {
-        intakeServo.set(-CORAL_INTAKE_POSITION);
+        coralIntakeServo.set(-CORAL_INTAKE_POSITION);
 
         hasCoral = true;
     }
 
     public void releaseCoral() {
-        intakeServo.set(CORAL_INTAKE_POSITION);
+        coralIntakeServo.set(CORAL_INTAKE_POSITION);
 
         hasCoral = false;
     }
 
     public void receiveAlgae() {
-        intakeSparkMax.set(0.5);
+        algaeIntakeSparkMax.set(0.5);
     }
 
     public void releaseAlgae() {
-        intakeSparkMax.set(0.0);
+        algaeIntakeSparkMax.set(0.0);
     }
 
     @Override
@@ -142,6 +142,10 @@ public class ElevatorSubsystem extends SubsystemBase {
 
         SmartDashboard.putNumber("elevator-position", elevatorSparkMax.getEncoder().getPosition());
         SmartDashboard.putNumber("end-effector-position", endEffectorSparkMax.getEncoder().getPosition());
+
+        SmartDashboard.putNumber("coral-intake-position", coralIntakeServo.get());
+
+        SmartDashboard.putNumber("algae-intake-speed", algaeIntakeSparkMax.get());
 
         SmartDashboard.putBoolean("has-coral", hasCoral);
     }
