@@ -22,12 +22,12 @@ public class ElevatorSubsystem extends SubsystemBase {
         RECEIVE_UPPER_ALGAE(0.0, 0.0), // TODO
         RELEASE_ALGAE(0.0, 0.0); // TODO
 
-        private final double elevatorHeight; // inches
-        private final double endEffectorAngle; // degrees
+        private final double elevatorPosition;
+        private final double endEffectorPosition; // degrees
 
-        Position(double elevatorHeight, double endEffectorAngle) {
-            this.elevatorHeight = elevatorHeight;
-            this.endEffectorAngle = endEffectorAngle;
+        Position(double elevatorPosition, double endEffectorPosition) {
+            this.elevatorPosition = elevatorPosition;
+            this.endEffectorPosition = endEffectorPosition;
         }
     }
 
@@ -41,9 +41,6 @@ public class ElevatorSubsystem extends SubsystemBase {
     private Position position = null;
 
     private boolean hasCoral = false;
-
-    private static final double ELEVATOR_RATIO = 0.25; // inches/rotation
-    private static final double END_EFFECTOR_RATIO = 22.5; // degrees/rotation
 
     private static final double CORAL_INTAKE_POSITION = 0.75; // percent
 
@@ -100,14 +97,6 @@ public class ElevatorSubsystem extends SubsystemBase {
         elevatorSparkMax.set(-speed);
     }
 
-    public void setEndEffectorPosition(double value) {
-        if (position != null) {
-            var endEffectorPosition = (position.endEffectorAngle + (15.0 * value)) / END_EFFECTOR_RATIO;
-
-            endEffectorSparkMax.getClosedLoopController().setReference(endEffectorPosition, SparkBase.ControlType.kPosition);
-        }
-    }
-
     public void setPosition(Position position) {
         if (position == null) {
             throw new IllegalArgumentException();
@@ -115,11 +104,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 
         this.position = position;
 
-        elevatorSparkMax.getClosedLoopController().setReference(position.elevatorHeight / ELEVATOR_RATIO,
-            SparkBase.ControlType.kPosition);
-
-        endEffectorSparkMax.getClosedLoopController().setReference(position.endEffectorAngle / END_EFFECTOR_RATIO,
-            SparkBase.ControlType.kPosition);
+        elevatorSparkMax.getClosedLoopController().setReference(position.elevatorPosition, SparkBase.ControlType.kPosition);
+        endEffectorSparkMax.getClosedLoopController().setReference(position.endEffectorPosition, SparkBase.ControlType.kPosition);
     }
 
     public void receiveCoral() {

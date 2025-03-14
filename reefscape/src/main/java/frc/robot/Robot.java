@@ -307,7 +307,6 @@ public class Robot extends TimedRobot {
 
         // TODO
         elevatorSubsystem.setElevatorSpeed(0.05);
-        elevatorSubsystem.setEndEffectorPosition(-0.25);
 
         end = System.currentTimeMillis() + (long)(t * 1000);
     }
