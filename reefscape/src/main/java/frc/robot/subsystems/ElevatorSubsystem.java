@@ -23,7 +23,7 @@ public class ElevatorSubsystem extends SubsystemBase {
         RELEASE_ALGAE(0.0, 0.0); // TODO
 
         private final double elevatorPosition;
-        private final double endEffectorPosition; // degrees
+        private final double endEffectorPosition;
 
         Position(double elevatorPosition, double endEffectorPosition) {
             this.elevatorPosition = elevatorPosition;
@@ -95,6 +95,14 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     public void setElevatorSpeed(double speed) {
         elevatorSparkMax.set(-speed);
+    }
+
+    public void setEndEffectorPosition(double position) {
+        endEffectorSparkMax.getClosedLoopController().setReference(-position * 45.0, SparkBase.ControlType.kPosition);
+    }
+
+    public void setIntakeSpeed(double speed) {
+        intakeSparkMax.set(-0.5 * speed);
     }
 
     public void setPosition(Position position) {

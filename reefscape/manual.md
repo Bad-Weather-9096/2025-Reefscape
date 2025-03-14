@@ -25,3 +25,4 @@
   * up/down - raise/lower elevator
 * Right stick
   * up/down - raise/lower end effector
+* Left/right trigger - recieve/release algae

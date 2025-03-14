@@ -40,6 +40,7 @@ public class Robot extends TimedRobot {
     private static final String LIMELIGHT_URL = "http://10.90.96.11:5800";
 
     private static final double DRIVE_DEADBAND = 0.05;
+    private static final double INTAKE_DEADBAND = 0.02;
 
     private static final double CORAL_STATION_OFFSET = 8.0; // inches
     private static final double REEF_OFFSET = 6.75; // inches
@@ -313,5 +314,21 @@ public class Robot extends TimedRobot {
 
     private void stop() {
         driveSubsystem.drive(0.0, 0.0, 0.0, false);
+    }
+
+    @Override
+    public void testInit() {
+        elevatorSubsystem.setElevatorSpeed(0);
+    }
+
+    @Override
+    public void testPeriodic() {
+        elevatorSubsystem.setElevatorSpeed(elevatorController.getLeftY());
+        elevatorSubsystem.setEndEffectorPosition(elevatorController.getRightY());
+
+        var leftTrigger = MathUtil.applyDeadband(elevatorController.getLeftTriggerAxis(), INTAKE_DEADBAND);
+        var rightTrigger = MathUtil.applyDeadband(elevatorController.getRightTriggerAxis(), INTAKE_DEADBAND);
+
+        elevatorSubsystem.setIntakeSpeed(leftTrigger - rightTrigger);
     }
 }
