@@ -13,8 +13,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class ElevatorSubsystem extends SubsystemBase {
     public enum Position {
         BASE(0.0, 0.0),
-        TARGET_LOWER_TAGS(0.0, 0.0), // TODO
-        TARGET_UPPER_TAGS(0.0, 0.0), // TODO
+        TARGET_LOWER_TAGS(0.0, 0.6), // TODO
+        TARGET_UPPER_TAGS(0.0, 0.6), // TODO
         RECEIVE_CORAL(0.0, 0.0), // TODO
         RELEASE_LOWER_CORAL(0.0, 0.0), // TODO
         RELEASE_UPPER_CORAL(0.0, 0.0), // TODO
@@ -95,14 +95,6 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     public void setElevatorSpeed(double speed) {
         elevatorSparkMax.set(speed);
-    }
-
-    public void setEndEffectorPosition(double position) {
-        if (position < 0.0) {
-            throw new IllegalArgumentException();
-        }
-
-        endEffectorSparkMax.getClosedLoopController().setReference(position * 45.0, SparkBase.ControlType.kPosition);
     }
 
     public void setIntakeSpeed(double speed) {

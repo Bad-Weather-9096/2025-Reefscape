@@ -355,15 +355,7 @@ public class Robot extends TimedRobot {
             }
         } else {
             elevatorSubsystem.setElevatorSpeed(-elevatorController.getLeftY());
-            elevatorSubsystem.setEndEffectorPosition(Math.max(-elevatorController.getRightY(), 0.0));
             elevatorSubsystem.setIntakeSpeed(elevatorController.getLeftTriggerAxis() - elevatorController.getRightTriggerAxis());
         }
-    }
-
-    @Override
-    public void testExit() {
-        elevatorSubsystem.setIntakeSpeed(0.0);
-
-        elevatorSubsystem.setPosition(ElevatorSubsystem.Position.BASE);
     }
 }
