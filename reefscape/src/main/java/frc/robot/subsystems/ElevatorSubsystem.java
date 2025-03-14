@@ -98,6 +98,10 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public void setEndEffectorPosition(double position) {
+        if (position < 0.0) {
+            throw new IllegalArgumentException();
+        }
+
         endEffectorSparkMax.getClosedLoopController().setReference(position * 45.0, SparkBase.ControlType.kPosition);
     }
 

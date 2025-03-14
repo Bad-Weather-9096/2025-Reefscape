@@ -12,6 +12,8 @@ import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * Robot class.
@@ -40,12 +42,13 @@ public class Robot extends TimedRobot {
     private static final String LIMELIGHT_URL = "http://10.90.96.11:5800";
 
     private static final double DRIVE_DEADBAND = 0.05;
-    private static final double INTAKE_DEADBAND = 0.02;
 
     private static final double CORAL_STATION_OFFSET = 8.0; // inches
     private static final double REEF_OFFSET = 6.75; // inches
 
     private static final double SHIFT_SPEED = 0.25; // percent
+
+    private static final Timer timer = new Timer();
 
     public static final List<FieldElement> fieldElements = List.of(
         new FieldElement(FieldElement.Type.CORAL_STATION, -126.0),
@@ -280,14 +283,21 @@ public class Robot extends TimedRobot {
 
         elevatorSubsystem.receiveCoral();
 
+        var delay = 0.5; // seconds
+
         var t = 2.0; // seconds
         var vx = Units.InchesPerSecond.of(12.0 / t).in(Units.MetersPerSecond);
 
         var xSpeed = -vx / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
 
-        driveSubsystem.drive(xSpeed, 0.0, 0.0, false);
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                driveSubsystem.drive(xSpeed, 0.0, 0.0, false);
+            }
+        }, (long)(delay * 1000));
 
-        end = System.currentTimeMillis() + (long)(t * 1000);
+        end = System.currentTimeMillis() + (long)((delay + t) * 1000);
     }
 
     private void receiveAlgae() {
@@ -299,17 +309,22 @@ public class Robot extends TimedRobot {
 
         elevatorSubsystem.receiveAlgae();
 
+        var delay = 0.5; // seconds
+
         var t = 4.0; // seconds
         var vx = Units.InchesPerSecond.of(12.0 / t).in(Units.MetersPerSecond);
 
         var xSpeed = -vx / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
 
-        driveSubsystem.drive(xSpeed, 0.0, 0.0, false);
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                driveSubsystem.drive(xSpeed, 0.0, 0.0, false);
+                elevatorSubsystem.setElevatorSpeed(0.05); // TODO
+            }
+        }, (long)(delay * 1000));
 
-        // TODO Adjust for reverse speed/time
-        elevatorSubsystem.setElevatorSpeed(0.05);
-
-        end = System.currentTimeMillis() + (long)(t * 1000);
+        end = System.currentTimeMillis() + (long)((delay + t) * 1000);
     }
 
     private void stop() {
@@ -317,20 +332,16 @@ public class Robot extends TimedRobot {
     }
 
     @Override
-    public void testInit() {
-        elevatorSubsystem.setElevatorSpeed(0);
-        elevatorSubsystem.setEndEffectorPosition(0);
-        elevatorSubsystem.setIntakeSpeed(0);
+    public void testPeriodic() {
+        elevatorSubsystem.setElevatorSpeed(-elevatorController.getLeftY());
+        elevatorSubsystem.setEndEffectorPosition(Math.max(-elevatorController.getRightY(), 0.0));
+        elevatorSubsystem.setIntakeSpeed(elevatorController.getLeftTriggerAxis() - elevatorController.getRightTriggerAxis());
     }
 
     @Override
-    public void testPeriodic() {
-        elevatorSubsystem.setElevatorSpeed(-elevatorController.getLeftY());
-        elevatorSubsystem.setEndEffectorPosition(-elevatorController.getRightY());
-
-        var leftTrigger = MathUtil.applyDeadband(elevatorController.getLeftTriggerAxis(), INTAKE_DEADBAND);
-        var rightTrigger = MathUtil.applyDeadband(elevatorController.getRightTriggerAxis(), INTAKE_DEADBAND);
-
-        elevatorSubsystem.setIntakeSpeed(leftTrigger - rightTrigger);
+    public void testExit() {
+        elevatorSubsystem.setElevatorSpeed(0.0);
+        elevatorSubsystem.setEndEffectorPosition(0.0);
+        elevatorSubsystem.setIntakeSpeed(0.0);
     }
 }
