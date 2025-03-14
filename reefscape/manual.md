@@ -21,8 +21,6 @@
 * Right bumper - release coral/algae
 
 ### Test Mode
-
-
 * Left stick
   * up/down - raise/lower elevator
 * A-button - move to "receive coral" position
