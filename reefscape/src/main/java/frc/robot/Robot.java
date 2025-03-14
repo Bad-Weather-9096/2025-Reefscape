@@ -149,8 +149,7 @@ public class Robot extends TimedRobot {
             if (now >= end) {
                 stop();
 
-                // TODO Coral
-                if (operation == Operation.RECEIVE_ALGAE) {
+                if (operation == Operation.RECEIVE_CORAL || operation == Operation.RECEIVE_ALGAE) {
                     elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_LOWER_TAGS);
                 }
 
@@ -285,7 +284,7 @@ public class Robot extends TimedRobot {
 
         elevatorSubsystem.receiveCoral();
 
-        // TODO Wait 200ms?
+        // TODO Wait 500ms
 
         // TODO Reverse (robot-relative)
     }
@@ -299,7 +298,7 @@ public class Robot extends TimedRobot {
 
         elevatorSubsystem.receiveAlgae();
 
-        // TODO Wait 200ms?
+        // TODO Wait 500ms
 
         var vx = Units.InchesPerSecond.of(RECEIVE_ALGAE_DISTANCE / RECEIVE_ALGAE_TIME).in(Units.MetersPerSecond);
 

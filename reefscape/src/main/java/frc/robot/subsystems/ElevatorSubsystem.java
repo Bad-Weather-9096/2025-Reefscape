@@ -16,11 +16,11 @@ public class ElevatorSubsystem extends SubsystemBase {
         TARGET_LOWER_TAGS(0.0, 0.0), // TODO
         TARGET_UPPER_TAGS(0.0, 0.0), // TODO
         RECEIVE_CORAL(0.0, 0.0), // TODO
+        RELEASE_LOWER_CORAL(0.0, 0.0), // TODO
+        RELEASE_UPPER_CORAL(0.0, 0.0), // TODO
         RECEIVE_LOWER_ALGAE(0.0, 0.0), // TODO
         RECEIVE_UPPER_ALGAE(0.0, 0.0), // TODO
-        RELEASE_ALGAE(0.0, 0.0), // TODO
-        RELEASE_LOWER_CORAL(0.0, 0.0), // TODO
-        RELEASE_UPPER_CORAL(0.0, 0.0); // TODO
+        RELEASE_ALGAE(0.0, 0.0); // TODO
 
         private final double elevatorHeight; // inches
         private final double endEffectorAngle; // degrees
@@ -34,9 +34,9 @@ public class ElevatorSubsystem extends SubsystemBase {
     private SparkMax elevatorSparkMax = new SparkMax(9, SparkLowLevel.MotorType.kBrushless);
     private SparkMax endEffectorSparkMax = new SparkMax(10, SparkLowLevel.MotorType.kBrushless);
 
-    private SparkMax intakeSparkMax = new SparkMax(11, SparkLowLevel.MotorType.kBrushless);
-
     private Servo intakeServo = new Servo(0);
+
+    private SparkMax intakeSparkMax = new SparkMax(11, SparkLowLevel.MotorType.kBrushless);
 
     private Position position = null;
 
