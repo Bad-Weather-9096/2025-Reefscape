@@ -49,6 +49,9 @@ public class Robot extends TimedRobot {
 
     private static final double SHIFT_SPEED = 0.25; // percent
 
+    private static final double RECEIVE_CORAL_DISTANCE = 12.0; // inches
+    private static final double RECEIVE_CORAL_TIME = 2.0; // seconds
+
     private static final double RECEIVE_ALGAE_DISTANCE = 12.0; // inches
     private static final double RECEIVE_ALGAE_TIME = 4.0; // seconds
 
@@ -284,9 +287,11 @@ public class Robot extends TimedRobot {
 
         elevatorSubsystem.receiveCoral();
 
-        // TODO Wait 500ms
+        var vx = Units.InchesPerSecond.of(RECEIVE_CORAL_DISTANCE / RECEIVE_CORAL_TIME).in(Units.MetersPerSecond);
 
-        // TODO Reverse (robot-relative)
+        var xSpeed = -vx / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
+
+        driveSubsystem.drive(xSpeed, 0.0, 0.0, false);
     }
 
     private void receiveAlgae() {
@@ -297,8 +302,6 @@ public class Robot extends TimedRobot {
         operation = Operation.RECEIVE_ALGAE;
 
         elevatorSubsystem.receiveAlgae();
-
-        // TODO Wait 500ms
 
         var vx = Units.InchesPerSecond.of(RECEIVE_ALGAE_DISTANCE / RECEIVE_ALGAE_TIME).in(Units.MetersPerSecond);
 
