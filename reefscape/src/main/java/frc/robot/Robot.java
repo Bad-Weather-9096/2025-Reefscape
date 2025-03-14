@@ -39,21 +39,12 @@ public class Robot extends TimedRobot {
 
     private static final String LIMELIGHT_URL = "http://10.90.96.11:5800";
 
-    private static final double REVERSE_DISTANCE = 36.0; // inches
-    private static final double REVERSE_TIME = 4.0; // seconds
-
     private static final double DRIVE_DEADBAND = 0.05;
 
     private static final double CORAL_STATION_OFFSET = 8.0; // inches
     private static final double REEF_OFFSET = 6.75; // inches
 
     private static final double SHIFT_SPEED = 0.25; // percent
-
-    private static final double RECEIVE_CORAL_DISTANCE = 12.0; // inches
-    private static final double RECEIVE_CORAL_TIME = 2.0; // seconds
-
-    private static final double RECEIVE_ALGAE_DISTANCE = 12.0; // inches
-    private static final double RECEIVE_ALGAE_TIME = 4.0; // seconds
 
     public static final List<FieldElement> fieldElements = List.of(
         new FieldElement(FieldElement.Type.CORAL_STATION, -126.0),
@@ -117,15 +108,16 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousInit() {
-        var dx = Units.Inches.of(REVERSE_DISTANCE).in(Units.Meters);
+        var dx = Units.Inches.of(36.0).in(Units.Meters);
 
-        var xSpeed = -(dx / REVERSE_TIME) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
+        var t = 4.0; // seconds
 
-        var rot = (Math.PI / REVERSE_TIME) / Constants.DriveConstants.kMaxAngularSpeed;
+        var xSpeed = -(dx / t) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
+        var rot = (Math.PI / t) / Constants.DriveConstants.kMaxAngularSpeed;
 
         driveSubsystem.drive(xSpeed, 0.0, rot, false);
 
-        end = System.currentTimeMillis() + (long)(REVERSE_TIME * 1000);
+        end = System.currentTimeMillis() + (long)(t * 1000);
     }
 
     @Override
@@ -287,11 +279,14 @@ public class Robot extends TimedRobot {
 
         elevatorSubsystem.receiveCoral();
 
-        var vx = Units.InchesPerSecond.of(RECEIVE_CORAL_DISTANCE / RECEIVE_CORAL_TIME).in(Units.MetersPerSecond);
+        var t = 2.0; // seconds
+        var vx = Units.InchesPerSecond.of(12.0 / t).in(Units.MetersPerSecond);
 
         var xSpeed = -vx / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
 
         driveSubsystem.drive(xSpeed, 0.0, 0.0, false);
+
+        end = System.currentTimeMillis() + (long)(t * 1000);
     }
 
     private void receiveAlgae() {
@@ -303,7 +298,8 @@ public class Robot extends TimedRobot {
 
         elevatorSubsystem.receiveAlgae();
 
-        var vx = Units.InchesPerSecond.of(RECEIVE_ALGAE_DISTANCE / RECEIVE_ALGAE_TIME).in(Units.MetersPerSecond);
+        var t = 4.0; // seconds
+        var vx = Units.InchesPerSecond.of(12.0 / t).in(Units.MetersPerSecond);
 
         var xSpeed = -vx / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
 
@@ -313,7 +309,7 @@ public class Robot extends TimedRobot {
         elevatorSubsystem.setElevatorSpeed(0.05);
         elevatorSubsystem.setEndEffectorPosition(-0.25);
 
-        end = System.currentTimeMillis() + (long)(RECEIVE_ALGAE_TIME * 1000);
+        end = System.currentTimeMillis() + (long)(t * 1000);
     }
 
     private void stop() {
