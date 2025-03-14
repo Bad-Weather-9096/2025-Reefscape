@@ -8,19 +8,17 @@
 * Right stick
   * left/right - spin
 * A-button - align to target (robot-relative)
-* Left/right bumper - select reef branch or coral station slot
+* Left/right bumper - shift left/right
 
 ## Auxilliary Controller
-* A-button - target lower tags (processor/reef)
-* B-button - target upper tags (coral station)
-* X-button - extract algae
+* A-button - target lower tags
+* B-button - target upper tags
+* X-button - prepare to receive coral/release algae
 * D-pad
-  * up - select upper branch
-  * down - select lower branch
-* Left bumper - recieve coral
-* Right bumper - release coral
-* Left trigger - receive algae
-* Right trigger - release algae
+  * up - select upper reef position
+  * down - select lower reef position
+* Left bumper - recieve coral/algae
+* Right bumper - release coral/algae
 
 ## Test Mode
 * Left stick

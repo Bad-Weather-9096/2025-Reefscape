@@ -19,7 +19,8 @@ import java.util.List;
 public class Robot extends TimedRobot {
     private enum Operation {
         SHIFT,
-        EXTRACT_ALGAE
+        RECEIVE_CORAL,
+        RECEIVE_ALGAE
     }
 
     private XboxController driveController = new XboxController(0);
@@ -42,15 +43,14 @@ public class Robot extends TimedRobot {
     private static final double REVERSE_TIME = 4.0; // seconds
 
     private static final double DRIVE_DEADBAND = 0.05;
-    private static final double INTAKE_DEADBAND = 0.02;
 
     private static final double CORAL_STATION_OFFSET = 8.0; // inches
     private static final double REEF_OFFSET = 6.75; // inches
 
     private static final double SHIFT_SPEED = 0.25; // percent
 
-    private static final double ALGAE_EXTRACTION_DISTANCE = 12.0; // inches
-    private static final double ALGAE_EXTRACTION_TIME = 4.0; // seconds
+    private static final double RECEIVE_ALGAE_DISTANCE = 12.0; // inches
+    private static final double RECEIVE_ALGAE_TIME = 4.0; // seconds
 
     public static final List<FieldElement> fieldElements = List.of(
         new FieldElement(FieldElement.Type.CORAL_STATION, -126.0),
@@ -149,7 +149,8 @@ public class Robot extends TimedRobot {
             if (now >= end) {
                 stop();
 
-                if (operation == Operation.EXTRACT_ALGAE) {
+                // TODO Coral
+                if (operation == Operation.RECEIVE_ALGAE) {
                     elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_LOWER_TAGS);
                 }
 
@@ -205,23 +206,31 @@ public class Robot extends TimedRobot {
     }
 
     private void operate() {
+        var target = getTarget();
+
         if (elevatorController.getAButtonPressed()) {
             elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_LOWER_TAGS);
         } else if (elevatorController.getBButtonPressed()) {
             elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_UPPER_TAGS);
-        } else if (elevatorController.getXButtonPressed()) {
-            extractAlgae();
-        } else if (elevatorController.getLeftBumperButtonPressed()) {
-            elevatorSubsystem.receiveCoral();
-        } else if (elevatorController.getRightBumperButtonPressed()) {
-            elevatorSubsystem.releaseCoral();
+        } else if (elevatorController.getXButtonPressed() && target != null) {
+            switch (target.getType()) {
+                case CORAL_STATION -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_CORAL);
+                case PROCESSOR -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_ALGAE);
+            }
+        } else if (elevatorController.getLeftBumperButtonPressed() && target != null) {
+            switch (target.getType()) {
+                case CORAL_STATION -> receiveCoral();
+                case PROCESSOR -> receiveAlgae();
+            }
+        } else if (elevatorController.getRightBumperButtonPressed() && target != null) {
+            switch (target.getType()) {
+                case PROCESSOR -> elevatorSubsystem.releaseAlgae();
+                case REEF -> elevatorSubsystem.releaseCoral();
+            }
         } else {
-            var target = getTarget();
-
             if (target != null) {
                 var pov = elevatorController.getPOV();
 
-                // TODO Receive coral/release algae heights
                 if (pov != -1) {
                     switch (pov) {
                         case 0 -> {
@@ -242,11 +251,6 @@ public class Robot extends TimedRobot {
                 }
             }
         }
-
-        var leftTrigger = MathUtil.applyDeadband(elevatorController.getLeftTriggerAxis(), INTAKE_DEADBAND);
-        var rightTrigger = MathUtil.applyDeadband(elevatorController.getRightTriggerAxis(), INTAKE_DEADBAND);
-
-        elevatorSubsystem.setIntakeSpeed(leftTrigger - rightTrigger);
     }
 
     @Override
@@ -272,14 +276,32 @@ public class Robot extends TimedRobot {
         end = System.currentTimeMillis() + (long)(t * 1000);
     }
 
-    private void extractAlgae() {
-        if (operation == Operation.EXTRACT_ALGAE) {
+    private void receiveCoral() {
+        if (operation == Operation.RECEIVE_CORAL) {
             return;
         }
 
-        operation = Operation.EXTRACT_ALGAE;
+        operation = Operation.RECEIVE_CORAL;
 
-        var vx = Units.InchesPerSecond.of(ALGAE_EXTRACTION_DISTANCE / ALGAE_EXTRACTION_TIME).in(Units.MetersPerSecond);
+        elevatorSubsystem.receiveCoral();
+
+        // TODO Wait 200ms?
+
+        // TODO Reverse (robot-relative)
+    }
+
+    private void receiveAlgae() {
+        if (operation == Operation.RECEIVE_ALGAE) {
+            return;
+        }
+
+        operation = Operation.RECEIVE_ALGAE;
+
+        elevatorSubsystem.receiveAlgae();
+
+        // TODO Wait 200ms?
+
+        var vx = Units.InchesPerSecond.of(RECEIVE_ALGAE_DISTANCE / RECEIVE_ALGAE_TIME).in(Units.MetersPerSecond);
 
         var xSpeed = -vx / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
 
@@ -289,7 +311,7 @@ public class Robot extends TimedRobot {
         elevatorSubsystem.setElevatorSpeed(0.05);
         elevatorSubsystem.setEndEffectorPosition(-0.25);
 
-        end = System.currentTimeMillis() + (long)(ALGAE_EXTRACTION_TIME * 1000);
+        end = System.currentTimeMillis() + (long)(RECEIVE_ALGAE_TIME * 1000);
     }
 
     private void stop() {
