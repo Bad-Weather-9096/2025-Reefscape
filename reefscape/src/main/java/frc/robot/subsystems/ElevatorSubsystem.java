@@ -13,12 +13,12 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class ElevatorSubsystem extends SubsystemBase {
     public enum Position {
         TRANSPORT(0.0, 0.0),
-        TARGET_LOWER_TAGS(8.0, 0.0),
-        TARGET_UPPER_TAGS(20.0, 0.0),
-        RECEIVE_CORAL(24.0, 35.0),
+        TARGET_LOWER_TAGS(16.0, 0.0),
+        TARGET_UPPER_TAGS(28.0, 0.0),
+        RECEIVE_CORAL(18.0, 15.0),
         RECEIVE_LOWER_ALGAE(24.0, 90.0),
         RECEIVE_UPPER_ALGAE(36.0, 90.0),
-        RELEASE_ALGAE(10.0, 135.0),
+        RELEASE_ALGAE(10.0, 125.0),
         RELEASE_LOWER_CORAL(20.0, 125.0),
         RELEASE_UPPER_CORAL(32.0, 125.0);
 
@@ -80,7 +80,7 @@ public class ElevatorSubsystem extends SubsystemBase {
             SparkBase.ResetMode.kResetSafeParameters,
             SparkBase.PersistMode.kPersistParameters);
 
-        endEffectorSparkMax.getEncoder().setPosition(-1.3);
+        endEffectorSparkMax.getEncoder().setPosition(-1.2);
 
         // Intake
         var intakeConfig = new SparkMaxConfig();
