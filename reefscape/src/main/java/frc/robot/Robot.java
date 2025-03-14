@@ -335,15 +335,35 @@ public class Robot extends TimedRobot {
 
     @Override
     public void testPeriodic() {
-        elevatorSubsystem.setElevatorSpeed(-elevatorController.getLeftY());
-        elevatorSubsystem.setEndEffectorPosition(Math.max(-elevatorController.getRightY(), 0.0));
-        elevatorSubsystem.setIntakeSpeed(elevatorController.getLeftTriggerAxis() - elevatorController.getRightTriggerAxis());
+        if (elevatorController.getAButtonPressed()) {
+            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_CORAL);
+        } else if (elevatorController.getBButtonPressed()) {
+            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_ALGAE);
+        } else if (elevatorController.getXButton()) {
+            var pov = elevatorController.getPOV();
+
+            switch (pov) {
+                case 0 -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_UPPER_CORAL);
+                case 180 -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_LOWER_CORAL);
+            }
+        } else if (elevatorController.getYButton()) {
+            var pov = elevatorController.getPOV();
+
+            switch (pov) {
+                case 0 -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_UPPER_ALGAE);
+                case 180 -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_LOWER_ALGAE);
+            }
+        } else {
+            elevatorSubsystem.setElevatorSpeed(-elevatorController.getLeftY());
+            elevatorSubsystem.setEndEffectorPosition(Math.max(-elevatorController.getRightY(), 0.0));
+            elevatorSubsystem.setIntakeSpeed(elevatorController.getLeftTriggerAxis() - elevatorController.getRightTriggerAxis());
+        }
     }
 
     @Override
     public void testExit() {
-        elevatorSubsystem.setElevatorSpeed(0.0);
-        elevatorSubsystem.setEndEffectorPosition(0.0);
         elevatorSubsystem.setIntakeSpeed(0.0);
+
+        elevatorSubsystem.setPosition(ElevatorSubsystem.Position.BASE);
     }
 }

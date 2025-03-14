@@ -25,4 +25,11 @@
   * up/down - raise/lower elevator
 * Right stick
   * up/down - raise/lower end effector
-* Left/right trigger - recieve/release algae
+* A-button - move to "receive coral" position
+* B-button - move to "release algae" position
+* D-pad
+  * up + X-button - move to "upper coral" reef position
+  * up + Y-button - move to "upper algae" reef position 
+  * down + X-button - move to "lower coral" reef position
+  * down + Y-button - move to "lower algae" reef position
+* Left/right trigger - run intake wheels
