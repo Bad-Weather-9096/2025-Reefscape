@@ -204,45 +204,47 @@ public class Robot extends TimedRobot {
     }
 
     private void operate() {
-        var target = getTarget();
-
         if (elevatorController.getAButtonPressed()) {
             elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_LOWER_TAGS);
         } else if (elevatorController.getBButtonPressed()) {
             elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_UPPER_TAGS);
-        } else if (elevatorController.getXButtonPressed() && target != null) {
-            switch (target.getType()) {
-                case CORAL_STATION -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_CORAL);
-                case PROCESSOR -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_ALGAE);
-            }
-        } else if (elevatorController.getLeftBumperButtonPressed() && target != null) {
-            switch (target.getType()) {
-                case CORAL_STATION -> receiveCoral();
-                case PROCESSOR -> receiveAlgae();
-            }
-        } else if (elevatorController.getRightBumperButtonPressed() && target != null) {
-            switch (target.getType()) {
-                case PROCESSOR -> elevatorSubsystem.releaseAlgae();
-                case REEF -> elevatorSubsystem.releaseCoral();
-            }
         } else {
-            if (target != null) {
-                var pov = elevatorController.getPOV();
+            var target = getTarget();
 
-                if (pov != -1) {
-                    switch (pov) {
-                        case 0 -> {
-                            if (elevatorSubsystem.hasCoral()) {
-                                elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_UPPER_CORAL);
-                            } else {
-                                elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_UPPER_ALGAE);
+            if (target != null) {
+                if (elevatorController.getXButtonPressed()) {
+                    switch (target.getType()) {
+                        case CORAL_STATION -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_CORAL);
+                        case PROCESSOR -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_ALGAE);
+                    }
+                } else if (elevatorController.getLeftBumperButtonPressed()) {
+                    switch (target.getType()) {
+                        case CORAL_STATION -> receiveCoral();
+                        case PROCESSOR -> receiveAlgae();
+                    }
+                } else if (elevatorController.getRightBumperButtonPressed()) {
+                    switch (target.getType()) {
+                        case PROCESSOR -> elevatorSubsystem.releaseAlgae();
+                        case REEF -> elevatorSubsystem.releaseCoral();
+                    }
+                } else {
+                    var pov = elevatorController.getPOV();
+
+                    if (pov != -1) {
+                        switch (pov) {
+                            case 0 -> {
+                                if (elevatorSubsystem.hasCoral()) {
+                                    elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_UPPER_CORAL);
+                                } else {
+                                    elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_UPPER_ALGAE);
+                                }
                             }
-                        }
-                        case 180 -> {
-                            if (elevatorSubsystem.hasCoral()) {
-                                elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_LOWER_CORAL);
-                            } else {
-                                elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_LOWER_ALGAE);
+                            case 180 -> {
+                                if (elevatorSubsystem.hasCoral()) {
+                                    elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_LOWER_CORAL);
+                                } else {
+                                    elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_LOWER_ALGAE);
+                                }
                             }
                         }
                     }

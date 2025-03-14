@@ -20,7 +20,7 @@
 * Left bumper - recieve coral/algae
 * Right bumper - release coral/algae
 
-## Test Mode
+### Test Mode
 * Left stick
   * up/down - raise/lower elevator
 * Right stick
