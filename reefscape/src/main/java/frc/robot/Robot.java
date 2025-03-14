@@ -108,11 +108,11 @@ public class Robot extends TimedRobot {
 
     @Override
     public void autonomousInit() {
-        var dx = Units.Inches.of(36.0).in(Units.Meters);
-
         var t = 4.0; // seconds
 
-        var xSpeed = -(dx / t) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
+        var dx = -Units.Inches.of(36.0).in(Units.Meters);
+
+        var xSpeed = (dx / t) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
         var rot = (Math.PI / t) / Constants.DriveConstants.kMaxAngularSpeed;
 
         driveSubsystem.drive(xSpeed, 0.0, rot, false);
