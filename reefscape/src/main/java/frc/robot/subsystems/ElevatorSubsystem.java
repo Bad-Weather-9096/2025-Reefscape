@@ -15,7 +15,7 @@ public class ElevatorSubsystem extends SubsystemBase {
         TRANSPORT(0.0, 0.0),
         TARGET_LOWER_TAGS(16.0, 0.0),
         TARGET_UPPER_TAGS(28.0, 0.0),
-        RECEIVE_CORAL(18.0, 15.0),
+        RECEIVE_CORAL(24.0, 10.0),
         RECEIVE_LOWER_ALGAE(24.0, 90.0),
         RECEIVE_UPPER_ALGAE(36.0, 90.0),
         RELEASE_ALGAE(10.0, 125.0),
