@@ -116,6 +116,13 @@ public class Robot extends TimedRobot {
                 case 0 -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_UPPER_CORAL);
                 case 180 -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_LOWER_CORAL);
             }
+        } else if (elevatorController.getXButtonPressed()) {
+            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_ALGAE);
+        } else if (elevatorController.getYButton()) {
+            switch (elevatorController.getPOV()) {
+                case 0 -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_UPPER_ALGAE);
+                case 180 -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_LOWER_ALGAE);
+            }
         } else if (elevatorController.getLeftBumperButtonPressed()) {
             elevatorSubsystem.receiveCoral();
         } else if (elevatorController.getRightBumperButtonPressed()) {
