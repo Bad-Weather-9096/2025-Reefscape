@@ -95,8 +95,8 @@ public class Robot extends TimedRobot {
 
         boolean fieldRelative;
         if (driveController.getAButton()) {
-            xSpeed *= 0.5;
-            ySpeed *= 0.5;
+            xSpeed *= 0.25;
+            ySpeed *= 0.25;
             rot *= 0.5;
 
             fieldRelative = false;
@@ -110,7 +110,7 @@ public class Robot extends TimedRobot {
     private void operate() {
         if (elevatorController.getAButtonPressed()) {
             elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_CORAL);
-        } else if (elevatorController.getBButtonPressed()) {
+        } else if (elevatorController.getBButton()) {
             switch (elevatorController.getPOV()) {
                 case 0 -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_UPPER_CORAL);
                 case 180 -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_LOWER_CORAL);

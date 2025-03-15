@@ -7,7 +7,7 @@
   * left/right - strafe
 * Right stick
   * left/right - spin
-* A-button - engage robot-relative/half-speed driving
+* A-button - robot-relative/reduced-speed driving
 
 ## Auxilliary Controller
 * Left stick
