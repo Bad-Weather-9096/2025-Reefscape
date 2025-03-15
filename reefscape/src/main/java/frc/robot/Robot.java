@@ -144,7 +144,7 @@ public class Robot extends TimedRobot {
             var endEffectorSpeed = -MathUtil.applyDeadband(elevatorController.getRightY(), END_EFFECTOR_DEADBAND);
 
             if (endEffectorSpeed != 0.0) {
-                elevatorSubsystem.setEndEffectorSpeed(endEffectorSpeed);
+                elevatorSubsystem.setEndEffectorSpeed(endEffectorSpeed * 0.15);
             }
 
             var leftTriggerAxis = elevatorController.getLeftTriggerAxis();

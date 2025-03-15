@@ -96,7 +96,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public void setEndEffectorSpeed(double speed) {
-        endEffectorSparkMax.set(speed * 0.10);
+        endEffectorSparkMax.set(speed);
     }
 
     public void setAlgaeIntakeSpeed(double speed) {
