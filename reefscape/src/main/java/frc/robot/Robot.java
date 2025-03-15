@@ -111,6 +111,10 @@ public class Robot extends TimedRobot {
         }
 
         driveSubsystem.drive(xSpeed, ySpeed, rot, fieldRelative);
+
+        if (driveController.getXButtonPressed()) {
+            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.BASE);
+        }
     }
 
     private void operate() {
@@ -128,8 +132,6 @@ public class Robot extends TimedRobot {
                 case 0 -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_UPPER_ALGAE);
                 case 180 -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_LOWER_ALGAE);
             }
-        } else if (elevatorController.getLeftBumperButtonPressed() && elevatorController.getRightBumperButtonPressed()) {
-            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.BASE);
         } else if (elevatorController.getLeftBumperButtonPressed()) {
             elevatorSubsystem.receiveCoral();
         } else if (elevatorController.getRightBumperButtonPressed()) {
