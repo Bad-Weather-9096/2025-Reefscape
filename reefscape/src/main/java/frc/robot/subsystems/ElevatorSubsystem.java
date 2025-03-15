@@ -13,8 +13,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class ElevatorSubsystem extends SubsystemBase {
     public enum Position {
         BASE(0.0, 0.0),
-        TARGET_LOWER_TAGS(50.0, 1.5), // TODO
-        TARGET_UPPER_TAGS(100.0, 1.5), // TODO
+        TARGET_LOWER_TAGS(60.0, 1.5), // TODO
+        TARGET_UPPER_TAGS(110.0, 1.5), // TODO
         RECEIVE_CORAL(120.0, 1.5), // TODO
         RELEASE_LOWER_CORAL(50.0, 4.0), // TODO
         RELEASE_UPPER_CORAL(100.0, 4.0), // TODO
