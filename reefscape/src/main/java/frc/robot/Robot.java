@@ -81,6 +81,11 @@ public class Robot extends TimedRobot {
     }
 
     @Override
+    public void teleopInit() {
+        elevatorSubsystem.setPosition(ElevatorSubsystem.Position.START);
+    }
+
+    @Override
     public void teleopPeriodic() {
         readLimelight();
 
@@ -123,6 +128,8 @@ public class Robot extends TimedRobot {
                 case 0 -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_UPPER_ALGAE);
                 case 180 -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_LOWER_ALGAE);
             }
+        } else if (elevatorController.getLeftBumperButtonPressed() && elevatorController.getRightBumperButtonPressed()) {
+            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.BASE);
         } else if (elevatorController.getLeftBumperButtonPressed()) {
             elevatorSubsystem.receiveCoral();
         } else if (elevatorController.getRightBumperButtonPressed()) {
@@ -143,7 +150,7 @@ public class Robot extends TimedRobot {
             var leftTriggerAxis = elevatorController.getLeftTriggerAxis();
             var rightTriggerAxis = elevatorController.getRightTriggerAxis();
 
-            elevatorSubsystem.setAlgaeIntakeSpeed(leftTriggerAxis - rightTriggerAxis);
+            elevatorSubsystem.setAlgaeIntakeSpeed(rightTriggerAxis - leftTriggerAxis);
         }
     }
 

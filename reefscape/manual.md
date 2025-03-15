@@ -14,6 +14,7 @@
   * up/down - raise/lower elevator
 * Right stick
   * up/down - raise/lower end effector
+* Left bumper + right bumper - reset to base position
 
 ### Coral
 * A-button - prepare to recieve coral
