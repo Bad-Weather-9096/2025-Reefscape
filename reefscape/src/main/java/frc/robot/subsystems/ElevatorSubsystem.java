@@ -34,9 +34,9 @@ public class ElevatorSubsystem extends SubsystemBase {
     private SparkMax elevatorSparkMax = new SparkMax(9, SparkLowLevel.MotorType.kBrushless);
     private SparkMax endEffectorSparkMax = new SparkMax(10, SparkLowLevel.MotorType.kBrushless);
 
-    private Servo coralIntakeServo = new Servo(0);
-
     private SparkMax algaeIntakeSparkMax = new SparkMax(11, SparkLowLevel.MotorType.kBrushless);
+
+    private Servo coralIntakeServo = new Servo(0);
 
     private static final double CORAL_INTAKE_POSITION = 0.75; // percent
 
@@ -85,17 +85,21 @@ public class ElevatorSubsystem extends SubsystemBase {
             SparkBase.PersistMode.kPersistParameters);
     }
 
+    public void setPosition(Position position) {
+        elevatorSparkMax.getClosedLoopController().setReference(position.elevatorPosition, SparkBase.ControlType.kPosition);
+        endEffectorSparkMax.getClosedLoopController().setReference(position.endEffectorPosition, SparkBase.ControlType.kPosition);
+    }
+
     public void setElevatorSpeed(double speed) {
         elevatorSparkMax.set(speed);
     }
 
-    public void setIntakeSpeed(double speed) {
-        algaeIntakeSparkMax.set(speed);
+    public void setEndEffectorSpeed(double speed) {
+        endEffectorSparkMax.set(speed * 0.10);
     }
 
-    public void setPosition(Position position) {
-        elevatorSparkMax.getClosedLoopController().setReference(position.elevatorPosition, SparkBase.ControlType.kPosition);
-        endEffectorSparkMax.getClosedLoopController().setReference(position.endEffectorPosition, SparkBase.ControlType.kPosition);
+    public void setAlgaeIntakeSpeed(double speed) {
+        algaeIntakeSparkMax.set(speed);
     }
 
     public void receiveCoral() {

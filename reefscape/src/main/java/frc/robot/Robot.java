@@ -30,7 +30,8 @@ public class Robot extends TimedRobot {
     private static final String LIMELIGHT_URL = "http://10.90.96.11:5800";
 
     private static final double DRIVE_DEADBAND = 0.05;
-    private static final double ELEVATOR_DEADBAND = 0.10;
+    private static final double ELEVATOR_DEADBAND = 0.075;
+    private static final double END_EFFECTOR_DEADBAND = 0.075;
 
     @Override
     public void robotInit() {
@@ -126,10 +127,16 @@ public class Robot extends TimedRobot {
                 elevatorSubsystem.setElevatorSpeed(elevatorSpeed);
             }
 
+            var endEffectorSpeed = -MathUtil.applyDeadband(elevatorController.getRightY(), END_EFFECTOR_DEADBAND);
+
+            if (endEffectorSpeed != 0.0) {
+                elevatorSubsystem.setEndEffectorSpeed(endEffectorSpeed);
+            }
+
             var leftTriggerAxis = elevatorController.getLeftTriggerAxis();
             var rightTriggerAxis = elevatorController.getRightTriggerAxis();
 
-            elevatorSubsystem.setIntakeSpeed(leftTriggerAxis - rightTriggerAxis);
+            elevatorSubsystem.setAlgaeIntakeSpeed(leftTriggerAxis - rightTriggerAxis);
         }
     }
 

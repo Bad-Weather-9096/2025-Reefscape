@@ -12,6 +12,8 @@
 ## Auxilliary Controller
 * Left stick
   * up/down - raise/lower elevator
+* Right stick
+  * up/down - raise/lower end effector
 * A-button - prepare to recieve coral
 * D-pad + B-button
   * up - prepare to release upper coral
