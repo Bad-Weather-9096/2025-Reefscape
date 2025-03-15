@@ -21,13 +21,6 @@
 * Right bumper - release coral/algae
 
 ### Test Mode
-* Left stick
+* Left stick + Y-button
   * up/down - raise/lower elevator
-* A-button - move to "receive coral" position
-* B-button - move to "release algae" position
-* D-pad
-  * up + X-button - move to "upper coral" reef position
-  * up + Y-button - move to "upper algae" reef position 
-  * down + X-button - move to "lower coral" reef position
-  * down + Y-button - move to "lower algae" reef position
-* Left/right trigger - run intake wheels
+* X-button - move to "base" position

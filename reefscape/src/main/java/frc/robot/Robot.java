@@ -337,6 +337,20 @@ public class Robot extends TimedRobot {
 
     @Override
     public void testPeriodic() {
-        elevatorSubsystem.setElevatorSpeed(-driveController.getLeftY());
+        if (elevatorController.getAButtonPressed()) {
+            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_LOWER_ALGAE);
+        }
+
+        if (elevatorController.getBButtonPressed()) {
+            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_UPPER_ALGAE);
+        }
+
+        if (elevatorController.getXButtonPressed()) {
+            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.BASE);
+        }
+
+        if (elevatorController.getYButton()) {
+            elevatorSubsystem.setElevatorSpeed(-elevatorController.getLeftY());
+        }
     }
 }
