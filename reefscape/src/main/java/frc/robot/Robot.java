@@ -81,8 +81,6 @@ public class Robot extends TimedRobot {
 
     @Override
     public void robotInit() {
-        elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_LOWER_TAGS);
-
         CameraServer.startAutomaticCapture(new HttpCamera("limelight", LIMELIGHT_URL, HttpCameraKind.kMJPGStreamer));
     }
 
@@ -131,6 +129,11 @@ public class Robot extends TimedRobot {
         if (now >= end) {
             stop();
         }
+    }
+
+    @Override
+    public void teleopInit() {
+        elevatorSubsystem.setPosition(ElevatorSubsystem.Position.TARGET_LOWER_TAGS);
     }
 
     @Override
@@ -335,27 +338,6 @@ public class Robot extends TimedRobot {
 
     @Override
     public void testPeriodic() {
-        if (elevatorController.getAButtonPressed()) {
-            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_CORAL);
-        } else if (elevatorController.getBButtonPressed()) {
-            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_ALGAE);
-        } else if (elevatorController.getXButton()) {
-            var pov = elevatorController.getPOV();
-
-            switch (pov) {
-                case 0 -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_UPPER_CORAL);
-                case 180 -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_LOWER_CORAL);
-            }
-        } else if (elevatorController.getYButton()) {
-            var pov = elevatorController.getPOV();
-
-            switch (pov) {
-                case 0 -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_UPPER_ALGAE);
-                case 180 -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_LOWER_ALGAE);
-            }
-        } else {
-            elevatorSubsystem.setElevatorSpeed(-elevatorController.getLeftY());
-            elevatorSubsystem.setIntakeSpeed(elevatorController.getLeftTriggerAxis() - elevatorController.getRightTriggerAxis());
-        }
+        elevatorSubsystem.setElevatorSpeed(-driveController.getLeftY());
     }
 }

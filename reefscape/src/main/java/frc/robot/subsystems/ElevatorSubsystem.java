@@ -13,14 +13,14 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class ElevatorSubsystem extends SubsystemBase {
     public enum Position {
         BASE(0.0, 0.0),
-        TARGET_LOWER_TAGS(0.0, 0.6), // TODO
-        TARGET_UPPER_TAGS(0.0, 0.6), // TODO
-        RECEIVE_CORAL(0.0, 0.0), // TODO
-        RELEASE_LOWER_CORAL(0.0, 0.0), // TODO
-        RELEASE_UPPER_CORAL(0.0, 0.0), // TODO
-        RECEIVE_LOWER_ALGAE(0.0, 0.0), // TODO
-        RECEIVE_UPPER_ALGAE(0.0, 0.0), // TODO
-        RELEASE_ALGAE(0.0, 0.0); // TODO
+        TARGET_LOWER_TAGS(50.0, 1.5), // TODO
+        TARGET_UPPER_TAGS(100.0, 1.5), // TODO
+        RECEIVE_CORAL(120.0, 1.5), // TODO
+        RELEASE_LOWER_CORAL(50.0, 4.0), // TODO
+        RELEASE_UPPER_CORAL(100.0, 4.0), // TODO
+        RECEIVE_LOWER_ALGAE(0.0, 4.0), // TODO
+        RECEIVE_UPPER_ALGAE(0.0, 4.0), // TODO
+        RELEASE_ALGAE(0.0, 3.0); // TODO
 
         private final double elevatorPosition;
         private final double endEffectorPosition;
