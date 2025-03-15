@@ -38,10 +38,6 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private SparkMax algaeIntakeSparkMax = new SparkMax(11, SparkLowLevel.MotorType.kBrushless);
 
-    private Position position = null;
-
-    private boolean hasCoral = false;
-
     private static final double CORAL_INTAKE_POSITION = 0.75; // percent
 
     public ElevatorSubsystem() {
@@ -89,60 +85,34 @@ public class ElevatorSubsystem extends SubsystemBase {
             SparkBase.PersistMode.kPersistParameters);
     }
 
-    public boolean hasCoral() {
-        return hasCoral;
-    }
-
     public void setElevatorSpeed(double speed) {
         elevatorSparkMax.set(speed);
     }
 
     public void setIntakeSpeed(double speed) {
-        algaeIntakeSparkMax.set(0.5 * speed);
+        algaeIntakeSparkMax.set(speed);
     }
 
     public void setPosition(Position position) {
-        if (position == null) {
-            throw new IllegalArgumentException();
-        }
-
-        this.position = position;
-
         elevatorSparkMax.getClosedLoopController().setReference(position.elevatorPosition, SparkBase.ControlType.kPosition);
         endEffectorSparkMax.getClosedLoopController().setReference(position.endEffectorPosition, SparkBase.ControlType.kPosition);
     }
 
     public void receiveCoral() {
         coralIntakeServo.set(-CORAL_INTAKE_POSITION);
-
-        hasCoral = true;
     }
 
     public void releaseCoral() {
         coralIntakeServo.set(CORAL_INTAKE_POSITION);
-
-        hasCoral = false;
-    }
-
-    public void receiveAlgae() {
-        algaeIntakeSparkMax.set(0.5);
-    }
-
-    public void releaseAlgae() {
-        algaeIntakeSparkMax.set(0.0);
     }
 
     @Override
     public void periodic() {
-        SmartDashboard.putString("position", (position == null) ? "" : position.toString());
-
         SmartDashboard.putNumber("elevator-position", elevatorSparkMax.getEncoder().getPosition());
         SmartDashboard.putNumber("end-effector-position", endEffectorSparkMax.getEncoder().getPosition());
 
         SmartDashboard.putNumber("coral-intake-position", coralIntakeServo.get());
 
         SmartDashboard.putNumber("algae-intake-speed", algaeIntakeSparkMax.get());
-
-        SmartDashboard.putBoolean("has-coral", hasCoral);
     }
 }
