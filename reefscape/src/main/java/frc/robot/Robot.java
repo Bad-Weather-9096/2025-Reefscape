@@ -61,6 +61,8 @@ public class Robot extends TimedRobot {
 
     @Override
     public void robotPeriodic() {
+        SmartDashboard.putNumber("heading", driveSubsystem.getHeading());
+
         driveSubsystem.periodic();
         elevatorSubsystem.periodic();
     }
@@ -77,6 +79,8 @@ public class Robot extends TimedRobot {
 
         SmartDashboard.putNumber("tx", tx);
         SmartDashboard.putNumber("fiducial-id", fiducialID);
+
+        SmartDashboard.putNumber("target-angle", getTargetAngle());
     }
 
     private double getTargetAngle() {
