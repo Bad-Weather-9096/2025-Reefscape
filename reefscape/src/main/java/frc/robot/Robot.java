@@ -81,11 +81,6 @@ public class Robot extends TimedRobot {
     }
 
     @Override
-    public void teleopInit() {
-        elevatorSubsystem.setPosition(ElevatorSubsystem.Position.START);
-    }
-
-    @Override
     public void teleopPeriodic() {
         readLimelight();
 
