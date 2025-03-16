@@ -9,7 +9,10 @@ import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.DriveSubsystem;
+import frc.robot.subsystems.ElevatorPosition;
 import frc.robot.subsystems.ElevatorSubsystem;
+
+import java.util.Map;
 
 /**
  * Robot class.
@@ -30,8 +33,26 @@ public class Robot extends TimedRobot {
     private static final String LIMELIGHT_URL = "http://10.90.96.11:5800";
 
     private static final double DRIVE_DEADBAND = 0.05;
-    private static final double ELEVATOR_DEADBAND = 0.075;
-    private static final double END_EFFECTOR_DEADBAND = 0.075;
+    private static final double ELEVATOR_DEADBAND = 0.05;
+
+    private static final Map<Integer, Double> reefAngles = Map.ofEntries(
+        Map.entry(6, 60.0),
+        Map.entry(7, 0.0),
+        Map.entry(8, -60.0),
+        Map.entry(9, -120.0),
+        Map.entry(10, 180.0),
+        Map.entry(11, 120.0),
+        Map.entry(17, -60.0),
+        Map.entry(18, 0.0),
+        Map.entry(19, 60.0),
+        Map.entry(20, 120.0),
+        Map.entry(21, 180.0),
+        Map.entry(22, -120.0)
+    );
+
+    private static double normalizeAngle(double angle) {
+        return (angle + 180.0) % 360.0 - 180.0;
+    }
 
     @Override
     public void robotInit() {
@@ -58,6 +79,10 @@ public class Robot extends TimedRobot {
         SmartDashboard.putNumber("fiducial-id", fiducialID);
     }
 
+    private double getTargetAngle() {
+        return (fiducialID > 0) ? reefAngles.get(fiducialID - 1) : Double.NaN;
+    }
+
     @Override
     public void autonomousInit() {
         var t = 3.0; // seconds
@@ -76,7 +101,7 @@ public class Robot extends TimedRobot {
         var now = System.currentTimeMillis();
 
         if (now >= end) {
-            stop();
+            driveSubsystem.drive(0.0, 0.0, 0.0, false);
         }
     }
 
@@ -98,67 +123,60 @@ public class Robot extends TimedRobot {
         if (driveController.getAButton()) {
             xSpeed *= 0.25;
             ySpeed *= 0.25;
+
             rot *= 0.5;
 
             fieldRelative = false;
+        } else if (driveController.getBButton()) {
+            xSpeed *= 0.25;
+
+            var targetAngle = getTargetAngle();
+
+            if (Double.isNaN(targetAngle)) {
+                ySpeed *= 0.25;
+
+                rot = 0.0;
+            } else {
+                var offset = normalizeAngle(targetAngle) - normalizeAngle(driveSubsystem.getHeading());
+
+                rot = -offset / 15.0;
+
+                ySpeed *= Math.max(1.0 - Math.abs(rot), 0.0) * (Math.abs(tx) / 30.0);
+            }
+
+            fieldRelative = false;
         } else {
+            tx = 0.0;
+
+            fiducialID = -1;
+
             fieldRelative = true;
         }
 
         driveSubsystem.drive(xSpeed, ySpeed, rot, fieldRelative);
-
-        if (driveController.getXButtonPressed()) {
-            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.BASE);
-        }
     }
 
     private void operate() {
         if (elevatorController.getAButtonPressed()) {
-            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_CORAL);
+            elevatorSubsystem.setElevatorPosition(ElevatorPosition.RECEIVE_CORAL);
         } else if (elevatorController.getBButton()) {
             switch (elevatorController.getPOV()) {
-                case 0 -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_UPPER_CORAL);
-                case 180 -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_LOWER_CORAL);
+                case 0 -> elevatorSubsystem.setElevatorPosition(ElevatorPosition.RELEASE_UPPER_CORAL);
+                case 180 -> elevatorSubsystem.setElevatorPosition(ElevatorPosition.RELEASE_LOWER_CORAL);
             }
-        } else if (elevatorController.getXButtonPressed()) {
-            elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RELEASE_ALGAE);
-        } else if (elevatorController.getYButton()) {
-            switch (elevatorController.getPOV()) {
-                case 0 -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_UPPER_ALGAE);
-                case 180 -> elevatorSubsystem.setPosition(ElevatorSubsystem.Position.RECEIVE_LOWER_ALGAE);
-            }
-        } else if (elevatorController.getLeftBumperButtonPressed()) {
-            elevatorSubsystem.receiveCoral();
-        } else if (elevatorController.getRightBumperButtonPressed()) {
-            elevatorSubsystem.releaseCoral();
         } else {
             var elevatorSpeed = -MathUtil.applyDeadband(elevatorController.getLeftY(), ELEVATOR_DEADBAND);
 
             if (elevatorSpeed != 0.0) {
                 elevatorSubsystem.setElevatorSpeed(elevatorSpeed);
             }
-
-            var endEffectorSpeed = -MathUtil.applyDeadband(elevatorController.getRightY(), END_EFFECTOR_DEADBAND);
-
-            if (endEffectorSpeed != 0.0) {
-                elevatorSubsystem.setEndEffectorSpeed(endEffectorSpeed * 0.15);
-            }
-
-            var leftTriggerAxis = elevatorController.getLeftTriggerAxis();
-            var rightTriggerAxis = elevatorController.getRightTriggerAxis();
-
-            elevatorSubsystem.setAlgaeIntakeSpeed(rightTriggerAxis - leftTriggerAxis);
         }
     }
 
     @Override
     public void teleopExit() {
-        stop();
-
-        elevatorSubsystem.setPosition(ElevatorSubsystem.Position.BASE);
-    }
-
-    private void stop() {
         driveSubsystem.drive(0.0, 0.0, 0.0, false);
+
+        elevatorSubsystem.setElevatorPosition(ElevatorPosition.BASE);
     }
 }
