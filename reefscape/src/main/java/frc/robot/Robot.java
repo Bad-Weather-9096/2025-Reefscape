@@ -51,7 +51,7 @@ public class Robot extends TimedRobot {
     );
 
     private static double normalizeAngle(double angle) {
-        return (angle + 180.0) % 360.0 - 180.0;
+        return (angle + 360.0) % 360.0;
     }
 
     @Override
@@ -61,8 +61,6 @@ public class Robot extends TimedRobot {
 
     @Override
     public void robotPeriodic() {
-        SmartDashboard.putNumber("heading", driveSubsystem.getHeading());
-
         driveSubsystem.periodic();
         elevatorSubsystem.periodic();
     }
@@ -80,7 +78,19 @@ public class Robot extends TimedRobot {
         SmartDashboard.putNumber("tx", tx);
         SmartDashboard.putNumber("fiducial-id", fiducialID);
 
-        SmartDashboard.putNumber("target-angle", getTargetAngle());
+        var heading = driveSubsystem.getHeading();
+        var normalizedHeading = normalizeAngle(heading);
+
+        SmartDashboard.putNumber("heading", heading);
+        SmartDashboard.putNumber("heading-normalized", normalizedHeading);
+
+        var targetAngle = getTargetAngle();
+        var normalizedTargetAngle = normalizeAngle(targetAngle);
+
+        SmartDashboard.putNumber("target-angle", targetAngle);
+        SmartDashboard.putNumber("target-angle-normalized", normalizedTargetAngle);
+
+        SmartDashboard.putNumber("offset", normalizedTargetAngle - normalizedHeading);
     }
 
     private double getTargetAngle() {
