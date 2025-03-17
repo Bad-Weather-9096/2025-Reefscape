@@ -38,8 +38,7 @@ public class Robot extends TimedRobot {
     private static final double ELEVATOR_DEADBAND = 0.05;
 
     private static final double REEF_OFFSET = 6.75; // inches
-
-    private static final double SHIFT_SPEED = 0.125; // percent
+    private static final double SHIFT_SPEED = 0.125; // scale
 
     private static final Map<Integer, Double> reefAngles = Map.ofEntries(
         Map.entry(6, 60.0),
@@ -92,8 +91,8 @@ public class Robot extends TimedRobot {
     @Override
     public void autonomousInit() {
         var t = 3.0; // seconds
-
         var dx = -Units.Inches.of(36.0).in(Units.Meters);
+
         var xSpeed = (dx / t) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
 
         driveSubsystem.drive(xSpeed, 0.0, 0.0, false);
@@ -211,7 +210,6 @@ public class Robot extends TimedRobot {
         driveSubsystem.drive(0.0, -Math.signum(distance) * SHIFT_SPEED, 0.0, false);
 
         var dy = Units.Inches.of(distance).in(Units.Meters);
-
         var t = Math.abs(dy) / (SHIFT_SPEED * Constants.DriveConstants.kMaxSpeedMetersPerSecond);
 
         end = System.currentTimeMillis() + (long)(t * 1000);

@@ -59,15 +59,17 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public void receiveCoral() {
-        moveCoral(CORAL_LENGTH / (INTAKE_WHEEL_DIAMETER * Math.PI));
+        moveCoral(1.0);
     }
 
     public void releaseCoral() {
-        moveCoral(CORAL_LENGTH / (INTAKE_WHEEL_DIAMETER * Math.PI) * 1.25);
+        moveCoral(1.25);
     }
 
-    private void moveCoral(double rotations) {
+    private void moveCoral(double multiplier) {
         var position = intakeSparkMax.getEncoder().getPosition();
+
+        var rotations = CORAL_LENGTH / (INTAKE_WHEEL_DIAMETER * Math.PI) * multiplier;
 
         intakeSparkMax.getClosedLoopController().setReference(position + rotations * INTAKE_GEAR_RATIO, SparkBase.ControlType.kPosition);
     }
