@@ -14,8 +14,10 @@
 * Left stick
   * up/down - raise/lower elevator
 * A-button - prepare to recieve coral
-* D-pad + B-button
-  * up - prepare to release upper coral
-  * down - prepare to release lower coral
+* D-pad
+  * up - select upper reef branch
+  * down - select lower reef branch
+  * left - select left reef branch
+  * right - select right reef branch
 * Left bumper - recieve coral
 * Right bumper - release coral

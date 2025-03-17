@@ -28,12 +28,18 @@ public class Robot extends TimedRobot {
 
     private int fiducialID = -1;
 
+    private boolean shifting = false;
+
     private long end = Long.MIN_VALUE;
 
     private static final String LIMELIGHT_URL = "http://10.90.96.11:5800";
 
     private static final double DRIVE_DEADBAND = 0.05;
     private static final double ELEVATOR_DEADBAND = 0.05;
+
+    private static final double REEF_OFFSET = 6.75; // inches
+
+    private static final double SHIFT_SPEED = 0.125; // percent
 
     private static final Map<Integer, Double> reefAngles = Map.ofEntries(
         Map.entry(6, 60.0),
@@ -77,20 +83,6 @@ public class Robot extends TimedRobot {
 
         SmartDashboard.putNumber("tx", tx);
         SmartDashboard.putNumber("fiducial-id", fiducialID);
-
-        var heading = driveSubsystem.getHeading();
-        var normalizedHeading = normalizeAngle(heading);
-
-        SmartDashboard.putNumber("heading", heading);
-        SmartDashboard.putNumber("heading-normalized", normalizedHeading);
-
-        var targetAngle = getTargetAngle();
-        var normalizedTargetAngle = normalizeAngle(targetAngle);
-
-        SmartDashboard.putNumber("target-angle", targetAngle);
-        SmartDashboard.putNumber("target-angle-normalized", normalizedTargetAngle);
-
-        SmartDashboard.putNumber("offset", normalizedTargetAngle - normalizedHeading);
     }
 
     private double getTargetAngle() {
@@ -115,7 +107,7 @@ public class Robot extends TimedRobot {
         var now = System.currentTimeMillis();
 
         if (now >= end) {
-            driveSubsystem.drive(0.0, 0.0, 0.0, false);
+            stop();
         }
     }
 
@@ -128,6 +120,17 @@ public class Robot extends TimedRobot {
     }
 
     private void navigate() {
+        if (shifting) {
+            var now = System.currentTimeMillis();
+
+            if (now >= end) {
+                stop();
+
+                shifting = false;
+            }
+        }
+
+
         var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
         var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
 
@@ -135,25 +138,27 @@ public class Robot extends TimedRobot {
 
         boolean fieldRelative;
         if (driveController.getAButton()) {
-            xSpeed *= 0.25;
-            ySpeed *= 0.25;
+            xSpeed *= 0.5;
+            ySpeed *= 0.5;
 
             rot *= 0.5;
 
             fieldRelative = false;
         } else if (driveController.getBButton()) {
-            xSpeed *= 0.25;
+            xSpeed *= 0.5;
+            ySpeed *= 0.5;
 
             var targetAngle = getTargetAngle();
 
             if (Double.isNaN(targetAngle)) {
-                ySpeed *= 0.25;
-
                 rot = 0.0;
             } else {
-                var offset = normalizeAngle(targetAngle) - normalizeAngle(driveSubsystem.getHeading());
+                var normalizedTargetAngle = normalizeAngle(getTargetAngle());
+                var normalizedHeading = normalizeAngle(driveSubsystem.getHeading());
 
-                rot = -offset / 15.0;
+                var offset = normalizedTargetAngle - normalizedHeading;
+
+                rot = -(offset / 30.0);
 
                 ySpeed *= Math.max(1.0 - Math.abs(rot), 0.0) * (Math.abs(tx) / 30.0);
             }
@@ -173,23 +178,45 @@ public class Robot extends TimedRobot {
     private void operate() {
         if (elevatorController.getAButtonPressed()) {
             elevatorSubsystem.setElevatorPosition(ElevatorPosition.RECEIVE_CORAL);
-        } else if (elevatorController.getBButton()) {
-            switch (elevatorController.getPOV()) {
-                case 0 -> elevatorSubsystem.setElevatorPosition(ElevatorPosition.RELEASE_UPPER_CORAL);
-                case 180 -> elevatorSubsystem.setElevatorPosition(ElevatorPosition.RELEASE_LOWER_CORAL);
-            }
         } else {
             var elevatorSpeed = -MathUtil.applyDeadband(elevatorController.getLeftY(), ELEVATOR_DEADBAND);
 
-            if (elevatorSpeed != 0.0) {
+            if (elevatorSpeed == 0.0) {
+                switch (elevatorController.getPOV()) {
+                    case 0 -> elevatorSubsystem.setElevatorPosition(ElevatorPosition.RELEASE_UPPER_CORAL);
+                    case 180 -> elevatorSubsystem.setElevatorPosition(ElevatorPosition.RELEASE_LOWER_CORAL);
+                    case 270 -> shift(-REEF_OFFSET);
+                    case 90 -> shift(REEF_OFFSET);
+                }
+            } else {
                 elevatorSubsystem.setElevatorSpeed(elevatorSpeed);
             }
         }
     }
 
+    private void shift(double distance) {
+        if (shifting) {
+            return;
+        }
+
+        shifting = true;
+
+        driveSubsystem.drive(0.0, -Math.signum(distance) * SHIFT_SPEED, 0.0, false);
+
+        var dy = Units.Inches.of(distance).in(Units.Meters);
+
+        var t = Math.abs(dy) / (SHIFT_SPEED * Constants.DriveConstants.kMaxSpeedMetersPerSecond);
+
+        end = System.currentTimeMillis() + (long)(t * 1000);
+    }
+
+    private void stop() {
+        driveSubsystem.drive(0.0, 0.0, 0.0, false);
+    }
+
     @Override
     public void teleopExit() {
-        driveSubsystem.drive(0.0, 0.0, 0.0, false);
+        stop();
 
         elevatorSubsystem.setElevatorPosition(ElevatorPosition.BASE);
     }
