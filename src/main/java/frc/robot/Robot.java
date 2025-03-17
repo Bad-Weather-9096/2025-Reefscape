@@ -94,7 +94,6 @@ public class Robot extends TimedRobot {
         var t = 3.0; // seconds
 
         var dx = -Units.Inches.of(36.0).in(Units.Meters);
-
         var xSpeed = (dx / t) / Constants.DriveConstants.kMaxSpeedMetersPerSecond;
 
         driveSubsystem.drive(xSpeed, 0.0, 0.0, false);
@@ -137,37 +136,36 @@ public class Robot extends TimedRobot {
 
         var rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
 
+        var aButton = driveController.getAButton();
+        var bButton = driveController.getBButton();
+
         boolean fieldRelative;
-        if (driveController.getAButton()) {
+        if (aButton || bButton) {
             xSpeed *= 0.5;
             ySpeed *= 0.5;
 
-            rot *= 0.5;
+            if (bButton) {
+                var targetAngle = getTargetAngle();
 
-            fieldRelative = false;
-        } else if (driveController.getBButton()) {
-            xSpeed *= 0.5;
-            ySpeed *= 0.5;
+                if (Double.isNaN(targetAngle)) {
+                    rot = 0.0;
+                } else {
+                    var normalizedTargetAngle = normalizeAngle(getTargetAngle());
+                    var normalizedHeading = normalizeAngle(driveSubsystem.getHeading());
 
-            var targetAngle = getTargetAngle();
+                    var offset = normalizedTargetAngle - normalizedHeading;
 
-            if (Double.isNaN(targetAngle)) {
-                rot = 0.0;
+                    rot = -(offset / 30.0);
+
+                    ySpeed *= Math.max(1.0 - Math.abs(rot), 0.0) * (Math.abs(tx) / 30.0);
+                }
             } else {
-                var normalizedTargetAngle = normalizeAngle(getTargetAngle());
-                var normalizedHeading = normalizeAngle(driveSubsystem.getHeading());
-
-                var offset = normalizedTargetAngle - normalizedHeading;
-
-                rot = -(offset / 30.0);
-
-                ySpeed *= Math.max(1.0 - Math.abs(rot), 0.0) * (Math.abs(tx) / 30.0);
+                rot *= 0.5;
             }
 
             fieldRelative = false;
         } else {
             tx = 0.0;
-
             fiducialID = -1;
 
             fieldRelative = true;
