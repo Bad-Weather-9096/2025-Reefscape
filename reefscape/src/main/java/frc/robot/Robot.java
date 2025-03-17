@@ -128,8 +128,9 @@ public class Robot extends TimedRobot {
 
                 shifting = false;
             }
-        }
 
+            return;
+        }
 
         var xSpeed = -MathUtil.applyDeadband(driveController.getLeftY(), DRIVE_DEADBAND);
         var ySpeed = -MathUtil.applyDeadband(driveController.getLeftX(), DRIVE_DEADBAND);
@@ -178,19 +179,27 @@ public class Robot extends TimedRobot {
     private void operate() {
         if (elevatorController.getAButtonPressed()) {
             elevatorSubsystem.setElevatorPosition(ElevatorPosition.RECEIVE_CORAL);
+        } else if (elevatorController.getLeftBumperButtonPressed()) {
+            elevatorSubsystem.receiveCoral();
+        } else  if (elevatorController.getRightBumperButtonPressed()) {
+            elevatorSubsystem.releaseCoral();
         } else {
-            var elevatorSpeed = -MathUtil.applyDeadband(elevatorController.getLeftY(), ELEVATOR_DEADBAND);
+            var pov = elevatorController.getPOV();
 
-            if (elevatorSpeed == 0.0) {
+            if (pov != -1) {
                 switch (elevatorController.getPOV()) {
                     case 0 -> elevatorSubsystem.setElevatorPosition(ElevatorPosition.RELEASE_UPPER_CORAL);
                     case 180 -> elevatorSubsystem.setElevatorPosition(ElevatorPosition.RELEASE_LOWER_CORAL);
                     case 270 -> shift(-REEF_OFFSET);
                     case 90 -> shift(REEF_OFFSET);
                 }
-            } else {
-                elevatorSubsystem.setElevatorSpeed(elevatorSpeed);
             }
+        }
+
+        var elevatorSpeed = -MathUtil.applyDeadband(elevatorController.getLeftY(), ELEVATOR_DEADBAND);
+
+        if (elevatorSpeed != 0.0) {
+            elevatorSubsystem.setElevatorSpeed(elevatorSpeed);
         }
     }
 

@@ -10,9 +10,17 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class ElevatorSubsystem extends SubsystemBase {
     private SparkMax elevatorSparkMax = new SparkMax(9, SparkLowLevel.MotorType.kBrushless);
+    private SparkMax intakeSparkMax = new SparkMax(9, SparkLowLevel.MotorType.kBrushless);
+
+    // TODO
+    private static final double CORAL_LENGTH = 10.0; // inches
+    private static final double INTAKE_WHEEL_DIAMETER = 3.0; // inches
+    private static final double INTAKE_GEAR_RATIO = 1.0;
 
     public ElevatorSubsystem() {
         var elevatorConfig = new SparkMaxConfig();
+
+        elevatorConfig.smartCurrentLimit(30);
 
         elevatorConfig.closedLoop
             .feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
@@ -26,6 +34,21 @@ public class ElevatorSubsystem extends SubsystemBase {
             SparkBase.PersistMode.kPersistParameters);
 
         elevatorSparkMax.getEncoder().setPosition(0);
+
+        var intakeConfig = new SparkMaxConfig();
+
+        intakeConfig.smartCurrentLimit(20);
+
+        intakeConfig.closedLoop
+            .feedbackSensor(ClosedLoopConfig.FeedbackSensor.kPrimaryEncoder)
+            .p(0.1)
+            .i(0)
+            .d(0)
+            .outputRange(-1, 1);
+
+        intakeSparkMax.configure(intakeConfig,
+            SparkBase.ResetMode.kResetSafeParameters,
+            SparkBase.PersistMode.kPersistParameters);
     }
 
     public void setElevatorPosition(ElevatorPosition elevatorPosition) {
@@ -36,8 +59,23 @@ public class ElevatorSubsystem extends SubsystemBase {
         elevatorSparkMax.set(speed);
     }
 
+    public void receiveCoral() {
+        moveCoral(CORAL_LENGTH / (INTAKE_WHEEL_DIAMETER * Math.PI));
+    }
+
+    public void releaseCoral() {
+        moveCoral(CORAL_LENGTH / (INTAKE_WHEEL_DIAMETER * Math.PI) * 1.25);
+    }
+
+    private void moveCoral(double rotations) {
+        var position = intakeSparkMax.getEncoder().getPosition();
+
+        intakeSparkMax.getClosedLoopController().setReference(position + rotations * INTAKE_GEAR_RATIO, SparkBase.ControlType.kPosition);
+    }
+
     @Override
     public void periodic() {
         SmartDashboard.putNumber("elevator-position", elevatorSparkMax.getEncoder().getPosition());
+        SmartDashboard.putNumber("intake-position", intakeSparkMax.getEncoder().getPosition());
     }
 }
