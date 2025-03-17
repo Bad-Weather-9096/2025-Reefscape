@@ -13,7 +13,7 @@ public class ElevatorSubsystem extends SubsystemBase {
     private SparkMax intakeSparkMax = new SparkMax(9, SparkLowLevel.MotorType.kBrushless);
 
     private static final double CORAL_LENGTH = 11.875; // inches
-    private static final double INTAKE_WHEEL_DIAMETER = 2.1875; // inches
+    private static final double INTAKE_WHEEL_DIAMETER = 2.25; // inches
     private static final double INTAKE_GEAR_RATIO = 1.0;
 
     public ElevatorSubsystem() {
