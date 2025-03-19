@@ -10,7 +10,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class ElevatorSubsystem extends SubsystemBase {
     private SparkMax elevatorSparkMax = new SparkMax(9, SparkLowLevel.MotorType.kBrushless);
-    private SparkMax intakeSparkMax = new SparkMax(9, SparkLowLevel.MotorType.kBrushless);
+    private SparkMax intakeSparkMax = new SparkMax(10, SparkLowLevel.MotorType.kBrushless);
 
     private static final double CORAL_LENGTH = 11.875; // inches
     private static final double INTAKE_WHEEL_DIAMETER = 2.25; // inches
