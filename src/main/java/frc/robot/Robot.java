@@ -55,8 +55,8 @@ public class Robot extends TimedRobot {
         Map.entry(22, -120.0)
     );
 
-    private static double normalizeAngle(double angle) {
-        return (angle + 360.0) % 360.0;
+    public static double getOffset(double targetAngle, double heading) {
+        return ((targetAngle - heading) + 180) % 360 - 180;
     }
 
     @Override
@@ -149,12 +149,7 @@ public class Robot extends TimedRobot {
                 if (Double.isNaN(targetAngle)) {
                     rot = 0.0;
                 } else {
-                    var normalizedTargetAngle = normalizeAngle(getTargetAngle());
-                    var normalizedHeading = normalizeAngle(driveSubsystem.getHeading());
-
-                    var offset = normalizedTargetAngle - normalizedHeading;
-
-                    rot = -(offset / 15.0);
+                    rot = -(getOffset(targetAngle, driveSubsystem.getHeading()) / 15.0);
 
                     ySpeed *= Math.max(1.0 - Math.abs(rot), 0.0) * (Math.abs(tx) / 30.0);
                 }
