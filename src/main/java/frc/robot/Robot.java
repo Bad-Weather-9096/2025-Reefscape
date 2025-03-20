@@ -85,7 +85,7 @@ public class Robot extends TimedRobot {
     }
 
     private double getTargetAngle() {
-        return (fiducialID > 0) ? reefAngles.get(fiducialID - 1) : Double.NaN;
+        return (fiducialID > 0) ? reefAngles.get(fiducialID) : Double.NaN;
     }
 
     @Override
@@ -154,7 +154,7 @@ public class Robot extends TimedRobot {
 
                     var offset = normalizedTargetAngle - normalizedHeading;
 
-                    rot = -(offset / 30.0);
+                    rot = -(offset / 15.0);
 
                     ySpeed *= Math.max(1.0 - Math.abs(rot), 0.0) * (Math.abs(tx) / 30.0);
                 }
