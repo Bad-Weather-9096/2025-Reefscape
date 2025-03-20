@@ -159,9 +159,6 @@ public class Robot extends TimedRobot {
 
             fieldRelative = false;
         } else {
-            tx = 0.0;
-            fiducialID = -1;
-
             fieldRelative = true;
         }
 
