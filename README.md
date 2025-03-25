@@ -11,7 +11,7 @@
 * B-button - robot-relative/reduced-speed driving with steering correction
 
 ## Auxilliary Controller
-* Left stick
+* Left stick + B-button
   * up/down - raise/lower elevator
 * A-button - prepare to recieve coral
 * D-pad

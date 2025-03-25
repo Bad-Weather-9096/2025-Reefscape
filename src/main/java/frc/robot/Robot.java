@@ -168,6 +168,8 @@ public class Robot extends TimedRobot {
     private void operate() {
         if (elevatorController.getAButtonPressed()) {
             elevatorSubsystem.setElevatorPosition(ElevatorPosition.RECEIVE_CORAL);
+        } else if (elevatorController.getBButton()) {
+            elevatorSubsystem.setElevatorSpeed(-MathUtil.applyDeadband(elevatorController.getLeftY(), ELEVATOR_DEADBAND));
         } else if (elevatorController.getLeftBumperButtonPressed()) {
             elevatorSubsystem.receiveCoral();
         } else  if (elevatorController.getRightBumperButtonPressed()) {
@@ -183,12 +185,6 @@ public class Robot extends TimedRobot {
                     case 90 -> shift(REEF_OFFSET);
                 }
             }
-        }
-
-        var elevatorSpeed = -MathUtil.applyDeadband(elevatorController.getLeftY(), ELEVATOR_DEADBAND);
-
-        if (elevatorSpeed != 0.0) {
-            elevatorSubsystem.setElevatorSpeed(elevatorSpeed);
         }
     }
 
