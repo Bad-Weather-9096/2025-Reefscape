@@ -37,9 +37,6 @@ public class Robot extends TimedRobot {
     private static final double DRIVE_DEADBAND = 0.05;
     private static final double ELEVATOR_DEADBAND = 0.05;
 
-    private static final double REEF_OFFSET = 7.0; // inches
-    private static final double SHIFT_SPEED = 0.125; // scale
-
     private static final Map<Integer, Double> reefAngles = Map.ofEntries(
         Map.entry(6, 60.0),
         Map.entry(7, 0.0),
@@ -135,27 +132,27 @@ public class Robot extends TimedRobot {
 
         var rot = -MathUtil.applyDeadband(driveController.getRightX(), DRIVE_DEADBAND);
 
-        var aButton = driveController.getAButton();
-        var bButton = driveController.getBButton();
-
         boolean fieldRelative;
-        if (aButton || bButton) {
+        if (driveController.getAButton()) {
             xSpeed *= 0.5;
             ySpeed *= 0.5;
 
-            if (aButton) {
-                var targetAngle = getTargetAngle();
+            var targetAngle = getTargetAngle();
 
-                if (Double.isNaN(targetAngle)) {
-                    rot = 0.0;
-                } else {
-                    rot = -(getOffset(targetAngle, driveSubsystem.getHeading()) / 15.0);
-
-                    ySpeed *= Math.max(1.0 - Math.abs(rot), 0.0) * (Math.abs(tx) / 30.0);
-                }
+            if (Double.isNaN(targetAngle)) {
+                rot = 0.0;
             } else {
-                rot *= 0.5;
+                rot = -(getOffset(targetAngle, driveSubsystem.getHeading()) / 15.0);
+
+                ySpeed *= Math.max(1.0 - Math.abs(rot), 0.0) * (Math.abs(tx) / 30.0);
             }
+
+            fieldRelative = false;
+        } else if (driveController.getBButton()) {
+            xSpeed *= 0.25;
+            ySpeed *= 0.25;
+
+            rot *= 0.25;
 
             fieldRelative = false;
         } else {
@@ -185,26 +182,9 @@ public class Robot extends TimedRobot {
                 switch (elevatorController.getPOV()) {
                     case 0 -> elevatorSubsystem.setElevatorPosition(ElevatorPosition.RELEASE_UPPER_CORAL);
                     case 180 -> elevatorSubsystem.setElevatorPosition(ElevatorPosition.RELEASE_LOWER_CORAL);
-                    case 270 -> shift(-REEF_OFFSET);
-                    case 90 -> shift(REEF_OFFSET);
                 }
             }
         }
-    }
-
-    private void shift(double distance) {
-        if (shifting) {
-            return;
-        }
-
-        shifting = true;
-
-        driveSubsystem.drive(0.0, -Math.signum(distance) * SHIFT_SPEED, 0.0, false);
-
-        var dy = Units.Inches.of(distance).in(Units.Meters);
-        var t = Math.abs(dy) / (SHIFT_SPEED * Constants.DriveConstants.kMaxSpeedMetersPerSecond);
-
-        end = System.currentTimeMillis() + (long)(t * 1000);
     }
 
     private void stop() {
