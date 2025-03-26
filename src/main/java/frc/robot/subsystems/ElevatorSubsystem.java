@@ -68,11 +68,15 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public void receiveCoral() {
-        moveCoral(1.0);
+        moveCoral(0.85);
     }
 
     public void releaseCoral() {
-        moveCoral(1.25);
+        moveCoral(1.40);
+    }
+
+    public void reverseCoral() {
+        moveCoral(-1.25);
     }
 
     private void moveCoral(double multiplier) {

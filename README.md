@@ -7,8 +7,8 @@
   * left/right - strafe
 * Right stick
   * left/right - spin
-* A-button - robot-relative/reduced-speed driving
-* B-button - robot-relative/reduced-speed driving with steering correction
+* A-button - robot-relative/reduced-speed driving with steering correction
+* B-button - robot-relative/reduced-speed driving
 
 ## Auxilliary Controller
 * Left stick + B-button
@@ -21,3 +21,4 @@
   * right - select right reef branch
 * Left bumper - recieve coral
 * Right bumper - release coral
+* X-button - reverse coral

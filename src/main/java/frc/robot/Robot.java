@@ -143,7 +143,7 @@ public class Robot extends TimedRobot {
             xSpeed *= 0.5;
             ySpeed *= 0.5;
 
-            if (bButton) {
+            if (aButton) {
                 var targetAngle = getTargetAngle();
 
                 if (Double.isNaN(targetAngle)) {
@@ -167,13 +167,15 @@ public class Robot extends TimedRobot {
 
     private void operate() {
         if (elevatorController.getAButtonPressed()) {
-            elevatorSubsystem.setElevatorPosition(ElevatorPosition.RECEIVE_CORAL);
+            elevatorSubsystem.setElevatorPosition(ElevatorPosition.BASE);
         } else if (elevatorController.getBButton()) {
             elevatorSubsystem.setElevatorSpeed(-MathUtil.applyDeadband(elevatorController.getLeftY(), ELEVATOR_DEADBAND));
         } else if (elevatorController.getLeftBumperButtonPressed()) {
             elevatorSubsystem.receiveCoral();
-        } else  if (elevatorController.getRightBumperButtonPressed()) {
+        } else if (elevatorController.getRightBumperButtonPressed()) {
             elevatorSubsystem.releaseCoral();
+        } else if (elevatorController.getXButtonPressed()) {
+            elevatorSubsystem.reverseCoral();
         } else {
             var pov = elevatorController.getPOV();
 
