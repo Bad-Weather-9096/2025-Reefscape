@@ -67,6 +67,10 @@ public class ElevatorSubsystem extends SubsystemBase {
         elevatorSparkMax.set(speed);
     }
 
+    public void zeroElevator() {
+        elevatorSparkMax.getEncoder().setPosition(0);
+    }
+
     public void receiveCoral() {
         moveCoral(0.85);
     }
@@ -92,8 +96,5 @@ public class ElevatorSubsystem extends SubsystemBase {
     @Override
     public void periodic() {
         SmartDashboard.putNumber("elevator-position", elevatorSparkMax.getEncoder().getPosition());
-
-        SmartDashboard.putNumber("intake1-position", intakeSparkMax1.getEncoder().getPosition());
-        SmartDashboard.putNumber("intake2-position", intakeSparkMax2.getEncoder().getPosition());
     }
 }

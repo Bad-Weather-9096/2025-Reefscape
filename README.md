@@ -22,3 +22,4 @@
 * Left bumper - recieve coral
 * Right bumper - release coral
 * X-button - reverse coral
+* Y-button - zero elevator

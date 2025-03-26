@@ -37,7 +37,7 @@ public class Robot extends TimedRobot {
     private static final double DRIVE_DEADBAND = 0.05;
     private static final double ELEVATOR_DEADBAND = 0.05;
 
-    private static final double REEF_OFFSET = 6.75; // inches
+    private static final double REEF_OFFSET = 7.0; // inches
     private static final double SHIFT_SPEED = 0.125; // scale
 
     private static final Map<Integer, Double> reefAngles = Map.ofEntries(
@@ -176,6 +176,8 @@ public class Robot extends TimedRobot {
             elevatorSubsystem.releaseCoral();
         } else if (elevatorController.getXButtonPressed()) {
             elevatorSubsystem.reverseCoral();
+        } else if (elevatorController.getYButtonPressed()) {
+            elevatorSubsystem.zeroElevator();
         } else {
             var pov = elevatorController.getPOV();
 
