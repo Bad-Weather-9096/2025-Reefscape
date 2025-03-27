@@ -181,7 +181,7 @@ public class Robot extends TimedRobot {
             elevatorSubsystem.releaseCoral();
         } else if (elevatorController.getXButtonPressed()) {
             elevatorSubsystem.reverseCoral();
-        } else if (elevatorController.getYButtonPressed()) {
+        } else if (elevatorController.getYButtonPressed() && driveController.getYButton()) {
             elevatorSubsystem.zeroElevator();
         } else {
             var pov = elevatorController.getPOV();
