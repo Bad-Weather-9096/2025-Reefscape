@@ -17,6 +17,8 @@
 * D-pad
   * up - select upper reef branch
   * down - select lower reef branch
+  * left - shift left
+  * right - shift right
 * Left bumper - recieve coral
 * Right bumper - release coral
 * X-button - reverse coral
