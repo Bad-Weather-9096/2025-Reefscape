@@ -219,7 +219,5 @@ public class Robot extends TimedRobot {
     @Override
     public void teleopExit() {
         stop();
-
-        elevatorSubsystem.setElevatorPosition(ElevatorPosition.BASE);
     }
 }
