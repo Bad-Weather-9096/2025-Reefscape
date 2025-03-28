@@ -159,8 +159,8 @@ public class Robot extends TimedRobot {
 
             fieldRelative = false;
         } else {
-            xSpeed *= 1.5;
-            ySpeed *= 1.5;
+            xSpeed *= 2.0;
+            ySpeed *= 2.0;
 
             rot *= 1.5;
 

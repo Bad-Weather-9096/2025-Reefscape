@@ -3,7 +3,7 @@ package frc.robot.subsystems;
 public enum ElevatorPosition {
     BASE(0.0),
     RELEASE_LOWER_CORAL(99.0),
-    RELEASE_UPPER_CORAL(154.0);
+    RELEASE_UPPER_CORAL(163.0);
 
     private final double rotations;
 
